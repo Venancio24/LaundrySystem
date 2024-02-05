@@ -1,0 +1,98 @@
+@import './utils/typography/index.css';
+
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+h1,
+h2 {
+  margin: 0;
+  color: #676666;
+}
+
+input {
+  outline: none;
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.portal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 4;
+}
+
+.mantine-ionxj9 {
+  right: unset;
+}
+
+.mantine-a8q0fx {
+  zoom: 142% !important;
+}
+
+/* Para el calendario */
+.mantine-1ejqehl,
+.mantine-16higcy {
+  position: relative;
+}
+
+.mantine-15fwk36 {
+  width: 215px;
+}
+.mantine-1sd8r2y {
+  width: min-content;
+  left: 0px !important;
+}
+
+:root {
+  --primary-color: #007bff;
+  --secondary-color: #00a0e3;
+  /* SWITCH */
+  --switches-bg-color: goldenrod;
+  --switches-label-color: white;
+  --switch-bg-color: white;
+  --switch-text-color: goldenrod;
+}
+
+a {
+  text-decoration: none;
+}
+
+li {
+  list-style: none;
+  box-sizing: border-box;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.loading-general {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  display: grid;
+  place-content: center;
+}

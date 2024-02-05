@@ -1,0 +1,49 @@
+.portal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); // Fondo negro con opacidad
+    z-index: 10; // Asegúrate de que este sea menor que el z-index de .portal-container
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease-in-out;
+    opacity: 0;
+}
+
+.portal-exit-active {
+    opacity: 0; // Desvanece a opacidad 0
+}
+
+.portal-enter-active {
+    opacity: 1; // Anima a opacidad completa
+}
+
+.portal-container {
+    overflow: visible;
+    min-width: 400px;
+    min-height: 200px;
+    max-height: 650px;
+    // overflow: auto;
+    z-index: 11;
+    &::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        display: none;
+    }
+    .close-button {
+        position: absolute;
+        right: 0;
+        top: 0;
+        fill: #616161;
+        width: 3rem;
+        height: 3rem;
+        z-index: 1;
+        &:hover,
+        &:focus {
+            fill: #2260ff;
+        }
+    }
+}

@@ -1,0 +1,74 @@
+.content-setting-price {
+    padding: 10px 20px;
+    form {
+        display: grid;
+        place-items: center;
+        gap: 20px;
+        .tables-info-prendas {
+            display: flex;
+            gap: 25px;
+            max-width: 1000px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: center;
+        }
+    }
+    .cash-counter {
+        table {
+            display: block;
+            border-collapse: collapse;
+            margin: 10px auto;
+            &::-webkit-scrollbar {
+                width: 0;
+            }
+            tr {
+                position: relative;
+                display: grid;
+                grid-template-columns: 100px 100px;
+            }
+            thead {
+                tr {
+                    th {
+                        background: #5b81ea;
+                        color: #fff;
+                        font-weight: bold;
+                        padding: 10px;
+                        //border: 1px solid #4671ea;
+                        text-align: center;
+                        font-size: 18px;
+                    }
+                }
+            }
+
+            tbody {
+                tr {
+                    td {
+                        position: relative;
+                        padding: 5px;
+                        border: 1px solid #4672ea79;
+                        text-align: center;
+                        font-size: 14px;
+                        vertical-align: top;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        .txtCantidad {
+                            width: 65px;
+                            height: 25px;
+                            font-size: 18px;
+                            border-radius: 7px;
+                            border: none;
+                            text-align: center;
+                            outline: none;
+                            line-height: 3;
+                            padding-top: 3px;
+                        }
+                        &:nth-child(2) {
+                            background-color: #75757559; // Cambia el color a tu preferencia
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

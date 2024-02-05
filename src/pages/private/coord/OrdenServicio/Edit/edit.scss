@@ -1,0 +1,34 @@
+.edit-orden-service {
+    display: grid;
+    grid-template-columns: min-content max-content;
+    gap: 20px;
+    place-items: center;
+    justify-content: space-around;
+    .title-action {
+        width: min-content;
+        border-radius: 10px;
+        background-color: #333;
+        padding: 10px 25px;
+        h1 {
+            font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif;
+            font-size: 1.5vw;
+            text-align: center;
+            text-transform: uppercase;
+            text-rendering: optimizeLegibility;
+            margin-bottom: 0;
+            &.elegantshadow {
+                color: #e0dfdc;
+                letter-spacing: 0.1em;
+                text-shadow:
+                    0 -1px 0 #fff,
+                    0 1px 0 #2e2e2e,
+                    0 2px 0 #2c2c2c,
+                    0 3px 0 #2a2a2a,
+                    0 4px 0 #282828,
+                    0 5px 0 #262626,
+                    0 6px 0 #242424,
+                    0 7px 0 #222;
+            }
+        }
+    }
+}
