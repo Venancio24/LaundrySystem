@@ -11,6 +11,7 @@ import { Notify } from '../../../../../../utils/notify/Notify';
 import { codigoPhonePais, simboloMoneda } from '../../../../../../services/global';
 import { DateDetail, handleGetInfoPago } from '../../../../../../utils/functions';
 import { WSendMessage } from '../../../../../../services/default.services';
+import moment from 'moment';
 
 const index = () => {
   const { id } = useParams();
@@ -34,7 +35,10 @@ const index = () => {
           : infoOrden.Pago === 'Incompleto'
           ? `con monto pendiente de *${simboloMoneda}${sPago.falta}*`
           : `con monto a pagar *${simboloMoneda}${infoOrden.totalNeto}*`
-      }, su entrega es el día ${DateDetail(infoOrden.datePrevista.fecha)}`;
+      }, su entrega es el día ${DateDetail(infoOrden.datePrevista.fecha)} / ${moment(
+        infoOrden.datePrevista.hora,
+        'HH:mm'
+      ).format('hh:mm A')}`;
       for (let index = 0; index < 2; index++) {
         WSendMessage(mensaje, number);
       }
