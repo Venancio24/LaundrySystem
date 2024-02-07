@@ -29,18 +29,33 @@ $sText: 0.8em;
             .name-bussiness {
                 border-bottom: 0.2mm solid #000;
                 padding-bottom: 5px;
-                h1 {
-                    text-align: center;
-                    text-transform: uppercase;
-                    font-weight: 800;
-                    color: #000;
-                    line-height: 1.2;
+                display: grid;
+                grid-template-columns: 85px max-content;
+                place-items: center;
+                .img-logo {
+                    width: 75px;
+                    height: 100px;
+                    fill: #000;
                 }
-                .title {
-                    font-size: 4mm;
-                }
-                .name {
-                    font-size: 6mm;
+                .data-text {
+                    text-align: left;
+                    line-height: 1;
+                    h1 {
+                        text-align: left;
+                        // font-size: $sH1;
+                        font-size: 5mm;
+                        text-transform: uppercase;
+                        font-weight: 800;
+                        color: #000;
+                        line-height: 1.2;
+                    }
+                    .name {
+                        font-size: 6mm !important;
+                    }
+                    span {
+                        font-size: 3.5mm !important;
+                        font-weight: 600;
+                    }
                 }
             }
 

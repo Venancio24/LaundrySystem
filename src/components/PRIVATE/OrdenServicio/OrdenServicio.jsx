@@ -20,7 +20,7 @@ import Portal from '../Portal/Portal';
 import './ordernServicio.scss';
 
 import { ReactComponent as Eliminar } from '../../../utils/img/OrdenServicio/eliminar.svg';
-import { ReactComponent as Lavadora } from '../../../utils/img/OrdenServicio/lavadora.svg';
+import { ReactComponent as Logo } from '../../../utils/img/Logo/logoLlimphuy.svg';
 
 import Tranferencia from '../../../utils/img/OrdenServicio/Transferencia.png';
 import Efectivo from '../../../utils/img/OrdenServicio/dinero.png';
@@ -656,7 +656,7 @@ const OrdenServicio = ({ mode, action, onAction, iEdit, onReturn, iDelivery }) =
         <div className="body-form">
           <div className="c-title">
             <div className="info-t">
-              <Lavadora className="ico-lava-ya" />
+              <Logo className="ico-logo" />
               <div className="title">
                 <h1>{InfoNegocio?.name}</h1>
                 <h2>LAVANDERIA</h2>

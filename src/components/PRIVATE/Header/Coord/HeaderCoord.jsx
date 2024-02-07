@@ -4,10 +4,10 @@ import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 import { PrivateRoutes, Roles } from '../../../../models/index';
-import Logo from '../../../../utils/img/Logo/logo.png';
+import { ReactComponent as Logo } from '../../../../utils/img/Logo/logoLlimphuy.svg';
 import Logout from '../../Logout/Logout';
 import './headerCoord.scss';
-import { INFO_COMPANY } from '../../../../utils/infoSystem/infoSystem';
+
 import { oldOrder } from '../../../../services/global';
 
 const HeaderUser = () => {
@@ -120,6 +120,7 @@ const HeaderUser = () => {
       <div className="logo">
         {/* <div className={`logo ${userState.rol === Roles.ADMIN ? 'admin-style' : 'coord-style'}`}> */}
         {/* <img src={INFO_COMPANY.logo_dir} alt="" /> */}
+        <Logo className="svg-logo" />
         <h1>{InfoNegocio?.name}</h1>
       </div>
       <button type="button" className="hamburger" onClick={toggleNavBar}>

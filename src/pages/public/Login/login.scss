@@ -15,22 +15,24 @@ $input-placeholder-states:
     height: 100vh;
     display: grid;
     place-items: center;
-    .logo {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        display: block;
-        z-index: 100;
-        transition: all 250ms linear;
-        border-radius: 20px;
-        background: rgba(194, 194, 194, 0.631372549);
-        padding: 10px;
-        img {
-            height: 64px;
-            width: auto;
-            display: block;
+    .cnt-logo {
+        border: 3px solid #fff;
+        display: grid;
+        place-content: center;
+        text-align: center;
+        .logo {
+            width: 200px;
+            height: 216px;
+            fill: #fff;
+        }
+        .info-neg {
+            h1,
+            h2 {
+                color: #fff;
+            }
         }
     }
+
     a {
         cursor: pointer;
         transition: all 200ms linear;
@@ -97,9 +99,9 @@ $input-placeholder-states:
         }
         .card-3d-wrap {
             position: relative;
-            width: 440px;
+            width: 600px;
             max-width: 100%;
-            height: 400px;
+            height: 330px;
             -webkit-transform-style: preserve-3d;
             transform-style: preserve-3d;
             perspective: 800px;
@@ -138,12 +140,17 @@ $input-placeholder-states:
                 .center-wrap {
                     position: absolute;
                     width: 100%;
+                    height: 100%;
                     padding: 0 35px;
                     top: 50%;
                     left: 0;
-                    transform: translate3d(0, -50%, 35px) perspective(100px);
+                    transform: translate3d(0, -50%, 0) perspective(100px);
                     z-index: 20;
-                    display: block;
+                    display: grid;
+                    grid-template-columns: 250px 1fr;
+                    align-items: center;
+                    gap: 50px;
+                    padding: 20px;
                     .section {
                         position: relative;
                         width: 100%;

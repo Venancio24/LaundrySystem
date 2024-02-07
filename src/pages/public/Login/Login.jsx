@@ -20,6 +20,8 @@ import { useState } from 'react';
 import { Notify } from '../../../utils/notify/Notify';
 import { socket } from '../../../utils/socket/connect';
 
+import { ReactComponent as Logo } from '../../../utils/img/Logo/logoLlimphuy.svg';
+
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -136,6 +138,13 @@ const Login = () => {
             <div className="card-3d-wrapper">
               <div className="card-front">
                 <div className="center-wrap">
+                  <div className="cnt-logo">
+                    <Logo className="logo" />
+                    <div className="info-neg">
+                      <h1>LLIMPHUY</h1>
+                      <h2>LAVANDERIA</h2>
+                    </div>
+                  </div>
                   <form onSubmit={handleLogin} className="section">
                     <h4>Iniciar Sesion</h4>
                     <div className="form-group">
