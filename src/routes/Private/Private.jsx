@@ -9,7 +9,7 @@ import { AddOrderService_Delivery, AddOrderService_Tienda } from '../../pages/pr
 
 import Imprimir from '../../pages/private/coord/OrdenServicio/Actions/Imprimir/Imprimir';
 
-import { ReporteMesual } from '../../pages/private/coord/Reporte';
+// import { ReporteMesual } from '../../pages/private/coord/Reporte';
 
 import { PrivateMainLayout } from '../../_MainLayout/indexLayout';
 import { RoleGuard } from '../Guard/index';
@@ -63,7 +63,7 @@ const Private = () => {
           <Route path={PrivateRoutes.REGISTER_DELIVERY} element={<AddOrderService_Delivery />} />
           <Route path={`${PrivateRoutes.FINISH_ORDEN_SERVICE_PENDING}/:id`} element={<EditOrdenService />} />
           <Route path={`${PrivateRoutes.IMPRIMIR_ORDER_SERVICE}/:id`} element={<Imprimir />} />
-          <Route path={PrivateRoutes.REPORTE_ORDER_SERVICE} element={<ReporteMesual />} />
+          {/* <Route path={PrivateRoutes.REPORTE_ORDER_SERVICE} element={<ReporteMesual />} /> */}
           <Route path={PrivateRoutes.CUADRE_CAJA} element={<CuadreCaja />} />
         </Route>
       </RoutesWithNotFound>

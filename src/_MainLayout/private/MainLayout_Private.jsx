@@ -63,7 +63,7 @@ const PrivateMasterLayout = (props) => {
   const navigate = useNavigate();
 
   const [mGasto, setMGasto] = useState(false);
-  const [mInformeDiario, setMInformeDiario] = useState(false);
+  // const [mInformeDiario, setMInformeDiario] = useState(false);
 
   const { reserved } = useSelector((state) => state.orden);
   const { lastCuadre } = useSelector((state) => state.cuadre);
@@ -356,7 +356,7 @@ const PrivateMasterLayout = (props) => {
                 Agregar Gasto
               </button>
             ) : null}
-            <button
+            {/* <button
               id="btn-gasto"
               className="add-gasto"
               onClick={() => {
@@ -364,9 +364,9 @@ const PrivateMasterLayout = (props) => {
               }}
             >
               Informe Diario
-            </button>
+            </button> */}
           </div>
-          {mInformeDiario ? (
+          {/* {mInformeDiario ? (
             <Portal
               onClose={() => {
                 setMInformeDiario(false);
@@ -374,7 +374,7 @@ const PrivateMasterLayout = (props) => {
             >
               <ReporteDiario onClose={setMInformeDiario} />
             </Portal>
-          ) : null}
+          ) : null} */}
           {mGasto ? (
             <Portal
               onClose={() => {
