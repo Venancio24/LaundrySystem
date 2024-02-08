@@ -473,7 +473,7 @@ const CuadreCaja = () => {
                     clearable={false}
                     value={moment(datePrincipal.fecha).toDate()}
                     maxDate={new Date()}
-                    minDate={moment('2023-08-22').toDate()}
+                    minDate={moment('2024-02-08').toDate()}
                     onChange={(date) => {
                       setDatePrincipal((prevState) => ({
                         ...prevState,
