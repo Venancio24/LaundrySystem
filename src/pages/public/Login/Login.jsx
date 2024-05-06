@@ -1,26 +1,27 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { PrivateRoutes, PublicRoutes } from '../../../models/index';
-import { resetUser } from '../../../redux/states/user';
+import React, { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { PrivateRoutes, PublicRoutes } from "../../../models/index";
+import { resetUser } from "../../../redux/states/user";
 
-import { useDisclosure } from '@mantine/hooks';
-import { Text, ScrollArea, TextInput } from '@mantine/core';
-import { Modal } from '@mantine/core';
-import { modals } from '@mantine/modals';
+import { useDisclosure } from "@mantine/hooks";
+import { Text, ScrollArea, TextInput } from "@mantine/core";
+import { Modal } from "@mantine/core";
+import { modals } from "@mantine/modals";
 
-import { persistLocalStorage } from '../../../utils/persistence.local-storage/localStorage.util';
-import './login.scss';
-import axios from 'axios';
+import { persistLocalStorage } from "../../../utils/persistence.local-storage/localStorage.util";
+import "./login.scss";
+import axios from "axios";
 
-import { GetInfoUser } from '../../../redux/actions/aUser';
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
-import { Notify } from '../../../utils/notify/Notify';
-import { socket } from '../../../utils/socket/connect';
+import { GetInfoUser } from "../../../redux/actions/aUser";
+import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Notify } from "../../../utils/notify/Notify";
+import { socket } from "../../../utils/socket/connect";
+import { clearInfoCuadre } from "../../../redux/states/cuadre";
 
-import { ReactComponent as Logo } from '../../../utils/img/Logo/logoLlimphuy.svg';
+import { ReactComponent as Logo } from "../../../utils/img/Logo/logo.svg";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -32,32 +33,44 @@ const Login = () => {
   useEffect(() => {
     //clearLocalStorage(userKey);
     dispatch(resetUser());
+    dispatch(clearInfoCuadre());
     //navigate(`/${PublicRoutes.LOGIN}`, { replace: true });
   }, [dispatch]);
 
   const handleResendCode = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/resend-code/${firstLogin?.id}`);
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/resend-code/${
+          firstLogin?.id
+        }`
+      );
       if (response.data) {
-        Notify('Reenvio de Codigo', 'Verifica tu codigo en el apartado de SPAM', 'success');
+        Notify(
+          "Reenvio de Codigo",
+          "Verifica tu codigo en el apartado de SPAM",
+          "success"
+        );
       }
     } catch (error) {
       console.log(error);
-      Notify('Error al Reenviar Codigo', error.response.data.mensaje, 'fail');
+      Notify("Error al Reenviar Codigo", error.response.data.mensaje, "fail");
     }
   };
 
   const handleFirstLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/first-login`, firstLogin);
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/first-login`,
+        firstLogin
+      );
       if (response.status === 200) {
-        socket.emit('client:onFirtLogin', response.data.id);
+        socket.emit("client:onFirtLogin", response.data.id);
         close();
         handleGetInfoUser(response.data.token);
       }
     } catch (error) {
-      Notify(error.response.data.mensaje, '', 'fail');
+      Notify(error.response.data.mensaje, "", "fail");
       if (error.response.status !== 500) {
         setError(error.response.data.mensaje);
       }
@@ -66,21 +79,22 @@ const Login = () => {
 
   const openModal = async () => {
     modals.openConfirmModal({
-      title: 'Reenvio de Codigo',
+      title: "Reenvio de Codigo",
       centered: true,
       children: (
         <>
           <Text size="sm">
-            Procura revisar el envio de codigo en el apartado de SPAM en el correo eletronico que registro el
-            ADMINISTRADOR y de digitar el ultimo codigo enviado.
+            Procura revisar el envio de codigo en el apartado de SPAM en el
+            correo eletronico que registro el ADMINISTRADOR y de digitar el
+            ultimo codigo enviado.
           </Text>
           <Text size="sm">¿Estas seguro de Reenviar un nuevo codigo?</Text>
         </>
       ),
-      styles: { border: '3px solid #000' },
-      labels: { confirm: 'Si', cancel: 'No' },
-      confirmProps: { color: 'green' },
-      onCancel: () => console.log('Envio de codigo cancelado'),
+      styles: { border: "3px solid #000" },
+      labels: { confirm: "Si", cancel: "No" },
+      confirmProps: { color: "green" },
+      onCancel: () => console.log("Envio de codigo cancelado"),
       onConfirm: () => handleResendCode(),
     });
   };
@@ -92,7 +106,7 @@ const Login = () => {
     await dispatch(GetInfoUser({ headers })).then((response) => {
       if (response.payload) {
         const res = response.payload;
-        persistLocalStorage('user', {
+        persistLocalStorage("user", {
           usuario: res.usuario,
           token: token,
         });
@@ -105,19 +119,22 @@ const Login = () => {
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
-    const usuario = formData.get('user');
-    const contraseña = formData.get('password');
+    const usuario = formData.get("user");
+    const contraseña = formData.get("password");
 
     try {
       // Iniciar sesión y obtener el token
-      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/login`, {
-        usuario,
-        contraseña,
-      });
+      const res = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/login`,
+        {
+          usuario,
+          contraseña,
+        }
+      );
 
       if (res.status === 200) {
-        socket.emit('client:onLogin', res.data.id);
-        if (res.data.type === 'token') {
+        socket.emit("client:onLogin", res.data.id);
+        if (res.data.type === "token") {
           const token = res.data.info;
           handleGetInfoUser(token);
         } else {
@@ -126,7 +143,7 @@ const Login = () => {
         }
       }
     } catch (error) {
-      Notify('Error al Iniciar Sesion', error.response.data.mensaje, 'fail');
+      Notify("Error al Iniciar Sesion", error.response.data.mensaje, "fail");
     }
   };
 
@@ -138,13 +155,7 @@ const Login = () => {
             <div className="card-3d-wrapper">
               <div className="card-front">
                 <div className="center-wrap">
-                  <div className="cnt-logo">
-                    <Logo className="logo" />
-                    <div className="info-neg">
-                      <h1>LLIMPHUY</h1>
-                      <h2>LAVANDERIA</h2>
-                    </div>
-                  </div>
+                  <Logo className="logo" />
                   <form onSubmit={handleLogin} className="section">
                     <h4>Iniciar Sesion</h4>
                     <div className="form-group">
@@ -195,7 +206,9 @@ const Login = () => {
           <form onSubmit={handleFirstLogin} className="content-validation">
             <div className="header-v">
               <h2>Ingrese codigo de validacion</h2>
-              <p>codigo de validacion enviado al correo electronico registrado</p>
+              <p>
+                codigo de validacion enviado al correo electronico registrado
+              </p>
             </div>
             <TextInput
               radius="md"

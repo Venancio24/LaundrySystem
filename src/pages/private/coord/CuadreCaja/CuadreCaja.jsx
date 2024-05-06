@@ -1,867 +1,733 @@
-﻿/* eslint-disable react-hooks/exhaustive-deps */
+﻿﻿/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect, useRef } from 'react';
-import moment from 'moment';
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import React, { useState, useEffect, useRef } from "react";
+import moment from "moment";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
 
-import { DateCurrent } from '../../../../utils/functions/index';
-import { TextInput } from '@mantine/core';
-import { NumberInput } from '@mantine/core';
-import { DatePickerInput } from '@mantine/dates';
+import {
+  DateCurrent,
+  cLetter,
+  redondearNumero,
+} from "../../../../utils/functions/index";
+import { DatePickerInput } from "@mantine/dates";
 
-import { GetDeliverysDate } from '../../../../redux/actions/aDelivery';
-import { GetGastoDate } from '../../../../redux/actions/aGasto';
-import { GetOrdenServices_Date } from '../../../../redux/actions/aOrdenServices';
-import { GetCuadre, GetLastCuadre, SaveCuadre } from '../../../../redux/actions/aCuadre';
-import { GetAnuladoId, GetOrderId } from '../../../../services/default.services';
+import { GetGastosByDate } from "../../../../redux/actions/aGasto";
+import {
+  GetCuadre,
+  SaveCuadre,
+  UpdateCuadre,
+} from "../../../../redux/actions/aCuadre";
+import {
+  GetAnuladoId,
+  GetOrderId,
+} from "../../../../services/default.services";
 
-import { modals } from '@mantine/modals';
-import { Text } from '@mantine/core';
-import './cuadreCaja.scss';
+import { modals } from "@mantine/modals";
+import { Button, Text } from "@mantine/core";
+import "./cuadreCaja.scss";
 
-import { jsPDF } from 'jspdf';
-import { PrivateRoutes } from '../../../../models';
-import Nota from './Nota/Nota';
+import { jsPDF } from "jspdf";
+import { PrivateRoutes } from "../../../../models";
 
-import { LS_updateGasto } from '../../../../redux/states/gasto';
-import { LS_CancelarDeliveryDevolucion } from '../../../../redux/states/delivery';
-
-import LoaderSpiner from '../../../../components/LoaderSpinner/LoaderSpiner';
-import { socket } from '../../../../utils/socket/connect';
-import { Notify } from '../../../../utils/notify/Notify';
-import { MONTOS_BASE, ingresoDigital, simboloMoneda } from '../../../../services/global';
+import LoaderSpiner from "../../../../components/LoaderSpinner/LoaderSpiner";
+import { socket } from "../../../../utils/socket/connect";
+import { Notify } from "../../../../utils/notify/Notify";
+import { ingresoDigital, simboloMoneda } from "../../../../services/global";
+import CashCounter from "./CashCounter/CashCounter";
+import InfoCuadre from "./InfoCuadre/InfoCuadre";
+import FinalBalance from "./FinalBalance/FinalBalance";
+import ListPagos from "./ListPagos/ListPagos";
+import Portal from "../../../../components/PRIVATE/Portal/Portal";
+import { GetPagosByDate } from "../../../../redux/actions/aPago";
 
 const CuadreCaja = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  // const [certificateTemplateRef, setCertificateTemplateRef] = useState(null);
   const certificateTemplateRef = useRef(null);
-
-  const [saveActivated, setSaveActivated] = useState(false);
-
-  const infoGastos = useSelector((state) => state.gasto.infoGasto);
-  const infoDelivery = useSelector((state) => state.delivery.infoDeliveryDate);
-  const infoRegisteredDay = useSelector((state) => state.orden.infoRegisteredDay);
-  const infoCuadre = useSelector((state) => state.cuadre.infoCuadreDate);
-
   const InfoUsuario = useSelector((state) => state.user.infoUsuario);
-  const infoRegistered = useSelector((state) => state.orden.registered);
-  const infoLastCuadre = useSelector((state) => state.cuadre.lastCuadre);
-  const stateActuallyCuadre = useSelector((state) => state.cuadre.stateActuallyCuadre);
+  const {
+    infoCuadre,
+    lastCuadre,
+    cuadrePrincipal,
+    cuadreActual,
+    registroNoCuadrados,
+  } = useSelector((state) => state.cuadre);
 
-  const [stateCuadre, setStateCuadre] = useState();
+  // const infoPagosByDate = useSelector((state) => state.pago.listPagoByDate);
+  // const infoGastosByDate = useSelector((state) => state.gasto.listGastoByDate);
+
+  const infoRegistroNC = useSelector(
+    (state) => state.cuadre.registroNoCuadrados
+  );
+
   const [datePrincipal, setDatePrincipal] = useState({
     fecha: DateCurrent().format4,
     hora: DateCurrent().format3,
   });
 
+  const [onLoading, setOnLoading] = useState(false);
+
+  const [iState, setIState] = useState();
+  const [totalCaja, setTotalCaja] = useState(0);
+
+  const [gastos, setGastos] = useState(0);
+  const [pedidosPagadosEfectivo, setPedidosPagadosEfectivo] = useState(0);
+  const [pedidosPagadosTransferencia, setPedidosPagadosTransferencia] =
+    useState(0);
+  const [pedidosPagadosTarjeta, setPedidosPedidosPagadosTarjeta] = useState(0);
+
   const [iClienteEfectivo, setIClienteEfectivo] = useState();
   const [iClienteTransferencia, setIClienteTransferencia] = useState();
   const [iClienteTarjeta, setIClienteTarjeta] = useState();
 
-  const [iGastos, setIGastos] = useState([]);
+  const [iGastosFinal, setIGastosFinal] = useState([]);
+  const [montoPrevisto, setMontoPrevisto] = useState(0);
 
-  const [pedidosPagadosEfectivo, setPedidosPagadosEfectivo] = useState(0);
-  const [pedidosPagadosTransferencia, setPedidosPagadosTransferencia] = useState(0);
-  const [pedidosPagadosTarjeta, setPedidosPedidosPagadosTarjeta] = useState(0);
+  const [stateCuadre, setStateCuadre] = useState();
 
-  const [gastos, setGastos] = useState('');
+  const [savedActivated, setSavedActivated] = useState(false);
 
-  const [pruebaState, setPruebaState] = useState();
+  const [cajaFinal, setCajaFinal] = useState(0);
 
-  const [onLoading, setOnLoading] = useState(false);
+  const [showPortalCuadres, setShowPortalCuadres] = useState(false);
 
-  const [iState, setIState] = useState({
-    montoCaja: 0,
-    corte: 0,
-    cajaFinal: 0,
-    cajaInicial: 0,
-    gastos: 0,
-    cajaActual: 0,
-    notas: [],
-  });
+  const [filteredPagos, setFilteredPagos] = useState([]);
+  const [filteredGastos, setFilteredGastos] = useState([]);
 
-  const handleCompareDates = (date) => {
-    const dPrincipal = moment(datePrincipal.fecha, 'YYYY-MM-DD');
-    const dToCompare = moment(date, 'YYYY-MM-DD');
+  const [posCuadre, setPosCuadre] = useState(-1);
+  const [sButtonLeft, setSButtonLeft] = useState(false);
+  const [sButtonRight, setSButtonRight] = useState(false);
 
-    const sMayor = dPrincipal.isAfter(dToCompare);
-    // const sMenor = dPrincipal.isBefore(dToCompare);
-    const sIgual = dPrincipal.isSame(dToCompare);
+  const [infoNoSaved, setInfoNoSaved] = useState([]);
+  const [valueFinalINS, setValueFinalINS] = useState(null);
 
-    return sMayor || sIgual ? true : false;
-  };
+  ////////////////////////////////////////////////////////////////////////
 
-  const calculateTotalNeto = (Montos) => {
-    let totalNeto = 0;
-    if (Montos && Montos.length > 0) {
-      totalNeto = Montos.reduce((sum, monto) => {
-        const total = parseFloat(monto.total) || 0;
+  const handleShowInfoNoSaved = (infoNS) => {
+    const { pagos, gastos } = infoNS;
 
-        return sum + total;
-      }, 0);
-    }
-
-    return totalNeto.toFixed(2);
-  };
-
-  const handleSaved = (clonedElement) => {
-    const cjFinal = parseFloat(calculateTotalNeto(pruebaState.Montos) - pruebaState.corte).toFixed(2);
-    dispatch(
-      SaveCuadre({
-        infoCuadre: {
-          ...pruebaState,
-          cajaInicial:
-            datePrincipal.fecha === DateCurrent().format4 && infoLastCuadre.dateCuadre.fecha !== DateCurrent().format4
-              ? infoLastCuadre.cajaFinal
-              : pruebaState.cajaInicial,
-          corte: iState.corte,
-          cajaFinal: cjFinal,
-          dateCuadre: { fecha: datePrincipal.fecha, hora: DateCurrent().format3 },
-        },
-        rol: InfoUsuario.rol,
-      })
-    ).then((res) => {
-      if (res.payload) {
-        handleGeneratePdf(clonedElement);
-      }
+    let MontosNC = [];
+    pagos.map((pay) => {
+      MontosNC.push({
+        _id: pay._id,
+        user: pay.infoUser?.name,
+        monto: pay.total,
+        decripcion: `Orden N° ${pay.orden} de ${pay.nombre}, (${pay.Modalidad})`,
+        tipo: "ingreso",
+        hora: pay.date.hora,
+      });
     });
+
+    gastos.map((spend) => {
+      MontosNC.push({
+        _id: spend._id,
+        user: spend.infoUser?.name,
+        monto: spend.monto,
+        decripcion: `Motivo : ${spend.motivo}`,
+        tipo: "gasto",
+        hora: spend.date.hora,
+      });
+    });
+
+    if (MontosNC.length > 0) {
+      handleTotalMontosNoSaved(MontosNC);
+    }
+    setInfoNoSaved(MontosNC);
+  };
+
+  const handleTotalMontosNoSaved = (info) => {
+    // Inicializamos el total como 0
+    let total = 0;
+
+    // Recorremos la información para calcular el total
+    info.forEach((item) => {
+      // Convertimos el monto a número
+      const monto = parseFloat(item.monto);
+
+      // Sumamos al total si es un ingreso
+      // Restamos al total si es un gasto
+      total += item.tipo === "ingreso" ? monto : -monto;
+    });
+
+    // Determinamos el tipo de transacción
+    const tipo = total >= 0 ? "ingreso" : "gasto";
+
+    // Tomamos el valor absoluto del total para obtener el monto
+    const montoAbsoluto = Math.abs(total);
+
+    // Creamos el objeto de respuesta
+    const respuesta = {
+      tipo: tipo,
+      total: montoAbsoluto,
+    };
+
+    setValueFinalINS(respuesta);
+  };
+
+  const handleChangeMontos = (newMonto) => {
+    setIState((prevState) => ({
+      ...prevState,
+      Montos: newMonto,
+    }));
+    if (datePrincipal.fecha === DateCurrent().format4) {
+      const updatedState = {
+        ...iState,
+        Montos: newMonto,
+      };
+
+      localStorage.setItem("cuadreCaja", JSON.stringify(updatedState));
+    }
+  };
+
+  const handleChangeTotalCaja = (finalMonto) => {
+    setTotalCaja(finalMonto);
+  };
+
+  const handleSavedActivated = (value) => {
+    setSavedActivated(value);
+  };
+
+  const handleChangeCorte = (newCorte) => {
+    const boxFinal = parseFloat(totalCaja - newCorte).toFixed(2);
+
+    setIState((prevState) => {
+      const updatedState = {
+        ...prevState,
+        corte: newCorte,
+        cajaFinal: boxFinal,
+      };
+
+      if (datePrincipal.fecha === DateCurrent().format4) {
+        localStorage.setItem("cuadreCaja", JSON.stringify(updatedState));
+      }
+
+      return updatedState;
+    });
+
+    setCajaFinal(boxFinal);
+  };
+
+  const handleChangeNotas = (newNota) => {
+    setIState((prevState) => {
+      const updatedState = {
+        ...prevState,
+        notas: newNota,
+      };
+
+      // Comprueba la condición y actualiza el localStorage después de establecer el estado
+      if (datePrincipal.fecha === DateCurrent().format4) {
+        localStorage.setItem("cuadreCaja", JSON.stringify(updatedState));
+      }
+
+      return updatedState;
+    });
+  };
+
+  const MontoPrevisto = () => {
+    const MontoInicial = parseFloat(
+      datePrincipal.fecha === DateCurrent().format4 &&
+        lastCuadre &&
+        lastCuadre.date.fecha !== DateCurrent().format4
+        ? lastCuadre.cajaFinal
+        : iState?.cajaInicial
+    );
+
+    setMontoPrevisto(
+      (
+        parseFloat(MontoInicial) +
+        parseFloat(pedidosPagadosEfectivo) -
+        parseFloat(gastos)
+      ).toFixed(2)
+    );
   };
 
   const openModal = (value) => {
     const clonedElement = certificateTemplateRef.current.cloneNode(true);
 
     modals.openConfirmModal({
-      title: value === true ? 'Guardar y Generar PDF' : 'Generar PDF',
+      title: value === true ? "Guardar y Generar PDF" : "Generar PDF",
       centered: true,
       children: (
         <Text size="sm">{`${
           value === true
-            ? '¿ Estas seguro que quieres quieres guardar y generar el PDF ?'
-            : '¿ Estas seguro que quieres generar el PDF ?'
+            ? "¿ Estas seguro que quieres quieres guardar y generar el PDF ?"
+            : "¿ Estas seguro que quieres generar el PDF ?"
         }`}</Text>
       ),
-      labels: { confirm: 'Si', cancel: 'No' },
-      confirmProps: { color: 'green' },
+      labels: { confirm: "Si", cancel: "No" },
+      confirmProps: { color: "green" },
       onCancel: () => {
-        setSaveActivated(false);
+        setSavedActivated(false);
         setOnLoading(false);
       },
+      closeOnEscape: false,
+      withCloseButton: false,
+      closeOnClickOutside: false,
       onConfirm: () => {
         setOnLoading(true);
         setTimeout(() => {
-          value === true ? handleSaved(clonedElement) : handleGeneratePdf(clonedElement);
+          value === true
+            ? handleSaved(clonedElement)
+            : handleGeneratePdf(clonedElement);
         }, 500);
       },
     });
   };
 
+  const handleSaved = (clonedElement) => {
+    setOnLoading(true);
+    const { enable, type, saved, ...infoCuadre } = iState;
+
+    const iCuadre = {
+      infoCuadre: {
+        ...infoCuadre,
+        date: {
+          ...infoCuadre.date,
+          hora: DateCurrent().format3,
+        },
+        cajaFinal: cajaFinal,
+        egresos: gastos,
+        ingresos: {
+          efectivo: pedidosPagadosEfectivo,
+          tarjeta: pedidosPagadosTarjeta,
+          transferencia: pedidosPagadosTransferencia,
+        },
+        estado:
+          stateCuadre > 0 ? "Sobra" : stateCuadre < 0 ? "Falta" : "Cuadro",
+        margenError: stateCuadre,
+        totalCaja: totalCaja,
+        userID: InfoUsuario._id,
+        Pagos: filteredPagos,
+        Gastos: filteredGastos,
+      },
+      rol: InfoUsuario.rol,
+    };
+
+    dispatch(
+      type === "update"
+        ? UpdateCuadre({
+            idCuadre: infoCuadre._id,
+            infoCuadreDiario: iCuadre,
+          })
+        : SaveCuadre(iCuadre)
+    ).then(async (res) => {
+      if (res.payload) {
+        await handleGeneratePdf(clonedElement);
+        localStorage.removeItem("cuadreCaja");
+      }
+    });
+  };
+
   const handleGeneratePdf = (clonedElement) => {
-    clonedElement.style.transform = 'scale(0.338)';
-    clonedElement.style.transformOrigin = 'left top';
+    clonedElement.style.transform = "scale(0.338)";
+    clonedElement.style.transformOrigin = "left top";
 
     // Establecer altura máxima y márgenes
-    clonedElement.style.maxHeight = '842px'; // Altura máxima del tamaño A4
+    clonedElement.style.maxHeight = "842px"; // Altura máxima del tamaño A4
 
     const doc = new jsPDF({
-      format: 'a4',
-      unit: 'px',
+      format: "a4",
+      unit: "px",
     });
 
     doc.html(clonedElement, {
       callback: function (pdf) {
         pdf.save(`Informe (${datePrincipal.fecha}).pdf`);
         setTimeout(() => {
-          navigate(`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.LIST_ORDER_SERVICE}`);
+          navigate(
+            `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.LIST_ORDER_SERVICE}`
+          );
         }, 1000);
       },
     });
   };
 
   const sumaMontos = (clientes) => {
-    // console.log(clientes.filter((cliente) => cliente.metodoPago !== 'YAPE'));
     return clientes
-      .filter((cliente) => !(cliente.typeRegistro === 'pendiente' && cliente.estadoPrenda === 'anulado'))
       .reduce((sum, cliente) => sum + (parseFloat(cliente.total) || 0), 0)
       .toFixed(2);
   };
 
-  const MontoPrevisto = () => {
-    const MontoInicial = parseFloat(
-      datePrincipal.fecha === DateCurrent().format4 && infoLastCuadre.dateCuadre.fecha !== DateCurrent().format4
-        ? infoLastCuadre.cajaFinal
-        : pruebaState.cajaInicial
-    );
-
-    return (MontoInicial + parseFloat(pedidosPagadosEfectivo) - parseFloat(gastos)).toFixed(2);
-  };
-
-  const handleGetInfoCuadre = async () => {
-    await dispatch(GetCuadre(datePrincipal.fecha));
-    await dispatch(GetDeliverysDate(datePrincipal.fecha));
-    await dispatch(GetGastoDate(datePrincipal.fecha));
-    await dispatch(GetOrdenServices_Date(datePrincipal.fecha));
+  const chageInfo = (info) => {
+    // setOnLoading(true);
+    setIState(info);
+    setTimeout(() => {
+      setOnLoading(false);
+    }, 2500);
   };
 
   useEffect(() => {
-    const procesarClientesAprobados = async (clientes) => {
-      const clientesAprobadosPromises = await Promise.all(
-        clientes.map(async (d) => {
-          const valid = async () => {
-            if (d.Pago !== 'Pendiente') {
-              if (d.estadoPrenda === 'anulado') {
-                const infoAnulacion = await GetAnuladoId(d._id);
-                if (infoAnulacion.fecha === datePrincipal.fecha) {
-                  return false;
-                } else {
-                  return true;
-                }
-              } else {
-                return true;
-              }
-            }
-
-            return false;
-          };
-
-          if (await valid()) {
-            return d;
-          }
-
-          return null;
-        })
+    const handleGetInfoCuadre = async () => {
+      await dispatch(
+        GetCuadre({ date: datePrincipal.fecha, id: InfoUsuario._id })
       );
-      const clientesAprobados = await Promise.all(clientesAprobadosPromises);
-      return clientesAprobados.filter((cliente) => cliente !== null);
     };
-
-    const procesarData = async () => {
-      if (infoRegisteredDay) {
-        const clientesAprobados = await procesarClientesAprobados(infoRegisteredDay);
-
-        const agruparPagosPorMetodo = (facturas, fechaPrincipal) => {
-          const resultados = [];
-          let index = 0;
-
-          facturas.forEach((factura) => {
-            const pagosPorMetodo = {};
-
-            factura.ListPago.forEach((pago) => {
-              // Verifica si la factura es antigua y si la fecha del pago es distinta de la fecha de recepción
-              const esPagoValido =
-                (factura.modeRegistro !== 'antiguo' && pago.date.fecha === fechaPrincipal) ||
-                (factura.modeRegistro === 'antiguo' &&
-                  pago.date.fecha !== factura.dateRecepcion.fecha &&
-                  pago.date.fecha === fechaPrincipal);
-
-              if (esPagoValido) {
-                const metodo = pago.metodoPago;
-
-                if (!pagosPorMetodo[metodo]) {
-                  pagosPorMetodo[metodo] = {
-                    _id: factura._id,
-                    codRecibo: factura.codRecibo,
-                    Modalidad: factura.Modalidad,
-                    estadoPrenda: factura.estadoPrenda,
-                    metodoPago: metodo,
-                    Nombre: factura.Nombre,
-                    total: 0,
-                  };
-                }
-                pagosPorMetodo[metodo].total += pago.total;
-              }
-            });
-
-            for (const metodo in pagosPorMetodo) {
-              resultados.push({ ...pagosPorMetodo[metodo], index: index++ });
-            }
-          });
-
-          return resultados;
-        };
-
-        const resultadosAgrupados = await agruparPagosPorMetodo(clientesAprobados, datePrincipal.fecha);
-
-        //const facturados = clientesAprobados.filter((d) => d.factura === true);
-
-        const cEfectivo = resultadosAgrupados.filter((d) => d.metodoPago === 'Efectivo');
-        const cTransferencia = resultadosAgrupados.filter((d) => d.metodoPago === ingresoDigital);
-        const cTarjeta = resultadosAgrupados.filter((d) => d.metodoPago === 'Tarjeta');
-
-        setPedidosPagadosEfectivo(sumaMontos(cEfectivo));
-        setPedidosPagadosTransferencia(sumaMontos(cTransferencia));
-        setPedidosPedidosPagadosTarjeta(sumaMontos(cTarjeta));
-
-        setIClienteEfectivo(cEfectivo);
-        setIClienteTransferencia(cTransferencia);
-        setIClienteTarjeta(cTarjeta);
-      }
-
-      if (infoDelivery) {
-        const infoProductPromises = infoDelivery
-          .filter((d) => d.fecha === datePrincipal.fecha)
-          .map(async (d) => {
-            const orderByDelivery = await GetOrderId(d.idCliente);
-
-            if (orderByDelivery?.estadoPrenda === 'anulado') {
-              const infoAnulacion = await GetAnuladoId(orderByDelivery._id);
-
-              const commonProperties = {
-                descripcion: `${d.descripcion} - ${d.name}`,
-                fecha: d.fecha,
-                hora: d.hora,
-                monto: d.monto,
-                _state: 'anulado',
-              };
-
-              return {
-                ...commonProperties,
-                cSuma: infoAnulacion.fecha === d.fecha ? false : true,
-              };
-            } else {
-              return {
-                descripcion: `${d.descripcion} - ${d.name}`,
-                fecha: d.fecha,
-                hora: d.hora,
-                monto: d.monto,
-                _state: 'activo',
-                cSuma: true,
-              };
-            }
-          });
-
-        const infoProduct = await Promise.all(infoProductPromises);
-        const iGasto = infoGastos.map((g) => {
-          return {
-            ...g,
-            _state: 'activo',
-            cSuma: true,
-          };
-        });
-
-        const gastosFinal = [...iGasto, ...infoProduct].flat(1);
-
-        setIGastos(gastosFinal);
-        const sumaMontosGasto = gastosFinal
-          .reduce((sum, gastos) => {
-            return sum + (gastos.cSuma ? parseFloat(gastos.monto) : 0);
-          }, 0)
-          .toFixed(2);
-
-        setGastos(sumaMontosGasto);
-      }
-    };
-
-    procesarData();
-  }, [infoRegisteredDay, infoGastos, infoDelivery, datePrincipal]);
-
-  useEffect(() => {
     handleGetInfoCuadre();
   }, [datePrincipal]);
 
   useEffect(() => {
-    setPruebaState();
+    const procesarData = async () => {
+      const { gastos, pagos } = infoRegistroNC;
+      const ListPaysByDate = pagos;
+      const ListSpenseByDate = gastos;
 
-    const dPrincipal = moment(datePrincipal.fecha, 'YYYY-MM-DD');
-    const dToCompare = moment(infoLastCuadre.dateCuadre.fecha, 'YYYY-MM-DD');
+      let ListPagos = [];
+      let ListGastos = [];
 
-    const sMayor = dPrincipal.isAfter(dToCompare);
-    const sMenor = dPrincipal.isBefore(dToCompare);
-    const sIgual = dPrincipal.isSame(dToCompare);
+      if (iState) {
+        if (iState.type === "update") {
+          // update = ultimo cuadre
+          // Filtrar PAGOS y GASTOS para obtener solo los elementos con idUser correspondiente
+          const filteredPaysByUser = ListPaysByDate.filter(
+            (pago) => pago.idUser === iState.infoUser._id
+          );
 
-    const chageInfo = (info) => {
-      setTimeout(() => {
-        setPruebaState(info);
-      }, 1000);
-    };
+          const filteredSpenseByUser = ListSpenseByDate.filter(
+            (gasto) => gasto.idUser === iState.infoUser._id
+          );
 
-    if (infoCuadre && sMenor) {
-      chageInfo(infoCuadre);
-    } else {
-      const infoBase = {
-        dateCuadre: {
-          fecha: datePrincipal.fecha,
-          hora: '',
-        },
-        Montos: MONTOS_BASE,
-        cajaInicial: '0',
-        cajaFinal: '0',
-        corte: '0',
-        notas: [],
-      };
-      const cuadreLS = JSON.parse(localStorage.getItem('respuesta'));
-      if (sIgual) {
-        if (cuadreLS?.dateCuadre.fecha === infoLastCuadre.dateCuadre.fecha) {
-          chageInfo(cuadreLS);
+          // Función para obtener elementos únicos basados en _id
+          const getUniqueItems = (listA) => {
+            const uniqueItems = new Set();
+            const uniqueArray = [];
+            listA.forEach((item) => {
+              if (item && item._id && !uniqueItems.has(item._id)) {
+                uniqueItems.add(item._id);
+                uniqueArray.push(item);
+              }
+            });
+            return uniqueArray;
+          };
+
+          // Obtener elementos únicos para pagos y gastos
+          ListPagos = getUniqueItems([...filteredPaysByUser, ...iState.Pagos]);
+          ListGastos = getUniqueItems([
+            ...filteredSpenseByUser,
+            ...iState.Gastos,
+          ]);
+        } else if (iState.type === "view") {
+          //  usar los pagos y gasto del cuadre y los pagos
+          ListPagos = iState.Pagos;
+          ListGastos = iState.Gastos;
         } else {
-          chageInfo(infoLastCuadre);
-        }
-      } else {
-        if (sMayor) {
-          if (cuadreLS) {
-            if (cuadreLS.dateCuadre.fecha === datePrincipal.fecha) {
-              chageInfo(cuadreLS);
-            } else {
-              infoBase.cajaInicial = infoLastCuadre.cajaFinal;
-              chageInfo(infoBase);
-            }
-          } else {
-            infoBase.cajaInicial = infoLastCuadre.cajaFinal;
-            localStorage.setItem('respuesta', JSON.stringify(infoBase));
-            chageInfo(infoBase);
-          }
-        }
-        if (sMenor) {
-          chageInfo(infoBase);
+          // type === "new"
+          // consultar Pagos hechos la fecha principal y _id del  usuario
+          ListPagos = ListPaysByDate.filter(
+            (pago) => pago?.idUser === iState?.infoUser._id
+          );
+
+          ListGastos = ListSpenseByDate.filter(
+            (gasto) => gasto?.idUser === iState?.infoUser._id
+          );
         }
       }
-    }
-  }, [infoCuadre, datePrincipal, infoLastCuadre]);
+
+      const cEfectivo = ListPagos?.filter((d) => d.metodoPago === "Efectivo");
+      const cTransferencia = ListPagos?.filter(
+        (d) => d.metodoPago === ingresoDigital
+      );
+      const cTarjeta = ListPagos?.filter((d) => d.metodoPago === "Tarjeta");
+
+      setPedidosPagadosEfectivo(sumaMontos(cEfectivo));
+      setPedidosPagadosTransferencia(sumaMontos(cTransferencia));
+      setPedidosPedidosPagadosTarjeta(sumaMontos(cTarjeta));
+
+      setIClienteEfectivo(cEfectivo);
+      setIClienteTransferencia(cTransferencia);
+      setIClienteTarjeta(cTarjeta);
+
+      setFilteredGastos(ListGastos.map((g) => g._id));
+      setFilteredPagos(ListPagos.map((p) => p._id));
+
+      setIGastosFinal(ListGastos);
+
+      const sumaMontosGastos = (lista) => {
+        return lista
+          .reduce((sum, gastos) => {
+            return sum + (gastos.monto ? parseFloat(gastos.monto) : 0);
+          }, 0)
+          .toFixed(2);
+      };
+
+      const sumaGastos = sumaMontosGastos(ListGastos);
+
+      setGastos(sumaGastos);
+    };
+
+    procesarData();
+  }, [infoRegistroNC, datePrincipal, iState]);
 
   useEffect(() => {
-    if (pruebaState) {
-      setStateCuadre((calculateTotalNeto(pruebaState.Montos) - MontoPrevisto()).toFixed(2));
+    if (infoCuadre?.length > 0) {
+      setPosCuadre(infoCuadre.length);
+      setSButtonLeft(true);
     }
-  }, [pruebaState, infoLastCuadre, gastos, pedidosPagadosEfectivo, pedidosPagadosTransferencia, pedidosPagadosTarjeta]);
+  }, [infoCuadre]);
 
   useEffect(() => {
-    socket.on('server:cGasto', (data) => {
-      dispatch(LS_updateGasto(data));
-    });
+    if (infoCuadre?.length === 0 || posCuadre === 0) {
+      setSButtonLeft(false);
+    } else {
+      setSButtonLeft(true);
+    }
 
-    socket.on('server:changeCuadre:child', (data) => {
-      Notify('CUADRE DE CAJA A SIDO ACTUALIZADO', 'vuelve a ingresar', 'warning');
+    if (posCuadre >= 0 && posCuadre < infoCuadre?.length) {
+      setSButtonRight(true);
+    }
+
+    if (posCuadre === infoCuadre?.length) {
+      setSButtonRight(false);
+    }
+  }, [posCuadre, infoCuadre]);
+
+  useEffect(() => {
+    setOnLoading(true);
+    const cuadreLS = JSON.parse(localStorage.getItem("cuadreCaja"));
+    if (
+      cuadreLS?.date.fecha === datePrincipal.fecha &&
+      cuadreLS.infoUser._id === InfoUsuario._id
+    ) {
+      chageInfo(cuadreLS);
+    } else {
+      chageInfo(cuadreActual);
+    }
+  }, [datePrincipal, cuadrePrincipal, cuadreActual]);
+
+  useEffect(() => {
+    MontoPrevisto();
+  }, [pedidosPagadosEfectivo, gastos, totalCaja, datePrincipal, iState]);
+
+  useEffect(() => {
+    setCajaFinal(parseFloat(totalCaja - iState?.corte).toFixed(2));
+  }, [iState, totalCaja]);
+
+  useEffect(() => {
+    setStateCuadre((totalCaja - montoPrevisto).toFixed(2));
+  }, [iState, totalCaja, montoPrevisto]);
+
+  useEffect(() => {
+    socket.on("server:changeCuadre:child", (data) => {
+      Notify(
+        "CUADRE DE CAJA A SIDO ACTUALIZADO",
+        "vuelve a ingresar",
+        "warning"
+      );
       navigate(`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.LIST_ORDER_SERVICE}`);
     });
 
-    socket.on('server:cancel-delivery', (data) => {
-      if (datePrincipal.fecha === DateCurrent().format4) {
-        dispatch(LS_CancelarDeliveryDevolucion(data));
-      }
-    });
-
     return () => {
-      // Remove the event listener when the component unmounts
-      socket.off('server:cancel-delivery');
-      socket.off('server:cGasto');
-      socket.off('server:changeCuadre:child');
-      socket.off('cAnular');
+      socket.off("server:changeCuadre:child");
+      socket.off("cAnular");
     };
   }, []);
 
+  useEffect(() => {
+    if (registroNoCuadrados !== null) {
+      handleShowInfoNoSaved(registroNoCuadrados);
+    }
+  }, [registroNoCuadrados]);
+
   return (
     <div className="content-cuadre">
-      {pruebaState && onLoading === false ? (
-        <>
-          <div className="state-cuadre" style={{ background: stateActuallyCuadre === 'saved' ? '#53d895' : '#ed7b72' }}>
+      {iState ? (
+        <div
+          style={{
+            display: onLoading === false ? "block" : "none",
+          }}
+        >
+          {registroNoCuadrados !== null && infoNoSaved.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setShowPortalCuadres(true)}
+              className="info-nsaved"
+            >
+              <i className="fa-solid fa-circle-exclamation" />
+            </button>
+          ) : null}
+          <div
+            className="state-cuadre"
+            style={{ background: iState.saved ? "#53d895" : "#ed7b72" }}
+          >
             <h1>
-              {stateActuallyCuadre === 'saved'
-                ? infoLastCuadre.dateCuadre.fecha === datePrincipal.fecha
-                  ? 'Ultimo Cuadre Guardado'
-                  : 'Cuadre Guardado'
-                : 'Cuadre No guardado'}
+              {iState.saved
+                ? lastCuadre.date.fecha === datePrincipal.fecha &&
+                  lastCuadre?.infoUser._id === iState?.infoUser._id
+                  ? "Ultimo Cuadre Guardado"
+                  : "Cuadre Guardado"
+                : "Cuadre No guardado"}
             </h1>
           </div>
           <ContainerCC id="cuadreStructure" ref={certificateTemplateRef}>
             <BodyContainerCC>
               <HeaderCC>
-                <h1 className="title">Cuadre Diario</h1>
-                <div className="date-filter">
-                  <DatePickerInput
-                    clearable={false}
-                    value={moment(datePrincipal.fecha).toDate()}
-                    maxDate={new Date()}
-                    minDate={moment('2024-02-12').toDate()}
-                    onChange={(date) => {
-                      setDatePrincipal((prevState) => ({
-                        ...prevState,
-                        fecha: moment(date).format('YYYY-MM-DD'),
-                      }));
-                    }}
-                    label="Fecha"
-                    mx="auto"
-                    maw={200}
-                  />
+                <div className="h-superior">
+                  <h1 className="title">CUADRE&nbsp;DIARIO</h1>
+                  <h1 className="title">
+                    "{iState?.infoUser?.name.toUpperCase()}"
+                  </h1>
+                </div>
+                <div className="h-inferior">
+                  <div className="previous">
+                    {sButtonLeft && !savedActivated ? (
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          chageInfo(infoCuadre[posCuadre - 1]);
+                          setPosCuadre(posCuadre - 1);
+                        }}
+                      >
+                        <i className="fas fa-angle-left" />
+                      </Button>
+                    ) : null}
+                  </div>
+                  <div className="date-filter">
+                    <DatePickerInput
+                      clearable={false}
+                      value={moment(datePrincipal.fecha).toDate()}
+                      maxDate={new Date()}
+                      minDate={moment("2023-08-22").toDate()}
+                      onChange={(date) => {
+                        setDatePrincipal((prevState) => ({
+                          ...prevState,
+                          fecha: moment(date).format("YYYY-MM-DD"),
+                        }));
+                      }}
+                      mx="auto"
+                      maw={200}
+                    />
+                  </div>
+                  <div className="next">
+                    {sButtonRight && !savedActivated ? (
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          if (posCuadre + 1 === infoCuadre.length) {
+                            const cuadreLS = JSON.parse(
+                              localStorage.getItem("cuadreCaja")
+                            );
+                            if (
+                              cuadreLS?.date.fecha === datePrincipal.fecha &&
+                              cuadreLS.infoUser._id === InfoUsuario._id
+                            ) {
+                              chageInfo(cuadreLS);
+                            } else {
+                              chageInfo(cuadreActual);
+                            }
+                          } else {
+                            chageInfo(infoCuadre[posCuadre + 1]);
+                          }
+                          setPosCuadre(posCuadre + 1);
+                        }}
+                      >
+                        <i className="fas fa-angle-right" />
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
               </HeaderCC>
               <BodyCC>
                 <div className="info-top">
-                  <div className="cash-counter">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Monto</th>
-                          <th>Cantidad</th>
-                          <th>Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {pruebaState.Montos.map((mS, index) => (
-                          <tr key={index}>
-                            <td>
-                              <label htmlFor="">
-                                {simboloMoneda} {mS.monto}
-                              </label>
-                            </td>
-                            <td>
-                              <NumberInput
-                                name="codigo"
-                                value={mS.cantidad ? parseFloat(mS.cantidad) : ''}
-                                precision={0}
-                                onChange={(e) => {
-                                  const updatedMontos = [...pruebaState.Montos];
-                                  const updatedMonto = {
-                                    ...updatedMontos[index],
-                                  };
-                                  updatedMonto.cantidad = e;
-                                  updatedMonto.total = mS.monto * e;
-                                  updatedMontos[index] = updatedMonto;
-                                  setPruebaState((prevState) => ({
-                                    ...prevState,
-                                    Montos: updatedMontos,
-                                  }));
-                                  if (datePrincipal.fecha === DateCurrent().format4) {
-                                    localStorage.setItem(
-                                      'respuesta',
-                                      JSON.stringify({
-                                        ...pruebaState,
-                                        Montos: updatedMontos,
-                                      })
-                                    );
-                                  }
-                                }}
-                                min={0}
-                                step={1}
-                                disabled={handleCompareDates(infoLastCuadre.dateCuadre.fecha) ? false : true}
-                                hideControls
-                                autoComplete="off"
-                              />
-                            </td>
-                            <td>
-                              <label htmlFor="">
-                                {simboloMoneda} {parseFloat(mS.total.toFixed(1))}
-                              </label>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    <div className="footer-info">
-                      <div className="input-number">
-                        <label>Total S./</label>
-                        <input
-                          id="input-descuento"
-                          name="descuento"
-                          type="text"
-                          placeholder="Descuento..."
-                          autoComplete="off"
-                          value={calculateTotalNeto(pruebaState.Montos)}
-                          readOnly
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="info-cuadre">
-                    <div className="form-ic">
-                      <TextInput
-                        label="Caja Inicial"
-                        radius="md"
-                        value={
-                          datePrincipal.fecha === DateCurrent().format4 &&
-                          infoLastCuadre.dateCuadre.fecha !== DateCurrent().format4
-                            ? infoLastCuadre.cajaFinal
-                            : pruebaState.cajaInicial
-                        }
-                        readOnly
-                      />
-                      <TextInput label="Gastos" radius="md" value={gastos} readOnly />
-                      <TextInput
-                        label="Pedidos Pagados (EFECTIVO)"
-                        radius="md"
-                        value={pedidosPagadosEfectivo}
-                        readOnly
-                      />
-                      <TextInput
-                        label="En caja deberia haber :"
-                        radius="md"
-                        id="m-previsto"
-                        value={MontoPrevisto()}
-                        readOnly
-                      />
-                    </div>
-                    <div className="response-ic">
-                      <div className="bloques-states">
-                        <div className="states">
-                          <div className="bloque title sb">SOBRA</div>
-                          <div className="bloque res">
-                            {Number(stateCuadre) > 0 ? `${simboloMoneda} ${stateCuadre}` : 'NO'}
-                          </div>
-                        </div>
-                        <div className="states ">
-                          <div className="bloque title cd">CUADRA</div>
-                          <div className="bloque res">{Number(stateCuadre) === 0 ? 'SI' : 'NO'}</div>
-                        </div>
-                        <div className="states ">
-                          <div className="bloque title fl">FALTA</div>
-                          <div className="bloque res">
-                            {Number(stateCuadre) < 0 ? `${simboloMoneda} ${stateCuadre}` : 'NO'}
-                          </div>
-                        </div>
-                      </div>
-                      <TextInput
-                        label={`Pedidos Pagados (${ingresoDigital}) :`}
-                        radius="md"
-                        value={pedidosPagadosTransferencia}
-                        readOnly
-                      />
-                      <TextInput
-                        label={`Pedidos Pagados (TARJETA) :`}
-                        radius="md"
-                        value={pedidosPagadosTarjeta}
-                        readOnly
-                      />
-                    </div>
-                  </div>
-                  <div className="finish-balance">
-                    <h1>Finaliza el cuadre con :</h1>
-                    <div className="form-fb">
-                      <TextInput
-                        label="Monto en Caja"
-                        radius="md"
-                        value={calculateTotalNeto(pruebaState.Montos)}
-                        readOnly
-                      />
-                      <TextInput
-                        label="Corte"
-                        radius="md"
-                        disabled={handleCompareDates(infoLastCuadre.dateCuadre.fecha) ? false : true}
-                        value={pruebaState.corte}
-                        onChange={(e) => {
-                          const inputValue = e.target.value;
-                          const numericValue = inputValue.replace(/[^0-9.]/g, ''); // Filtrar caracteres no numéricos, permitiendo el punto decimal
-
-                          setIState({
-                            ...iState,
-                            corte: numericValue,
-                            cajaFinal: parseFloat(calculateTotalNeto(pruebaState.Montos) - numericValue).toFixed(2),
-                          });
-
-                          setPruebaState({
-                            ...pruebaState,
-                            corte: numericValue,
-                            cajaFinal: parseFloat(calculateTotalNeto(pruebaState.Montos) - numericValue).toFixed(2),
-                          });
-
-                          if (datePrincipal.fecha === DateCurrent().format4) {
-                            localStorage.setItem(
-                              'respuesta',
-                              JSON.stringify({
-                                ...pruebaState,
-                                corte: numericValue,
-                              })
-                            );
-                          }
-                        }}
-                      />
-                      <TextInput
-                        label="Caja Final"
-                        radius="md"
-                        value={parseFloat(calculateTotalNeto(pruebaState.Montos) - pruebaState.corte).toFixed(2)}
-                        readOnly
-                      />
-                    </div>
-                    <h1>Se hace Entrega de {pruebaState.corte}</h1>
-                    {handleCompareDates(infoLastCuadre.dateCuadre.fecha) ? (
-                      <div className="action-end">
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            await setSaveActivated(true);
-                            openModal(true);
-                          }}
-                        >
-                          Guardar y Generar PDF
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="action-end">
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            await setSaveActivated(true);
-                            openModal(false);
-                          }}
-                        >
-                          Generar PDF
-                        </button>
-                      </div>
-                    )}
-                    <div style={{ pointerEvents: datePrincipal.fecha !== DateCurrent().format4 ? 'none' : 'auto' }}>
-                      <Nota
-                        onMode={saveActivated} // Cambiar el diseño si se va a generar el PDF
-                        setMode={setSaveActivated} // Si se cancela el PDF vuelve el diseño Original
-                        infoNotas={pruebaState.notas} // Info de las notas
-                        handleGetData={(notas) => {
-                          // Cambiar el estado del padre con la info del hijo
-                          setPruebaState({
-                            ...pruebaState,
-                            notas: notas,
-                          });
-                          if (datePrincipal.fecha === DateCurrent().format4) {
-                            localStorage.setItem(
-                              'respuesta',
-                              JSON.stringify({
-                                ...pruebaState,
-                                notas: notas,
-                              })
-                            );
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
+                  <CashCounter
+                    ListMontos={iState?.Montos}
+                    handleChangeMontos={handleChangeMontos}
+                    totalCaja={totalCaja}
+                    handleChangeTotalCaja={handleChangeTotalCaja}
+                    datePrincipal={datePrincipal}
+                    sDisabledCuadre={iState?.enable}
+                  />
+                  <InfoCuadre
+                    cajaInicial={iState?.cajaInicial}
+                    gastos={gastos}
+                    pedidosPagadosEfectivo={pedidosPagadosEfectivo}
+                    pedidosPagadosTransferencia={pedidosPagadosTransferencia}
+                    pedidosPagadosTarjeta={pedidosPagadosTarjeta}
+                    montoPrevisto={montoPrevisto}
+                    stateCuadre={stateCuadre}
+                  />
+                  <FinalBalance
+                    totalCaja={totalCaja}
+                    infoState={iState}
+                    sDisabledCuadre={iState?.enable}
+                    openModal={openModal}
+                    handleSavedActivated={handleSavedActivated}
+                    savedActivated={savedActivated}
+                    handleChangeCorte={handleChangeCorte}
+                    handleChangeNotas={handleChangeNotas}
+                    cajaFinal={cajaFinal}
+                    datePrincipal={datePrincipal}
+                  />
                 </div>
-                <div className="info-extra">
-                  <div className="efectivo tb-info">
-                    <span>EFECTIVO</span>
-                    {iClienteEfectivo ? (
-                      <div className="paid-orders-efectivo">
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>Codigo</th>
-                              <th>Modalidad</th>
-                              <th>Nombre</th>
-                              <th>Monto</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {iClienteEfectivo.map((cliente, index) => (
-                              <tr
-                                key={index}
-                                //style={{ background: cliente.estadoPrenda === 'anulado' ? '#ff686847' : '#fff' }}
-                                className={`${cliente.estadoPrenda === 'anulado' ? 'mode-anulado' : null}`}
-                              >
-                                <td>{cliente.codRecibo}</td>
-                                <td>{cliente.Modalidad}</td>
-                                <td>{cliente.Nombre}</td>
-                                <td>{cliente.total}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : null}
-                  </div>
-                  <div>
-                    <div className="gastos tb-info">
-                      <span>GASTOS</span>
-                      {iGastos ? (
-                        <div className="daily-expenses">
-                          <table>
-                            <thead>
-                              <tr>
-                                <th>Descripcion</th>
-                                <th>Fecha y Hora</th>
-                                <th>Monto</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {iGastos.map((gasto, index) => (
-                                <tr
-                                  key={index}
-                                  //style={{ background: gasto._state === 'anulado' ? '#ff686847' : '#fff' }}
-                                  className={`${gasto._state === 'anulado' ? 'mode-anulado' : null}`}
-                                >
-                                  <td>{gasto.descripcion}</td>
-                                  <td>
-                                    {gasto.fecha} / {gasto.hora}
-                                  </td>
-                                  <td>{gasto.monto}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="transferencia tb-info">
-                      <span>{ingresoDigital}</span>
-                      {iClienteTransferencia ? (
-                        <div className="paid-orders-tranf">
-                          <table>
-                            <thead>
-                              <tr>
-                                <th>Codigo</th>
-                                <th>Modalidad</th>
-                                <th>Nombre</th>
-                                <th>Monto</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {iClienteTransferencia.map((cliente, index) => (
-                                <tr
-                                  key={index}
-                                  // style={{ background: cliente.estadoPrenda === 'anulado' ? '#ff686847' : '#fff' }}
-                                  className={`${cliente.estadoPrenda === 'anulado' ? 'mode-anulado' : null}`}
-                                >
-                                  <td>{cliente.codRecibo}</td>
-                                  <td>{cliente.Modalidad}</td>
-                                  <td>{cliente.Nombre}</td>
-                                  <td>{cliente.total}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : null}
-                    </div>
-                    {/* -------- */}
-                    <div className="tarjeta tb-info">
-                      <span>TARJETA</span>
-                      {iClienteTarjeta ? (
-                        <div className="paid-orders-tarj">
-                          <table>
-                            <thead>
-                              <tr>
-                                <th>Codigo</th>
-                                <th>Modalidad</th>
-                                <th>Nombre</th>
-                                <th>Monto</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {iClienteTarjeta.map((cliente, index) => (
-                                <tr
-                                  key={index}
-                                  // style={{ background: cliente.estadoPrenda === 'anulado' ? '#ff686847' : '#fff' }}
-                                  className={`${cliente.estadoPrenda === 'anulado' ? 'mode-anulado' : null}`}
-                                >
-                                  <td>{cliente.codRecibo}</td>
-                                  <td>{cliente.Modalidad}</td>
-                                  <td>{cliente.Nombre}</td>
-                                  <td>{cliente.total}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : null}
-                    </div>
-                    {/* ------- */}
-                  </div>
-                </div>
+                <ListPagos
+                  type={iState?.type}
+                  iGastos={iGastosFinal}
+                  iClienteEfectivo={iClienteEfectivo}
+                  iClienteTarjeta={iClienteTarjeta}
+                  iClienteTransferencia={iClienteTransferencia}
+                  savedActivated={savedActivated}
+                  handleSavedActivated={handleSavedActivated}
+                />
               </BodyCC>
             </BodyContainerCC>
           </ContainerCC>
-        </>
-      ) : (
-        <div className="loading-general">
-          <LoaderSpiner />
         </div>
-      )}
+      ) : null}
+      {onLoading ? (
+        <div className="content-loading ">
+          <div
+            className="loading-general"
+            style={{
+              display: onLoading === false ? "none" : "flex",
+            }}
+          >
+            <LoaderSpiner />
+          </div>
+        </div>
+      ) : null}
+
+      {showPortalCuadres ? (
+        <Portal
+          onClose={() => {
+            setShowPortalCuadres(false);
+          }}
+        >
+          <div className="cuadres-preview">
+            <div className="list-movimientos-ns">
+              <div className="title">Movimientos no Gardados</div>
+              <ul>
+                {infoNoSaved.map((ins, index) => (
+                  <li className="i-mov" key={index}>
+                    <span>{cLetter(ins.tipo)}</span>
+                    <span className="_monto">
+                      {simboloMoneda} {ins.monto}
+                    </span>
+                    <span className="_desc">{ins.decripcion}</span>
+                    <span className="_fecha">
+                      {moment(ins.hora, "HH:mm").format("h:mm A")}
+                    </span>
+                    <span className="_user">{ins.user}</span>
+                    <span className="_ico">
+                      {ins.tipo === "ingreso" ? (
+                        <i className="fa-solid fa-money-bill-trend-up ingreso" />
+                      ) : (
+                        <i className="fa-solid fa-hand-holding-dollar egreso" />
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div className="i-final">
+                <span>
+                  {cLetter(valueFinalINS?.tipo)} : &nbsp;&nbsp; {simboloMoneda}{" "}
+                  {redondearNumero(valueFinalINS?.total)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Portal>
+      ) : null}
     </div>
   );
 };
@@ -873,6 +739,7 @@ export const ContainerCC = styled.div`
   //border: 1px solid #ccc;
   //border-radius: 4px;
   margin: auto;
+  padding-top: 20px;
 `;
 
 export const BodyContainerCC = styled.div`
@@ -880,22 +747,38 @@ export const BodyContainerCC = styled.div`
   padding: 5px;
   background-color: #fff;
   display: grid;
-  grid-template-rows: 85px auto;
+  grid-template-rows: max-content auto;
 `;
 
 export const HeaderCC = styled.div`
   display: grid;
-  align-items: center;
-  grid-template-columns: 260px auto;
+  place-items: center;
   padding: 5px 25px;
   border-bottom: solid 1px silver;
+  border-top: solid 1px silver;
 
-  .title {
-    margin-bottom: 0;
+  .h-superior {
+    text-align: center;
+    .title {
+      margin-bottom: 0;
+      margin-bottom: 0;
+      word-spacing: 10px;
+    }
+  }
+
+  .h-inferior {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    place-items: center;
+    padding: 10px;
   }
 
   .date-filter {
-    padding-right: 275px;
+    width: 300px;
+    button {
+      text-align: center !important;
+    }
   }
 `;
 
@@ -907,130 +790,6 @@ const BodyCC = styled.div`
     width: 100%;
     display: grid;
     grid-template-columns: 450px 1fr 1fr;
-
-    .cash-counter {
-      margin: auto;
-
-      table {
-        display: block;
-        border-collapse: collapse;
-        margin: 10px auto;
-
-        &::-webkit-scrollbar {
-          width: 0;
-        }
-
-        tr {
-          position: relative;
-          display: grid;
-          grid-template-columns: 100px 100px 200px;
-        }
-
-        thead {
-          tr {
-            th {
-              background: #5b81ea;
-              color: #fff;
-              font-weight: bold;
-              padding: 10px;
-              text-align: center;
-              font-size: 18px;
-            }
-          }
-        }
-
-        tbody {
-          tr {
-            td {
-              position: relative;
-              padding: 10px 5px;
-              border: 1px solid #4672ea79;
-              text-align: center;
-              font-size: 14px;
-              vertical-align: top;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              &:last-child {
-                border-right: 1px solid #4672ea79 !important;
-              }
-
-              input {
-                width: 65px;
-                height: 28px;
-                font-size: 18px !important;
-                border-radius: 7px;
-                font-size: 14px;
-                border: none;
-                text-align: center;
-                outline: none;
-              }
-
-              label {
-                margin: auto;
-                font-size: 18px;
-              }
-
-              &:nth-child(2) {
-                background-color: #75757559;
-              }
-            }
-          }
-        }
-      }
-
-      .footer-info {
-        width: 100%;
-        margin: 10px auto;
-        display: flex;
-        justify-content: space-between;
-
-        .input-number {
-          width: 100%;
-          margin: 10px auto;
-          display: flex;
-          justify-content: right;
-
-          label {
-            color: #7a7dbb;
-            text-transform: uppercase;
-            font-size: 17px;
-            font-weight: bold;
-            letter-spacing: 0.05em;
-            margin: auto;
-            margin-right: 10px;
-          }
-
-          input {
-            display: inline-block;
-            font-size: 18px;
-            text-align: center;
-            border: 2px solid #7a7dbb;
-            width: 200px;
-            height: 30px;
-            color: #3d44c9;
-            border-radius: 7px;
-            font-family: 'PT Sans', sans-serif;
-            font-weight: bold;
-            background: transparent;
-            outline: 0;
-
-            &:focus::placeholder {
-              color: transparent;
-            }
-
-            &::placeholder {
-              display: inline-block;
-              font-size: 18px;
-              padding: auto;
-              font-family: 'PT Sans', sans-serif;
-              font-weight: bold;
-              color: #67688a77;
-            }
-          }
-        }
-      }
-    }
 
     .info-cuadre {
       display: grid;
@@ -1091,284 +850,7 @@ const BodyCC = styled.div`
         }
       }
     }
-
-    .finish-balance {
-      display: grid;
-      grid-template-rows: 40px 225px 50px min-content auto;
-      padding: 10px 20px;
-
-      h1 {
-        font-size: 25px;
-        margin: auto;
-        margin-left: 0;
-      }
-
-      .form-fb {
-        max-width: 300px;
-        display: grid;
-        gap: 10px;
-      }
-
-      .action-end {
-        height: min-content;
-        button {
-          position: relative;
-          height: 65px;
-          width: 100%;
-          margin: auto;
-          font-size: 23px;
-          font-weight: 500;
-          letter-spacing: 1px;
-          border-radius: 5px;
-          text-transform: uppercase;
-          border: 1px solid transparent;
-          outline: none;
-          cursor: pointer;
-          background: #5b81ea;
-          overflow: hidden;
-          transition: 0.6s;
-          color: #fff;
-          border-color: #3868eb;
-
-          &::before,
-          &::after {
-            position: absolute;
-            content: '';
-            left: 0;
-            top: 0;
-            height: 100%;
-            filter: blur(30px);
-            opacity: 0.4;
-            transition: 0.6s;
-          }
-
-          &:before {
-            width: 60px;
-            background: rgba(255, 255, 255, 0.6);
-            transform: translateX(-130px) skewX(-45deg);
-          }
-
-          &:after {
-            width: 30px;
-            background: rgba(255, 255, 255, 0.6);
-            transform: translateX(-130px) skewX(-45deg);
-          }
-
-          &:hover:before,
-          &:hover:after {
-            opacity: 0.6;
-            transform: translateX(320px) skewX(-45deg);
-          }
-
-          &:hover {
-            color: #f2f2f2;
-            background: #44df6b;
-          }
-        }
-      }
-    }
   }
-
-  .mode-anulado {
-    border-top: none;
-    background: #ffd0d0;
-    td {
-      border: none !important;
-      &:first-child {
-        border-left: 2px solid #ea5b5b !important;
-      }
-      &:last-child {
-        border-right: 2px solid #ea5b5b !important;
-      }
-    }
-  }
-
-  table {
-    display: block;
-    border-collapse: collapse;
-    margin: 10px;
-
-    &::-webkit-scrollbar {
-      width: 0;
-    }
-
-    tr {
-      position: relative;
-      display: grid;
-    }
-
-    thead {
-      tr {
-        th {
-          background: #5b81ea;
-          color: #fff;
-          font-weight: bold;
-          padding: 10px;
-          text-align: center;
-          font-size: 18px;
-        }
-      }
-    }
-
-    tbody {
-      tr {
-        td {
-          position: relative;
-          padding: 10px 5px;
-          text-align: center;
-          font-size: 18px;
-          vertical-align: top;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          border-right: none !important;
-          //border-top: none !important;
-        }
-      }
-    }
-  }
-
-  .info-extra {
-    display: flex;
-    justify-content: space-between;
-
-    .tb-info {
-      display: grid;
-      grid-template-rows: 50px auto;
-      span {
-        margin: auto;
-        font-weight: 800;
-        font-size: 18px;
-        color: #5161ce;
-        letter-spacing: 3px;
-        border: solid 1px #5161ce;
-        padding: 10px;
-        padding-bottom: 7px;
-      }
-    }
-    .paid-orders-tarj {
-      table {
-        tr {
-          grid-template-columns: 80px 140px 280px 150px;
-        }
-        thead {
-          tr {
-            th {
-              background: #007bff;
-              color: #fff;
-            }
-          }
-        }
-        tbody {
-          tr {
-            td {
-              border: 1px solid #007bff;
-              &:last-child {
-                border-right: 2px solid #007bff !important;
-              }
-              &:first-child {
-                border-left: 2px solid #007bff !important;
-              }
-            }
-            &:last-child {
-              border-bottom: 2px solid #007bff !important;
-            }
-          }
-        }
-      }
-    }
-
-    .paid-orders-tranf {
-      table {
-        tr {
-          grid-template-columns: 80px 140px 280px 150px;
-        }
-        thead {
-          tr {
-            th {
-              background: #7a43c9;
-              color: #fff;
-            }
-          }
-        }
-        tbody {
-          tr {
-            td {
-              border: 1px solid #7a43c9;
-              &:last-child {
-                border-right: 2px solid #7a43c9 !important;
-              }
-              &:first-child {
-                border-left: 2px solid #7a43c9 !important;
-              }
-            }
-            &:last-child {
-              border-bottom: 2px solid #7a43c9 !important;
-            }
-          }
-        }
-      }
-    }
-    .paid-orders-efectivo {
-      table {
-        tr {
-          grid-template-columns: 80px 140px 250px 150px;
-        }
-        thead {
-          tr {
-            th {
-              background: #3faf84;
-              color: #fff;
-            }
-          }
-        }
-        tbody {
-          tr {
-            td {
-              border: 1px solid #3faf84;
-              &:last-child {
-                border-right: 2px solid #3faf84 !important;
-              }
-              &:first-child {
-                border-left: 2px solid #3faf84 !important;
-              }
-            }
-            &:last-child {
-              border-bottom: 2px solid #3faf84 !important;
-            }
-          }
-        }
-      }
-    }
-
-    .daily-expenses {
-      table {
-        tr {
-          grid-template-columns: 300px 250px 100px;
-        }
-        thead {
-          tr {
-            th {
-              background: #ea5b5b;
-            }
-          }
-        }
-
-        tbody {
-          tr {
-            td {
-              border: 1px solid #ea5b5b;
-              &:last-child {
-                border-right: 2px solid #ea5b5b !important;
-              }
-            }
-            &:last-child {
-              border-bottom: 2px solid #ea5b5b !important;
-            }
-          }
-        }
-      }
-    }
   }
 `;
 

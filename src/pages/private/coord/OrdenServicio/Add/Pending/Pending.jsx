@@ -1,55 +1,55 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { NumberInput, TextInput, Modal } from '@mantine/core';
-import { DateInput, TimeInput } from '@mantine/dates';
-import { Autocomplete } from '@mantine/core';
-import React, { useEffect, useState } from 'react';
+import { NumberInput, TextInput, Modal } from "@mantine/core";
+import { DateInput, TimeInput } from "@mantine/dates";
+import { Autocomplete } from "@mantine/core";
+import React, { useEffect, useState } from "react";
 
-import { Field, Form, Formik, useFormik } from 'formik';
-import * as Yup from 'yup';
+import { Field, Form, Formik, useFormik } from "formik";
+import * as Yup from "yup";
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
-import BotonModel from '../../../../../../components/PRIVATE/BotonModel/BotonModel';
-import InputSelectedPrendas from '../../../../../../components/PRIVATE/InputSelectedPrenda/InputSelectedPrenda';
-import MetodoPago from '../../../../../../components/PRIVATE/MetodoPago/MetodoPago';
-import Portal from '../../../../../../components/PRIVATE/Portal/Portal';
-import './pending.scss';
+import BotonModel from "../../../../../../components/PRIVATE/BotonModel/BotonModel";
+import InputSelectedPrendas from "../../../../../../components/PRIVATE/InputSelectedPrenda/InputSelectedPrenda";
+import MetodoPago from "../../../../../../components/PRIVATE/MetodoPago/MetodoPago";
+import Portal from "../../../../../../components/PRIVATE/Portal/Portal";
+import "./pending.scss";
 
-import { ReactComponent as Eliminar } from '../../../../../../utils/img/OrdenServicio/eliminar.svg';
-import { ReactComponent as Lavadora } from '../../../../../../utils/img/OrdenServicio/lavadora.svg';
+import { ReactComponent as Eliminar } from "../../../../../../utils/img/OrdenServicio/eliminar.svg";
+import { ReactComponent as Lavadora } from "../../../../../../utils/img/OrdenServicio/lavadora.svg";
 
-import Yape from '../../../../../../utils/img/OrdenServicio/Yape.png';
-import Efectivo from '../../../../../../utils/img/OrdenServicio/dinero.png';
-import Coins from '../../../../../../utils/img/Puntos/coins.png';
+import Yape from "../../../../../../utils/img/OrdenServicio/Yape.png";
+import Efectivo from "../../../../../../utils/img/OrdenServicio/dinero.png";
+import Coins from "../../../../../../utils/img/Puntos/coins.png";
 
-import Tag from '../../../../../../components/Tag/Tag';
-import InputText from '../../../../../../components/PRIVATE/InputText/InputText';
+import Tag from "../../../../../../components/Tag/Tag";
+import InputText from "../../../../../../components/PRIVATE/InputText/InputText";
 
-import moment from 'moment';
+import moment from "moment";
 //import 'moment/locale/es';
 
-import { Text, ScrollArea } from '@mantine/core';
-import { modals } from '@mantine/modals';
-import { useDisclosure } from '@mantine/hooks';
-import { useDispatch, useSelector } from 'react-redux';
-import { PrivateRoutes } from '../../../../../../models';
-import axios from 'axios';
-import { DiasAttencion, HoraAttencion } from '../../../../../../utils/functions';
-import SwitchModel from '../../../../../../components/SwitchModel/SwitchModel';
-import Promocion from '../../../../../../components/PRIVATE/OrdenServicio/Promocion/Promocion';
-import { setLastRegister } from '../../../../../../redux/states/service_order';
-import { socket } from '../../../../../../utils/socket/connect';
+import { Text, ScrollArea } from "@mantine/core";
+import { modals } from "@mantine/modals";
+import { useDisclosure } from "@mantine/hooks";
+import { useDispatch, useSelector } from "react-redux";
+import { PrivateRoutes } from "../../../../../../models";
+import axios from "axios";
 
-import { ReactComponent as Moto } from '../../../../../../utils/img/Delivery/moto.svg';
-import { ReactComponent as Taxi } from '../../../../../../utils/img/Delivery/taxi-lateral.svg';
+import SwitchModel from "../../../../../../components/SwitchModel/SwitchModel";
+import Promocion from "../../../../../../components/PRIVATE/OrdenServicio/Promocion/Promocion";
+import { setLastRegister } from "../../../../../../redux/states/service_order";
+import { socket } from "../../../../../../utils/socket/connect";
 
-import { Notify } from '../../../../../../utils/notify/Notify';
+import { ReactComponent as Moto } from "../../../../../../utils/img/Delivery/moto.svg";
+import { ReactComponent as Taxi } from "../../../../../../utils/img/Delivery/taxi-lateral.svg";
 
-import { updateLastCuadre } from '../../../../../../redux/states/cuadre';
-import { useRef } from 'react';
-import { AddOrdenServices } from '../../../../../../redux/actions/aOrdenServices';
+import { Notify } from "../../../../../../utils/notify/Notify";
+
+import { updateLastCuadre } from "../../../../../../redux/states/cuadre";
+import { useRef } from "react";
+import { AddOrdenServices } from "../../../../../../redux/actions/aOrdenServices";
 
 const OrdenServicioPendiente = () => {
   const iCodigo = useSelector((state) => state.codigo.infoCodigo.codActual);
@@ -59,7 +59,9 @@ const OrdenServicioPendiente = () => {
 
   const { lastCuadre } = useSelector((state) => state.cuadre);
 
-  const { InfoImpuesto, InfoPuntos } = useSelector((state) => state.modificadores);
+  const { InfoImpuesto, InfoPuntos } = useSelector(
+    (state) => state.modificadores
+  );
 
   const [isPortalPago, setIsPortalPago] = useState(false);
   const [PortalValidPromocion, setPortalValiPromocion] = useState(false);
@@ -75,7 +77,7 @@ const OrdenServicioPendiente = () => {
   // Puntos del cliente Actual
   const [dataScore, setDataScore] = useState(false);
 
-  const [showOnModal, setShowOnModal] = useState('');
+  const [showOnModal, setShowOnModal] = useState("");
 
   const [iDelivery, setIDelivey] = useState();
 
@@ -86,12 +88,16 @@ const OrdenServicioPendiente = () => {
   const inputRef = useRef(null);
 
   const validationSchema = Yup.object().shape({
-    name: Yup.string().required('Campo obligatorio'),
+    name: Yup.string().required("Campo obligatorio"),
     productos: Yup.array()
-      .min(1, 'Debe haber al menos un producto')
-      .test('categoria', 'Debe haber al menos un producto - Delivery no cuenta', function (value) {
-        return value.some((item) => item.categoria !== 'Delivery');
-      })
+      .min(1, "Debe haber al menos un producto")
+      .test(
+        "categoria",
+        "Debe haber al menos un producto - Delivery no cuenta",
+        function (value) {
+          return value.some((item) => item.categoria !== "Delivery");
+        }
+      )
       .of(
         Yup.object().shape({
           //cantidad: Yup.string().required("Campo obligatorio"),
@@ -102,12 +108,14 @@ const OrdenServicioPendiente = () => {
   });
 
   const validationModalidad = Yup.object().shape({
-    price: Yup.string().required('Campo obligatorio (numero)'),
-    tipoDelivery: Yup.string().required('Selecciona medio de transporte'),
+    price: Yup.string().required("Campo obligatorio (numero)"),
+    tipoDelivery: Yup.string().required("Selecciona medio de transporte"),
   });
 
   const getProductValue = (nombre) => {
-    const garment = infoPrendas.find((prenda) => prenda.name.toLowerCase() === nombre.toLowerCase());
+    const garment = infoPrendas.find(
+      (prenda) => prenda.name.toLowerCase() === nombre.toLowerCase()
+    );
     if (garment) {
       return garment.price;
     }
@@ -117,23 +125,25 @@ const OrdenServicioPendiente = () => {
 
   const formik = useFormik({
     initialValues: {
-      dni: '',
-      name: '',
-      phone: '',
-      dateRecojo: moment(lastCuadre?.dateCuadre.fecha).add(1, 'days').toDate(),
-      datePrevista: moment(lastCuadre?.dateCuadre.fecha).add(1, 'days').toDate(),
-      hourPrev: '17:00',
-      hourReco: '00:00',
+      dni: "",
+      name: "",
+      phone: "",
+      dateRecojo: moment(lastCuadre?.dateCuadre.fecha).add(1, "days").toDate(),
+      datePrevista: moment(lastCuadre?.dateCuadre.fecha)
+        .add(1, "days")
+        .toDate(),
+      hourPrev: "17:00",
+      hourReco: "00:00",
       datePago: {
-        fecha: '',
-        hora: '',
+        fecha: "",
+        hora: "",
       },
       productos: [],
       descuento: 0,
-      modoDescuento: 'Puntos',
+      modoDescuento: "Puntos",
       swPagado: false,
-      Modalidad: 'Tienda',
-      metodoPago: '',
+      Modalidad: "Tienda",
+      metodoPago: "",
       factura: false,
       subTotal: 0,
       cargosExtras: {
@@ -156,13 +166,15 @@ const OrdenServicioPendiente = () => {
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       let correcciones = [];
-      if (values.modoDescuento === 'Promocion') {
-        correcciones = await validProductos(values.cargosExtras.beneficios.promociones);
+      if (values.modoDescuento === "Promocion") {
+        correcciones = await validProductos(
+          values.cargosExtras.beneficios.promociones
+        );
       }
       if (correcciones.length > 0) {
-        alert(`La Promoción Exige:\n\n${correcciones.join('\n')}`);
+        alert(`La Promoción Exige:\n\n${correcciones.join("\n")}`);
       } else {
-        setShowOnModal('Promocion');
+        setShowOnModal("Promocion");
         open();
       }
     },
@@ -171,15 +183,18 @@ const OrdenServicioPendiente = () => {
   const openModal = async (cups) => {
     close();
     setIsPromocion(false);
-    const values = { ...formik.values, gift_promo: cups.length > 0 ? cups : [] };
+    const values = {
+      ...formik.values,
+      gift_promo: cups.length > 0 ? cups : [],
+    };
 
     modals.openConfirmModal({
-      title: 'Registro de Factura',
+      title: "Registro de Factura",
       centered: true,
       children: <Text size="sm">¿Estás seguro de registrar esta factura?</Text>,
-      labels: { confirm: 'Si', cancel: 'No' },
-      confirmProps: { color: 'green' },
-      onCancel: () => formik.setFieldValue('gift_promo', []),
+      labels: { confirm: "Si", cancel: "No" },
+      confirmProps: { color: "green" },
+      onCancel: () => formik.setFieldValue("gift_promo", []),
       onConfirm: () => handleGetInfo(values),
     });
   };
@@ -191,7 +206,7 @@ const OrdenServicioPendiente = () => {
       type: tipo,
       cantidad: stateCantidad === false ? 1 : 1,
       producto: producto,
-      descripcion: '',
+      descripcion: "",
       expanded: false,
       total: precio,
       categoria: categoria,
@@ -200,12 +215,12 @@ const OrdenServicioPendiente = () => {
   };
 
   function tFecha(fecha) {
-    const fechaFormateada = moment(fecha).format('YYYY-MM-DD');
+    const fechaFormateada = moment(fecha).format("YYYY-MM-DD");
     return fechaFormateada;
   }
 
   function tHora(fecha) {
-    const horaFormateada = moment(fecha).format('HH:mm');
+    const horaFormateada = moment(fecha).format("HH:mm");
     return horaFormateada;
   }
 
@@ -220,9 +235,9 @@ const OrdenServicioPendiente = () => {
     }));
 
     let finalUpdatePromo = info.cargosExtras;
-    if (info.modoDescuento === 'Promocion') {
+    if (info.modoDescuento === "Promocion") {
       finalUpdatePromo.beneficios.promociones = listCupones;
-    } else if (info.modoDescuento === 'Puntos') {
+    } else if (info.modoDescuento === "Puntos") {
       finalUpdatePromo.beneficios.promociones = [];
       finalUpdatePromo.descuentos.promocion = 0;
     }
@@ -237,26 +252,26 @@ const OrdenServicioPendiente = () => {
       Nombre: info.name,
       Producto: infoProduct,
       celular: info.phone,
-      Pago: info.swPagado ? 'Pagado' : 'Pendiente',
+      Pago: info.swPagado ? "Pagado" : "Pendiente",
       datePago: info.datePago, // Cambio hice q lo tome del estado
       datePrevista: {
         fecha: tFecha(info.datePrevista),
         hora: info.hourPrev,
       },
       dateEntrega: {
-        fecha: '',
-        hora: '',
+        fecha: "",
+        hora: "",
       },
       metodoPago: info.metodoPago,
       descuento: info.descuento,
-      estadoPrenda: 'pendiente',
-      estado: 'registrado',
+      estadoPrenda: "pendiente",
+      estado: "registrado",
       dni: info.dni,
       factura: info.factura,
       subTotal: info.subTotal,
       cargosExtras: finalUpdatePromo,
       totalNeto: info.totalNeto,
-      modeRegistro: 'nuevo',
+      modeRegistro: "nuevo",
       notas: [],
       modoDescuento: info.modoDescuento,
       gift_promo: info.gift_promo,
@@ -265,15 +280,18 @@ const OrdenServicioPendiente = () => {
         rol: InfoUsuario.rol,
       },
       lastEdit: [],
-      typeRegistro: 'pendiente',
+      typeRegistro: "pendiente",
     };
 
     let infoDelivery;
 
-    if (info.Modalidad === 'Delivery') {
+    if (info.Modalidad === "Delivery") {
       infoDelivery = {
         name: formik.values.name,
-        descripcion: `[${String(iCodigo).padStart(4, '0')}] Delivery recojo en ${iDelivery.tipoDelivery}`,
+        descripcion: `[${String(iCodigo).padStart(
+          4,
+          "0"
+        )}] Delivery recojo en ${iDelivery.tipoDelivery}`,
         fecha: tFecha(info.dateRecojo),
         hora: info.hourReco,
         monto: iDelivery.price,
@@ -283,14 +301,14 @@ const OrdenServicioPendiente = () => {
     console.log({
       infoRecibo,
       rol: InfoUsuario.rol,
-      ...(info.Modalidad === 'Delivery' && { infoDelivery }),
+      ...(info.Modalidad === "Delivery" && { infoDelivery }),
     });
 
     await dispatch(
       AddOrdenServices({
         infoRecibo,
         rol: InfoUsuario.rol,
-        ...(info.Modalidad === 'Delivery' && { infoDelivery }),
+        ...(info.Modalidad === "Delivery" && { infoDelivery }),
       })
     );
   };
@@ -302,12 +320,14 @@ const OrdenServicioPendiente = () => {
 
   const handleGetClientes = async (dni) => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/get-clientes/${dni}`);
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/get-clientes/${dni}`
+      );
       const data = response.data;
       setInfoClientes(data);
       return data;
     } catch (error) {
-      console.error('Error al obtener los datos:', error.message);
+      console.error("Error al obtener los datos:", error.message);
     }
   };
 
@@ -320,14 +340,18 @@ const OrdenServicioPendiente = () => {
 
   const validCupon = async (codigoCupon) => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/validar-cupon/${codigoCupon}`);
+      const response = await axios.get(
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/lava-ya/validar-cupon/${codigoCupon}`
+      );
       const data = response.data;
       await setResValidCupon(data);
       return data;
     } catch (error) {
       // Captura errores y devuelve un mensaje de error genérico
       return {
-        mensaje: 'Error al hacer la solicitud: ' + error.message,
+        mensaje: "Error al hacer la solicitud: " + error.message,
       };
     }
   };
@@ -348,7 +372,9 @@ const OrdenServicioPendiente = () => {
     for (const p of listP) {
       const infoCupon = await validCupon(p.codigoCupon);
       const prendaActual = infoCupon.promocion.prenda;
-      const productosFiltrados = listProductos.filter((p) => p.producto === prendaActual);
+      const productosFiltrados = listProductos.filter(
+        (p) => p.producto === prendaActual
+      );
       const cantActual = productosFiltrados.reduce(
         (total, producto) => total + +Number(producto.cantidad).toFixed(1),
         0
@@ -358,22 +384,38 @@ const OrdenServicioPendiente = () => {
       const res = cantActual >= cantMin;
       if (!res) {
         //const nPrendasFaltante = cantMin - sumaCantidades; // falta registrar
-        let infoFaltante = '';
-        if (prendaActual === 'Ropa x Kilo') {
-          infoFaltante = `Minimo ${cantMin} kilo${cantMin !== 1 ? 's' : ''} de Ropa y ${
-            cantActual === 0 ? 'no registraste ninguno' : `solo registraste : ${cantActual}`
+        let infoFaltante = "";
+        if (prendaActual === "Ropa x Kilo") {
+          infoFaltante = `Minimo ${cantMin} kilo${
+            cantMin !== 1 ? "s" : ""
+          } de Ropa y ${
+            cantActual === 0
+              ? "no registraste ninguno"
+              : `solo registraste : ${cantActual}`
           }  `;
-        } else if (prendaActual === 'Cortinas') {
-          infoFaltante = `Minimo ${cantMin} metro${cantMin !== 1 ? 's' : ''} de ${prendaActual} y ${
-            cantActual === 0 ? 'no registraste ninguno' : `solo registraste : ${cantActual}`
+        } else if (prendaActual === "Cortinas") {
+          infoFaltante = `Minimo ${cantMin} metro${
+            cantMin !== 1 ? "s" : ""
+          } de ${prendaActual} y ${
+            cantActual === 0
+              ? "no registraste ninguno"
+              : `solo registraste : ${cantActual}`
           }  `;
-        } else if (prendaActual === 'Zapatillas') {
-          infoFaltante = `Minimo ${cantMin} par${cantMin !== 1 ? 'es' : ''} de ${prendaActual} y ${
-            cantActual === 0 ? 'no registraste ninguno' : `solo registraste : ${cantActual}`
+        } else if (prendaActual === "Zapatillas") {
+          infoFaltante = `Minimo ${cantMin} par${
+            cantMin !== 1 ? "es" : ""
+          } de ${prendaActual} y ${
+            cantActual === 0
+              ? "no registraste ninguno"
+              : `solo registraste : ${cantActual}`
           }  `;
         } else {
-          infoFaltante = `Minimo ${cantMin} prenda${cantMin !== 1 ? 's' : ''} de tipo ${prendaActual} y ${
-            cantActual === 0 ? 'no registraste ninguno' : `solo registraste : ${cantActual}`
+          infoFaltante = `Minimo ${cantMin} prenda${
+            cantMin !== 1 ? "s" : ""
+          } de tipo ${prendaActual} y ${
+            cantActual === 0
+              ? "no registraste ninguno"
+              : `solo registraste : ${cantActual}`
           }  `;
         }
 
@@ -386,10 +428,14 @@ const OrdenServicioPendiente = () => {
 
   const recalculatePromoDescuento = () => {
     let updateCupon = listCupones;
-    const cupTypeDsc = listCupones.filter((cupon) => cupon.tipo === 'Descuento');
+    const cupTypeDsc = listCupones.filter(
+      (cupon) => cupon.tipo === "Descuento"
+    );
 
     // Agrupacion de cupones segun codigo
-    const groupCupon = [...new Set(cupTypeDsc.map((item) => item.codigoPromocion))].map((codigoPromocion) =>
+    const groupCupon = [
+      ...new Set(cupTypeDsc.map((item) => item.codigoPromocion)),
+    ].map((codigoPromocion) =>
       cupTypeDsc.filter((item) => item.codigoPromocion === codigoPromocion)
     );
 
@@ -398,7 +444,9 @@ const OrdenServicioPendiente = () => {
       for (const grupo of groupCupon) {
         const prenda = grupo[0].prenda;
 
-        const predasSimilares = formik.values.productos.filter((p) => p.producto === prenda);
+        const predasSimilares = formik.values.productos.filter(
+          (p) => p.producto === prenda
+        );
 
         if (predasSimilares.length > 0) {
           let sumaTotales = predasSimilares.reduce((total, prenda) => {
@@ -409,7 +457,9 @@ const OrdenServicioPendiente = () => {
           // Calcular descuentos y actualizar sumaTotales
 
           for (const dsc of grupo) {
-            const dscFinal = +parseFloat(sumaTotales * (dsc.nMultiplicador / 100)).toFixed(1);
+            const dscFinal = +parseFloat(
+              sumaTotales * (dsc.nMultiplicador / 100)
+            ).toFixed(1);
             // Actualizar el descuento en cada registro según su código de cupón
             updateCupon = updateCupon.map((c) => {
               if (c.codigoCupon === dsc.codigoCupon) {
@@ -429,7 +479,10 @@ const OrdenServicioPendiente = () => {
             });
           }
         }
-        formik.setFieldValue('cargosExtras.beneficios.promociones', updateCupon);
+        formik.setFieldValue(
+          "cargosExtras.beneficios.promociones",
+          updateCupon
+        );
         setListCupones(updateCupon);
       }
     }
@@ -440,12 +493,12 @@ const OrdenServicioPendiente = () => {
       return isNaN(descuentoTotal) ? total : total + descuentoTotal;
     }, 0);
 
-    formik.setFieldValue('cargosExtras.descuentos.promocion', sumaTotales);
-    formik.setFieldValue('descuento', sumaTotales);
+    formik.setFieldValue("cargosExtras.descuentos.promocion", sumaTotales);
+    formik.setFieldValue("descuento", sumaTotales);
   };
 
   const handleGetDay = (date) => {
-    const formattedDayOfWeek = moment(date).format('dddd');
+    const formattedDayOfWeek = moment(date).format("dddd");
     return `${formattedDayOfWeek} : `;
   };
 
@@ -475,7 +528,7 @@ const OrdenServicioPendiente = () => {
     return (
       <div className="ico-req">
         <i className="fa-solid fa-circle-exclamation ">
-          <div className="info-req" style={{ pointerEvents: 'none' }}>
+          <div className="info-req" style={{ pointerEvents: "none" }}>
             <span>{message}</span>
           </div>
         </i>
@@ -496,21 +549,29 @@ const OrdenServicioPendiente = () => {
 
   useEffect(() => {
     formik.setFieldValue(
-      'cargosExtras.descuentos.puntos',
-      Number(MontoxPoints(formik.values.cargosExtras.beneficios.puntos).toFixed(2))
+      "cargosExtras.descuentos.puntos",
+      Number(
+        MontoxPoints(formik.values.cargosExtras.beneficios.puntos).toFixed(2)
+      )
     );
 
-    formik.setFieldValue('cargosExtras.igv.valor', InfoImpuesto.IGV);
+    formik.setFieldValue("cargosExtras.igv.valor", InfoImpuesto.IGV);
   }, [InfoPuntos, InfoImpuesto]);
 
   useEffect(() => {
-    const subtotal = Number(calculateTotalNeto(formik.values.productos).toFixed(2));
-    formik.setFieldValue('subTotal', subtotal);
+    const subtotal = Number(
+      calculateTotalNeto(formik.values.productos).toFixed(2)
+    );
+    formik.setFieldValue("subTotal", subtotal);
   }, [formik.values.productos]);
 
   useEffect(() => {
     recalculatePromoDescuento();
-  }, [formik.values.productos, listCupones.length, formik.values.modoDescuento]);
+  }, [
+    formik.values.productos,
+    listCupones.length,
+    formik.values.modoDescuento,
+  ]);
 
   useEffect(() => {
     const subTotal = formik.values.subTotal;
@@ -518,15 +579,18 @@ const OrdenServicioPendiente = () => {
     if (formik.values.factura === true) {
       montoIGV = +(subTotal * formik.values.cargosExtras.igv.valor).toFixed(2);
     }
-    formik.setFieldValue('cargosExtras.igv.importe', montoIGV);
+    formik.setFieldValue("cargosExtras.igv.importe", montoIGV);
     const total = subTotal + montoIGV;
     const descuento =
-      formik.values.modoDescuento === 'Puntos'
+      formik.values.modoDescuento === "Puntos"
         ? formik.values.cargosExtras.descuentos.puntos
         : formik.values.cargosExtras.descuentos.promocion;
-    formik.setFieldValue('descuento', descuento);
+    formik.setFieldValue("descuento", descuento);
     const totalNeto = total - descuento;
-    formik.setFieldValue('totalNeto', (Math.floor(totalNeto * 10) / 10).toFixed(1));
+    formik.setFieldValue(
+      "totalNeto",
+      (Math.floor(totalNeto * 10) / 10).toFixed(1)
+    );
   }, [
     formik.values.cargosExtras.igv,
     formik.values.productos,
@@ -538,26 +602,32 @@ const OrdenServicioPendiente = () => {
   ]);
 
   useEffect(() => {
-    socket.on('server:cancel-delivery', (data) => {
+    socket.on("server:cancel-delivery", (data) => {
       const { dni } = data;
-      if (dni !== '') {
+      if (dni !== "") {
         const infoPuntos = handleGetClientes(dni);
-        formik.setFieldValue('cargosExtras.descuentos.puntos', 0);
-        formik.setFieldValue('cargosExtras.beneficios.puntos', 0);
+        formik.setFieldValue("cargosExtras.descuentos.puntos", 0);
+        formik.setFieldValue("cargosExtras.beneficios.puntos", 0);
         setDataScore(infoPuntos);
       }
     });
 
-    socket.on('server:changeCuadre:child', (data) => {
+    socket.on("server:changeCuadre:child", (data) => {
       formik.handleReset();
-      formik.setFieldValue('dateRecojo', moment(data.dateCuadre.fecha).add(1, 'days').toDate());
-      formik.setFieldValue('datePrevista', moment(data.dateCuadre.fecha).add(1, 'days').toDate());
+      formik.setFieldValue(
+        "dateRecojo",
+        moment(data.dateCuadre.fecha).add(1, "days").toDate()
+      );
+      formik.setFieldValue(
+        "datePrevista",
+        moment(data.dateCuadre.fecha).add(1, "days").toDate()
+      );
     });
 
     return () => {
       // Remove the event listener when the component unmounts
-      socket.off('server:cancel-delivery');
-      socket.off('server:changeCuadre:child');
+      socket.off("server:cancel-delivery");
+      socket.off("server:changeCuadre:child");
     };
   }, []);
 
@@ -571,19 +641,21 @@ const OrdenServicioPendiente = () => {
               <div className="title">
                 <h1>{InfoNegocio?.name}</h1>
                 <h2>LAVANDERIA</h2>
-                {Object.keys(InfoNegocio).length > 0 ? (
+                {/* {Object.keys(InfoNegocio).length > 0 ? (
                   <h3>
                     {DiasAttencion(InfoNegocio?.horario.dias)}
                     <br />
                     {HoraAttencion(InfoNegocio?.horario.horas)}
                   </h3>
+                ) : null} */}
+                {InfoNegocio?.numero?.state ? (
+                  <h3>Cel.: {InfoNegocio?.numero?.info}</h3>
                 ) : null}
-                {InfoNegocio?.numero?.state ? <h3>Cel.: {InfoNegocio?.numero?.info}</h3> : null}
               </div>
             </div>
             <div className="n-recibo">
               <h2>RECIBO</h2>
-              <h1>N° {String(iCodigo).padStart(6, '0')}</h1>
+              <h1>N° {String(iCodigo).padStart(6, "0")}</h1>
             </div>
           </div>
           <div className="header-info">
@@ -592,34 +664,40 @@ const OrdenServicioPendiente = () => {
                 name="dni"
                 onChange={(dni) => {
                   handleGetClientes(dni);
-                  formik.setFieldValue('dni', dni);
+                  formik.setFieldValue("dni", dni);
                   setDataScore();
-                  formik.setFieldValue('cargosExtras.descuentos.puntos', 0);
-                  formik.setFieldValue('cargosExtras.beneficios.puntos', 0);
+                  formik.setFieldValue("cargosExtras.descuentos.puntos", 0);
+                  formik.setFieldValue("cargosExtras.beneficios.puntos", 0);
                 }}
-                tabIndex={'1'}
+                tabIndex={"1"}
                 autoFocus
                 label="Documento :"
                 placeholder="Ingrese N° Documento"
                 defaultValue={formik.values.dni}
                 onItemSubmit={(selected) => {
-                  const cliente = infoClientes.find((obj) => obj.dni === selected.value);
-                  formik.setFieldValue('name', cliente.nombre);
-                  formik.setFieldValue('phone', cliente.phone);
+                  const cliente = infoClientes.find(
+                    (obj) => obj.dni === selected.value
+                  );
+                  formik.setFieldValue("name", cliente.nombre);
+                  formik.setFieldValue("phone", cliente.phone);
 
                   setDataScore(cliente);
                 }}
-                data={infoClientes.length > 0 ? infoClientes.map((obj) => obj.dni) : []}
+                data={
+                  infoClientes.length > 0
+                    ? infoClientes.map((obj) => obj.dni)
+                    : []
+                }
                 disabled={false}
               />
 
               <InputText
-                name={'name'}
+                name={"name"}
                 handleChange={formik.handleChange}
                 handleBlur={formik.handleBlur}
                 valueName={formik.values.name}
-                tabI={'2'}
-                text={'Señor(es):'}
+                tabI={"2"}
+                text={"Señor(es):"}
                 disabled={false}
                 valid={{
                   errors: formik.errors.name && formik.touched.name,
@@ -627,30 +705,38 @@ const OrdenServicioPendiente = () => {
                 }}
               />
               <InputText
-                name={'phone'}
+                name={"phone"}
                 handleChange={formik.handleChange}
                 handleBlur={formik.handleBlur}
-                tabI={'3'}
+                tabI={"3"}
                 valueName={formik.values.phone}
-                text={'Celular:'}
+                text={"Celular:"}
               />
               <SwitchModel
                 title="Tipo de Descuento :"
                 onSwitch="Puntos" // TRUE
                 offSwitch="Promocion" // FALSE
                 name="swModalidad"
-                defaultValue={formik.values.modoDescuento === 'Puntos' ? true : false}
+                defaultValue={
+                  formik.values.modoDescuento === "Puntos" ? true : false
+                }
                 disabled={false}
                 onChange={(value) => {
-                  formik.setFieldValue('descuento', 0);
+                  formik.setFieldValue("descuento", 0);
                   if (value === true) {
-                    formik.setFieldValue('modoDescuento', 'Puntos');
-                    formik.setFieldValue('cargosExtras.descuentos.puntos', 0);
-                    formik.setFieldValue('cargosExtras.beneficios.puntos', 0);
+                    formik.setFieldValue("modoDescuento", "Puntos");
+                    formik.setFieldValue("cargosExtras.descuentos.puntos", 0);
+                    formik.setFieldValue("cargosExtras.beneficios.puntos", 0);
                   } else {
-                    formik.setFieldValue('modoDescuento', 'Promocion');
-                    formik.setFieldValue('cargosExtras.descuentos.promocion', 0);
-                    formik.setFieldValue('cargosExtras.beneficios.promociones', []);
+                    formik.setFieldValue("modoDescuento", "Promocion");
+                    formik.setFieldValue(
+                      "cargosExtras.descuentos.promocion",
+                      0
+                    );
+                    formik.setFieldValue(
+                      "cargosExtras.beneficios.promociones",
+                      []
+                    );
                   }
                 }}
               />
@@ -664,12 +750,14 @@ const OrdenServicioPendiente = () => {
                       name="dateRecojo"
                       value={formik.values.dateRecojo}
                       onChange={(date) => {
-                        formik.setFieldValue('dateRecojo', date);
-                        formik.setFieldValue('datePrevista', date);
+                        formik.setFieldValue("dateRecojo", date);
+                        formik.setFieldValue("datePrevista", date);
                       }}
-                      tabIndex={'4'}
-                      maxDate={moment().subtract(1, 'days').toDate()}
-                      minDate={moment(lastCuadre?.dateCuadre.fecha).add(1, 'days').toDate()}
+                      tabIndex={"4"}
+                      maxDate={moment().subtract(1, "days").toDate()}
+                      minDate={moment(lastCuadre?.dateCuadre.fecha)
+                        .add(1, "days")
+                        .toDate()}
                       placeholder="Ingrese Fecha"
                       mx="auto"
                     />
@@ -690,7 +778,7 @@ const OrdenServicioPendiente = () => {
                       name="datePrevista"
                       value={formik.values.datePrevista}
                       onChange={(date) => {
-                        formik.setFieldValue('datePrevista', date);
+                        formik.setFieldValue("datePrevista", date);
                       }}
                       // disabled={false}
                       placeholder="Ingrese Fecha"
@@ -702,14 +790,20 @@ const OrdenServicioPendiente = () => {
                         className="btn-preview"
                         disabled={false}
                         onClick={() => {
-                          const currentDate = moment(formik.values.dateRecojo).toDate();
+                          const currentDate = moment(
+                            formik.values.dateRecojo
+                          ).toDate();
                           const newDate = new Date(
-                            Math.max(formik.values.datePrevista.getTime() - 24 * 60 * 60 * 1000, currentDate.getTime())
+                            Math.max(
+                              formik.values.datePrevista.getTime() -
+                                24 * 60 * 60 * 1000,
+                              currentDate.getTime()
+                            )
                           );
-                          formik.setFieldValue('datePrevista', newDate);
+                          formik.setFieldValue("datePrevista", newDate);
                         }}
                       >
-                        {'<'}
+                        {"<"}
                       </button>
                       <button
                         type="button"
@@ -718,12 +812,15 @@ const OrdenServicioPendiente = () => {
                         disabled={false}
                         onClick={() =>
                           formik.setFieldValue(
-                            'datePrevista',
-                            new Date(formik.values.datePrevista.getTime() + 24 * 60 * 60 * 1000)
+                            "datePrevista",
+                            new Date(
+                              formik.values.datePrevista.getTime() +
+                                24 * 60 * 60 * 1000
+                            )
                           )
                         }
                       >
-                        {'>'}
+                        {">"}
                       </button>
                     </div>
                   </div>
@@ -739,7 +836,9 @@ const OrdenServicioPendiente = () => {
                       value={formik.values.hourPrev}
                       onChange={formik.handleChange}
                     />
-                    <label className="day-date">{handleGetDay(formik.values.datePrevista)}</label>
+                    <label className="day-date">
+                      {handleGetDay(formik.values.datePrevista)}
+                    </label>
                   </div>
                 </div>
               </div>
@@ -755,10 +854,10 @@ const OrdenServicioPendiente = () => {
                     value="SI"
                     checked={formik.values.factura === true}
                     onChange={() => {
-                      formik.setFieldValue('factura', true);
+                      formik.setFieldValue("factura", true);
                     }}
                   />
-                  <label htmlFor="sFactura">SI</label>{' '}
+                  <label htmlFor="sFactura">SI</label>{" "}
                   <input
                     type="radio"
                     id="hFactura"
@@ -766,10 +865,10 @@ const OrdenServicioPendiente = () => {
                     value="NO"
                     checked={formik.values.factura === false}
                     onChange={() => {
-                      formik.setFieldValue('factura', false);
+                      formik.setFieldValue("factura", false);
                     }}
                   />
-                  <label htmlFor="hFactura">NO</label>{' '}
+                  <label htmlFor="hFactura">NO</label>{" "}
                   <div className="switch-wrapper">
                     <div className="switch">
                       <div>SI</div>
@@ -788,10 +887,10 @@ const OrdenServicioPendiente = () => {
                     id="oDelivery"
                     name="Modalidad"
                     value="Delivery"
-                    checked={formik.values.Modalidad === 'Delivery'}
+                    checked={formik.values.Modalidad === "Delivery"}
                     onChange={() => {
-                      formik.setFieldValue('Modalidad', 'Delivery');
-                      setShowOnModal('Modalidad');
+                      formik.setFieldValue("Modalidad", "Delivery");
+                      setShowOnModal("Modalidad");
                       open();
                     }}
                   />
@@ -801,13 +900,13 @@ const OrdenServicioPendiente = () => {
                     id="oTienda"
                     name="Modalidad"
                     value="Tienda"
-                    checked={formik.values.Modalidad === 'Tienda'}
+                    checked={formik.values.Modalidad === "Tienda"}
                     onChange={() => {
-                      formik.setFieldValue('Modalidad', 'Tienda');
+                      formik.setFieldValue("Modalidad", "Tienda");
                       const updatedProductos = formik.values.productos.filter(
-                        (producto) => producto.type !== 'Delivery'
+                        (producto) => producto.type !== "Delivery"
                       );
-                      formik.setFieldValue('productos', updatedProductos);
+                      formik.setFieldValue("productos", updatedProductos);
                     }}
                   />
                   <label htmlFor="oTienda">Tienda</label>
@@ -833,9 +932,15 @@ const OrdenServicioPendiente = () => {
                   tabI="6"
                   disabled={false}
                   listenClick={() =>
-                    formik.setFieldValue('productos', [
+                    formik.setFieldValue("productos", [
                       ...formik.values.productos,
-                      addRowGarment('productos', 'Edredon', getProductValue('Edredon'), true, 'Edredon'),
+                      addRowGarment(
+                        "productos",
+                        "Edredon",
+                        getProductValue("Edredon"),
+                        true,
+                        "Edredon"
+                      ),
                     ])
                   }
                 />
@@ -844,22 +949,28 @@ const OrdenServicioPendiente = () => {
                   tabI="7"
                   disabled={false}
                   listenClick={() =>
-                    formik.setFieldValue('productos', [
+                    formik.setFieldValue("productos", [
                       ...formik.values.productos,
-                      addRowGarment('productos', 'Ropa x Kilo', getProductValue('Ropa x Kilo'), true, 'Ropa x Kilo'),
+                      addRowGarment(
+                        "productos",
+                        "Ropa x Kilo",
+                        getProductValue("Ropa x Kilo"),
+                        true,
+                        "Ropa x Kilo"
+                      ),
                     ])
                   }
                 />
               </div>
               <InputSelectedPrendas
                 listenClick={(type, producto, precio, estado, categoria) =>
-                  formik.setFieldValue('productos', [
+                  formik.setFieldValue("productos", [
                     ...formik.values.productos,
                     addRowGarment(type, producto, precio, estado, categoria),
                   ])
                 }
                 disabled={false}
-                tabI={'8'}
+                tabI={"8"}
               />
             </div>
             <table className="tb-prod">
@@ -869,7 +980,7 @@ const OrdenServicioPendiente = () => {
                   <th>Producto</th>
                   <th>Descripción</th>
                   <th>Total</th>
-                  <th>{''}</th>
+                  <th>{""}</th>
                 </tr>
               </thead>
               <tbody>
@@ -882,60 +993,78 @@ const OrdenServicioPendiente = () => {
                         name={`productos.${index}.cantidad`}
                         autoComplete="off"
                         disabled={
-                          row.producto === 'Ropa x Kilo'
+                          row.producto === "Ropa x Kilo"
                             ? false
-                            : row.type === 'productos' && row.stado === true
+                            : row.type === "productos" && row.stado === true
                             ? true
-                            : row.type === 'Delivery'
+                            : row.type === "Delivery"
                             ? true
                             : false
                         }
                         onChange={(e) => {
                           const inputValue = e.target.value;
-                          const validInput = inputValue ? inputValue.replace(/[^0-9.]/g, '') : '';
-                          const newQuantity = validInput !== '' ? validInput : '';
+                          const validInput = inputValue
+                            ? inputValue.replace(/[^0-9.]/g, "")
+                            : "";
+                          const newQuantity =
+                            validInput !== "" ? validInput : "";
 
-                          const price = parseFloat(formik.values.productos[index].price) || 0;
-                          const newTotal = newQuantity !== '' ? newQuantity * price : '';
+                          const price =
+                            parseFloat(formik.values.productos[index].price) ||
+                            0;
+                          const newTotal =
+                            newQuantity !== "" ? newQuantity * price : "";
 
-                          formik.setFieldValue(`productos.${index}.cantidad`, newQuantity);
+                          formik.setFieldValue(
+                            `productos.${index}.cantidad`,
+                            newQuantity
+                          );
                           formik.setFieldValue(
                             `productos.${index}.total`,
-                            newTotal !== '' && newTotal !== 0 ? newTotal.toFixed(1) : ''
+                            newTotal !== "" && newTotal !== 0
+                              ? newTotal.toFixed(1)
+                              : ""
                           );
                         }}
                         autoFocus={
-                          row.producto === 'Ropa x Kilo'
+                          row.producto === "Ropa x Kilo"
                             ? true
-                            : row.type === 'otros'
+                            : row.type === "otros"
                             ? true
-                            : row.type === 'productos' && row.stado === false
+                            : row.type === "productos" && row.stado === false
                             ? true
                             : false
                         }
                         onBlur={(e) => {
                           const inputValue = e.target.value;
-                          if (inputValue === '0') {
+                          if (inputValue === "0") {
                             // Si el usuario ingresa "0", establece el valor del campo a una cadena vacía
-                            formik.setFieldValue(`productos.${index}.cantidad`, '');
-                            formik.setFieldValue(`productos.${index}.total`, '');
+                            formik.setFieldValue(
+                              `productos.${index}.cantidad`,
+                              ""
+                            );
+                            formik.setFieldValue(
+                              `productos.${index}.total`,
+                              ""
+                            );
                           }
                         }}
-                        value={formik.values.productos[index].cantidad || ''}
+                        value={formik.values.productos[index].cantidad || ""}
                         required
                       />
-                      {formik.values.productos[index].cantidad < 0.1 && icoValid('La cantidad debe ser mayor a 0.1')}
+                      {formik.values.productos[index].cantidad < 0.1 &&
+                        icoValid("La cantidad debe ser mayor a 0.1")}
                     </td>
                     <td>
                       <input
                         type="text"
                         className="txtProducto"
                         disabled={
-                          row.type === 'otros'
+                          row.type === "otros"
                             ? false
-                            : row.type === ''
+                            : row.type === ""
                             ? true
-                            : row.type === 'productos'
+                            : row.type === "productos"
                             ? !row.estado
                             : true
                         }
@@ -962,25 +1091,36 @@ const OrdenServicioPendiente = () => {
                             onChange={(e) => {
                               const inputValue = e.target.value;
                               handleTextareaHeight(e.target);
-                              formik.setFieldValue(`productos.${index}.descripcion`, inputValue);
-                              formik.setFieldValue(`productos.${index}.expanded`, true);
+                              formik.setFieldValue(
+                                `productos.${index}.descripcion`,
+                                inputValue
+                              );
+                              formik.setFieldValue(
+                                `productos.${index}.expanded`,
+                                true
+                              );
                             }}
-                            disabled={row.type === 'Delivery' ? true : false}
+                            disabled={row.type === "Delivery" ? true : false}
                             value={formik.values.productos[index].descripcion}
                             autoFocus={
-                              row.producto === 'Ropa x Kilo'
+                              row.producto === "Ropa x Kilo"
                                 ? false
-                                : row.type === 'otros'
+                                : row.type === "otros"
                                 ? false
-                                : row.type === 'productos' && row.stado === false
+                                : row.type === "productos" &&
+                                  row.stado === false
                                 ? false
                                 : true
                             }
-                            className={`${formik.values.productos[index].expanded ? 'expanded' : ''}`}
+                            className={`${
+                              formik.values.productos[index].expanded
+                                ? "expanded"
+                                : ""
+                            }`}
                           />
                           <Tag
                             ELement="div"
-                            className={'expand-button'}
+                            className={"expand-button"}
                             onClick={() => {
                               formik.setFieldValue(
                                 `productos.${index}.expanded`,
@@ -1007,14 +1147,22 @@ const OrdenServicioPendiente = () => {
                         autoComplete="off"
                         onChange={(e) => {
                           const inputValue = e.target.value;
-                          const validInput = inputValue ? inputValue.replace(/[^0-9.]/g, '') : '';
+                          const validInput = inputValue
+                            ? inputValue.replace(/[^0-9.]/g, "")
+                            : "";
 
-                          formik.setFieldValue(`productos.${index}.total`, validInput);
+                          formik.setFieldValue(
+                            `productos.${index}.total`,
+                            validInput
+                          );
                         }}
                         onBlur={(e) => {
                           const inputValue = e.target.value;
-                          if (inputValue === '0') {
-                            formik.setFieldValue(`productos.${index}.total`, '');
+                          if (inputValue === "0") {
+                            formik.setFieldValue(
+                              `productos.${index}.total`,
+                              ""
+                            );
                           }
                         }}
                         disabled={false}
@@ -1031,16 +1179,20 @@ const OrdenServicioPendiente = () => {
                       onClick={() => {
                         const updatedProductos = [...formik.values.productos];
                         updatedProductos.splice(index, 1);
-                        formik.setFieldValue('productos', updatedProductos);
+                        formik.setFieldValue("productos", updatedProductos);
                       }}
                     >
-                      {row.type === 'Delivery' ? true : <Eliminar className="delete-row" />}
+                      {row.type === "Delivery" ? (
+                        true
+                      ) : (
+                        <Eliminar className="delete-row" />
+                      )}
                     </Tag>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
-                <tr style={{ marginTop: '10px' }}>
+                <tr style={{ marginTop: "10px" }}>
                   <td>
                     {dataScore && Object.keys(dataScore).length > 0
                       ? `Total de Puntos : ${dataScore.scoreTotal}`
@@ -1052,7 +1204,9 @@ const OrdenServicioPendiente = () => {
                 </tr>
                 <tr>
                   <td>
-                    {dataScore && Object.keys(dataScore).length > 0 && formik.values.modoDescuento === 'Puntos' ? (
+                    {dataScore &&
+                    Object.keys(dataScore).length > 0 &&
+                    formik.values.modoDescuento === "Puntos" ? (
                       <div className="input-number dsc">
                         <label>Dsc x Puntos</label>
                         <NumberInput
@@ -1062,12 +1216,16 @@ const OrdenServicioPendiente = () => {
                           step={1}
                           hideControls={true}
                           onChange={(e) => {
-                            const data = dataScore.scoreTotal < e ? false : true;
+                            const data =
+                              dataScore.scoreTotal < e ? false : true;
                             formik.setFieldValue(
-                              'cargosExtras.descuentos.puntos',
+                              "cargosExtras.descuentos.puntos",
                               data ? Number(MontoxPoints(e).toFixed(2)) : 0
                             );
-                            formik.setFieldValue('cargosExtras.beneficios.puntos', e);
+                            formik.setFieldValue(
+                              "cargosExtras.beneficios.puntos",
+                              e
+                            );
                           }}
                         />
                       </div>
@@ -1075,7 +1233,9 @@ const OrdenServicioPendiente = () => {
                   </td>
                   {formik.values.factura ? (
                     <>
-                      <td>IGV ({formik.values.cargosExtras.igv.valor * 100} %) :</td>
+                      <td>
+                        IGV ({formik.values.cargosExtras.igv.valor * 100} %) :
+                      </td>
                       <td>S/ {formik.values.cargosExtras.igv.importe}</td>
                     </>
                   ) : (
@@ -1114,20 +1274,22 @@ const OrdenServicioPendiente = () => {
                   className="switch-container"
                   onClick={() => {
                     if (!formik.values.swPagado === false) {
-                      formik.setFieldValue('metodoPago', '');
-                      formik.setFieldValue('datePago', {
-                        fecha: '',
-                        hora: '',
+                      formik.setFieldValue("metodoPago", "");
+                      formik.setFieldValue("datePago", {
+                        fecha: "",
+                        hora: "",
                       }); // Cambio - solo si cambia de estado el swtich cambiara el datepago
                       setIsPortalPago(false);
                     } else {
-                      formik.setFieldValue('datePago', {
-                        fecha: moment(formik.values.dateRecojo).format('YYYY-MM-DD'),
+                      formik.setFieldValue("datePago", {
+                        fecha: moment(formik.values.dateRecojo).format(
+                          "YYYY-MM-DD"
+                        ),
                         hora: formik.values.hourReco,
                       }); // Cambio - solo si cambia de estado el swtich cambiara el datepago
                       setIsPortalPago(!isPortalPago);
                     }
-                    formik.setFieldValue('swPagado', !formik.values.swPagado);
+                    formik.setFieldValue("swPagado", !formik.values.swPagado);
                   }}
                 >
                   <input
@@ -1138,31 +1300,42 @@ const OrdenServicioPendiente = () => {
                     disabled={false}
                     onChange={() => {
                       if (!formik.values.swPagado === false) {
-                        formik.setFieldValue('metodoPago', '');
-                        formik.setFieldValue('datePago', {
-                          fecha: '',
-                          hora: '',
+                        formik.setFieldValue("metodoPago", "");
+                        formik.setFieldValue("datePago", {
+                          fecha: "",
+                          hora: "",
                         }); // Cambio - solo si cambia de estado el swtich cambiara el datepago
                         setIsPortalPago(false);
                       } else {
-                        formik.setFieldValue('datePago', {
-                          fecha: moment(formik.values.dateRecojo).format('YYYY-MM-DD'),
+                        formik.setFieldValue("datePago", {
+                          fecha: moment(formik.values.dateRecojo).format(
+                            "YYYY-MM-DD"
+                          ),
                           hora: formik.values.hourReco,
                         }); // Cambio - solo si cambia de estado el swtich cambiara el datepago
 
                         setIsPortalPago(!isPortalPago);
                       }
 
-                      formik.setFieldValue('swPagado', !formik.values.swPagado);
+                      formik.setFieldValue("swPagado", !formik.values.swPagado);
                     }}
                   />
-                  <label htmlFor="swPagado" onClick={(e) => e.stopPropagation()} />
+                  <label
+                    htmlFor="swPagado"
+                    onClick={(e) => e.stopPropagation()}
+                  />
                 </Tag>
               </div>
-              {formik.values.metodoPago !== '' ? (
+              {formik.values.metodoPago !== "" ? (
                 <img
-                  className={formik.values.metodoPago === 'Efectivo' ? 'ico-efect' : 'ico-yape'}
-                  src={formik.values.metodoPago === 'Efectivo' ? Efectivo : Yape}
+                  className={
+                    formik.values.metodoPago === "Efectivo"
+                      ? "ico-efect"
+                      : "ico-yape"
+                  }
+                  src={
+                    formik.values.metodoPago === "Efectivo" ? Efectivo : Yape
+                  }
                   alt=""
                 />
               ) : null}
@@ -1170,17 +1343,23 @@ const OrdenServicioPendiente = () => {
             {isPortalPago === true && (
               <Portal
                 onClose={() => {
-                  formik.setFieldValue('swPagado', false);
+                  formik.setFieldValue("swPagado", false);
                   setIsPortalPago(false);
                 }}
               >
-                <MetodoPago setVal={formik.setFieldValue} name="metodoPago" onClose={setIsPortalPago} />
+                <MetodoPago
+                  setVal={formik.setFieldValue}
+                  name="metodoPago"
+                  onClose={setIsPortalPago}
+                />
               </Portal>
             )}
           </div>
         </div>
         <div className="target-descuento">
-          {dataScore && Object.keys(dataScore).length > 0 && formik.values.modoDescuento === 'Puntos' ? (
+          {dataScore &&
+          Object.keys(dataScore).length > 0 &&
+          formik.values.modoDescuento === "Puntos" ? (
             <div className="card-score">
               <div className="info">
                 <div className="insignia">
@@ -1221,7 +1400,15 @@ const OrdenServicioPendiente = () => {
                           <>&nbsp;&nbsp;-&nbsp;&nbsp;</>
                           <span>{row.dateService.hora}</span>
                         </td>
-                        <td style={{ background: `${row.score > 0 ? '#60eba8' : '#ff8383'}` }}>{row.score}</td>
+                        <td
+                          style={{
+                            background: `${
+                              row.score > 0 ? "#60eba8" : "#ff8383"
+                            }`,
+                          }}
+                        >
+                          {row.score}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1234,7 +1421,7 @@ const OrdenServicioPendiente = () => {
                 </div>
               </div>
             </div>
-          ) : formik.values.modoDescuento === 'Promocion' ? (
+          ) : formik.values.modoDescuento === "Promocion" ? (
             <div className="card-promocion">
               <button
                 className="btn-add-promo"
@@ -1275,8 +1462,14 @@ const OrdenServicioPendiente = () => {
                                 (total, cupon) => total + cupon.descuento,
                                 0
                               );
-                              formik.setFieldValue('cargosExtras.descuentos.promocion', sumarDescuentos);
-                              formik.setFieldValue('cargosExtras.beneficios.promociones', updatedCupones);
+                              formik.setFieldValue(
+                                "cargosExtras.descuentos.promocion",
+                                sumarDescuentos
+                              );
+                              formik.setFieldValue(
+                                "cargosExtras.beneficios.promociones",
+                                updatedCupones
+                              );
                             }}
                           >
                             <Eliminar className="delete-row" />
@@ -1289,7 +1482,13 @@ const OrdenServicioPendiente = () => {
                         <td></td>
                         <td></td>
                         <td>Total :</td>
-                        <td>S/ {listCupones.reduce((total, cupon) => total + cupon.descuento, 0)}</td>
+                        <td>
+                          S/{" "}
+                          {listCupones.reduce(
+                            (total, cupon) => total + cupon.descuento,
+                            0
+                          )}
+                        </td>
                       </tr>
                     </tfoot>
                   </table>
@@ -1301,11 +1500,18 @@ const OrdenServicioPendiente = () => {
             <button
               type="button"
               className="b-cancelar"
-              onDoubleClick={() => navigate(`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.LIST_ORDER_SERVICE}/`)}
+              onDoubleClick={() =>
+                navigate(
+                  `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.LIST_ORDER_SERVICE}/`
+                )
+              }
             >
               Cancelar
             </button>
-            <button type="submit" /*disabled={isPortalPago ? true : false}*/ className="b-saved">
+            <button
+              type="submit"
+              /*disabled={isPortalPago ? true : false}*/ className="b-saved"
+            >
               Agregar
             </button>
           </div>
@@ -1328,14 +1534,22 @@ const OrdenServicioPendiente = () => {
                 }}
                 autoComplete="off"
               />
-              <button type="button" className="btn-valid" onClick={() => validCupon(cupon)}>
+              <button
+                type="button"
+                className="btn-valid"
+                onClick={() => validCupon(cupon)}
+              >
                 Validar
               </button>
 
               {resValidCupon ? (
                 <>
                   <textarea
-                    style={resValidCupon?.validacion === true ? { borderColor: '#00e676' } : { borderColor: '#f5532f' }}
+                    style={
+                      resValidCupon?.validacion === true
+                        ? { borderColor: "#00e676" }
+                        : { borderColor: "#f5532f" }
+                    }
                     className="description-info"
                     defaultValue={
                       resValidCupon?.validacion === true
@@ -1349,15 +1563,21 @@ const OrdenServicioPendiente = () => {
                       type="button"
                       className="btn-add"
                       onClick={() => {
-                        const prendaEncontrada = infoPrendas.find((p) => p.name === resValidCupon.promocion.prenda);
+                        const prendaEncontrada = infoPrendas.find(
+                          (p) => p.name === resValidCupon.promocion.prenda
+                        );
                         // Buscar si ya existe un registro en la lista
-                        const exists = listCupones.some((c) => c.codigoCupon === cupon);
+                        const exists = listCupones.some(
+                          (c) => c.codigoCupon === cupon
+                        );
                         if (!exists) {
                           let dscFinal = 0;
-                          if (resValidCupon.promocion.tipo === 'Descuento') {
+                          if (resValidCupon.promocion.tipo === "Descuento") {
                             dscFinal = 0;
                           } else {
-                            dscFinal = prendaEncontrada.price * resValidCupon.promocion.descuento;
+                            dscFinal =
+                              prendaEncontrada.price *
+                              resValidCupon.promocion.descuento;
                           }
 
                           const cuponActual = {
@@ -1366,23 +1586,30 @@ const OrdenServicioPendiente = () => {
                             descripcion: resValidCupon.promocion.descripcion,
                             prenda: resValidCupon.promocion.prenda,
                             nMultiplicador: resValidCupon.promocion.descuento,
-                            descuento: resValidCupon.promocion.tipo === 'Descuento' ? 0 : dscFinal,
+                            descuento:
+                              resValidCupon.promocion.tipo === "Descuento"
+                                ? 0
+                                : dscFinal,
                             tipo: resValidCupon.promocion.tipo,
                           };
 
                           setListCupones([...listCupones, cuponActual]);
-                          formik.setFieldValue('cargosExtras.beneficios.promociones', [
-                            ...formik.values.cargosExtras.beneficios.promociones,
-                            cuponActual,
-                          ]);
+                          formik.setFieldValue(
+                            "cargosExtras.beneficios.promociones",
+                            [
+                              ...formik.values.cargosExtras.beneficios
+                                .promociones,
+                              cuponActual,
+                            ]
+                          );
 
-                          alert('¡Se agregó correctamente!');
+                          alert("¡Se agregó correctamente!");
                           setPortalValiPromocion(false);
                           setResValidCupon(null);
                           setCupon();
                         } else {
                           // Si ya existe un registro con el mismo codigoPromocion, puedes manejarlo como desees
-                          alert('¡El registro ya existe!');
+                          alert("¡El registro ya existe!");
                         }
                       }}
                     >
@@ -1399,29 +1626,31 @@ const OrdenServicioPendiente = () => {
         opened={opened}
         onClose={() => {
           close();
-          if (showOnModal === 'Promocion') {
+          if (showOnModal === "Promocion") {
             setTimeout(() => {
               setIsPromocion(false);
             }, 1000);
-            formik.setFieldValue('gift_promo', []);
+            formik.setFieldValue("gift_promo", []);
           }
-          if (showOnModal === 'Modalidad') {
-            setShowOnModal('');
-            formik.setFieldValue('Modalidad', 'Tienda');
-            const updatedProductos = formik.values.productos.filter((producto) => producto.type !== 'Delivery');
-            formik.setFieldValue('productos', updatedProductos);
+          if (showOnModal === "Modalidad") {
+            setShowOnModal("");
+            formik.setFieldValue("Modalidad", "Tienda");
+            const updatedProductos = formik.values.productos.filter(
+              (producto) => producto.type !== "Delivery"
+            );
+            formik.setFieldValue("productos", updatedProductos);
           }
         }}
         size={550}
         scrollAreaComponent={ScrollArea.Autosize}
         title={
-          showOnModal === 'Promocion'
-            ? '¿ Deseas entregar uno o mas cupones de Promocion ?'
-            : 'Escoge Movilidad y Costo de (RECOJO)'
+          showOnModal === "Promocion"
+            ? "¿ Deseas entregar uno o mas cupones de Promocion ?"
+            : "Escoge Movilidad y Costo de (RECOJO)"
         }
         centered
       >
-        {showOnModal === 'Promocion' ? (
+        {showOnModal === "Promocion" ? (
           <>
             {isPromocion === true ? (
               <Promocion onAddCupon={openModal} />
@@ -1436,34 +1665,38 @@ const OrdenServicioPendiente = () => {
                 >
                   Si
                 </button>
-                <button className="btn-action neg" type="submit" onClick={() => openModal([])}>
+                <button
+                  className="btn-action neg"
+                  type="submit"
+                  onClick={() => openModal([])}
+                >
                   No
                 </button>
               </div>
             )}
           </>
         ) : null}
-        {showOnModal === 'Modalidad' ? (
+        {showOnModal === "Modalidad" ? (
           <Formik
             initialValues={{
-              price: '',
-              tipoDelivery: '',
+              price: "",
+              tipoDelivery: "",
             }}
             validationSchema={validationModalidad}
             onSubmit={(values, { setSubmitting }) => {
               setIDelivey(values);
 
-              formik.setFieldValue('productos', [
+              formik.setFieldValue("productos", [
                 {
                   cantidad: 1,
-                  descripcion: 'Recojo y Entrega',
+                  descripcion: "Recojo y Entrega",
                   expanded: false,
                   price: 0,
-                  producto: 'Delivery',
+                  producto: "Delivery",
                   stado: true,
-                  total: +getProductValue('Delivery'),
-                  type: 'Delivery',
-                  categoria: 'Delivery',
+                  total: +getProductValue("Delivery"),
+                  type: "Delivery",
+                  categoria: "Delivery",
                 },
                 ...formik.values.productos,
               ]);
@@ -1471,13 +1704,24 @@ const OrdenServicioPendiente = () => {
               close();
             }}
           >
-            {({ values, errors, touched, isSubmitting, handleSubmit, setFieldValue }) => (
-              <Form onSubmit={handleSubmit} className="content-delivery-order-pendiente">
+            {({
+              values,
+              errors,
+              touched,
+              isSubmitting,
+              handleSubmit,
+              setFieldValue,
+            }) => (
+              <Form
+                onSubmit={handleSubmit}
+                className="content-delivery-order-pendiente"
+              >
                 <div className="aviso">
                   <h2>
                     <span> AVISO : </span>
-                    El costo de la movilidad para el servicio de recojo es independiente del monto que puedes cobrar en
-                    la orden del cliente
+                    El costo de la movilidad para el servicio de recojo es
+                    independiente del monto que puedes cobrar en la orden del
+                    cliente
                   </h2>
                 </div>
                 <fieldset className="checkbox-group">
@@ -1511,7 +1755,7 @@ const OrdenServicioPendiente = () => {
                         name="tipoDelivery"
                         value="Moto"
                         onClick={() => {
-                          setFieldValue('price', '');
+                          setFieldValue("price", "");
                           setShouldFocusInput(true);
                         }}
                       />
@@ -1526,7 +1770,10 @@ const OrdenServicioPendiente = () => {
                   {errors.tipoDelivery && touched.tipoDelivery && (
                     <div className="ico-req">
                       <i className="fa-solid fa-circle-exclamation ">
-                        <div className="info-req" style={{ pointerEvents: 'none' }}>
+                        <div
+                          className="info-req"
+                          style={{ pointerEvents: "none" }}
+                        >
                           <span>{errors.tipoDelivery}</span>
                         </div>
                       </i>
@@ -1535,8 +1782,13 @@ const OrdenServicioPendiente = () => {
                 </fieldset>
                 <div className="selectBoxGroup">
                   <div className="selectBox radio">
-                    <input type="checkbox" id={'radio-recojo'} readOnly={true} checked={true} />
-                    <label htmlFor={'radio-recojo'}>Recojo</label>
+                    <input
+                      type="checkbox"
+                      id={"radio-recojo"}
+                      readOnly={true}
+                      checked={true}
+                    />
+                    <label htmlFor={"radio-recojo"}>Recojo</label>
                   </div>
                 </div>
                 <div className="infoDelivery">
@@ -1545,11 +1797,14 @@ const OrdenServicioPendiente = () => {
                       <NumberInput
                         name="price"
                         value={values.price}
-                        parser={(value) => value.replace(/S\/\s?|(,*)/g, '')}
+                        parser={(value) => value.replace(/S\/\s?|(,*)/g, "")}
                         formatter={(value) => {
                           return Number.isNaN(parseFloat(value))
-                            ? ''
-                            : `S/ ${value}`.replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ',');
+                            ? ""
+                            : `S/ ${value}`.replace(
+                                /\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g,
+                                ","
+                              );
                         }}
                         placeholder="Ingrese Monto"
                         precision={2}
@@ -1557,12 +1812,15 @@ const OrdenServicioPendiente = () => {
                         hideControls={true}
                         ref={inputRef}
                         autoComplete="off"
-                        onChange={(value) => setFieldValue('price', value)}
+                        onChange={(value) => setFieldValue("price", value)}
                       />
                       {errors.price && touched.price && (
                         <div className="ico-req">
                           <i className="fa-solid fa-circle-exclamation ">
-                            <div className="info-req" style={{ pointerEvents: 'none' }}>
+                            <div
+                              className="info-req"
+                              style={{ pointerEvents: "none" }}
+                            >
                               <span>{errors.price}</span>
                             </div>
                           </i>
@@ -1572,7 +1830,11 @@ const OrdenServicioPendiente = () => {
                   </div>
                 </div>
                 <div className="footer-delivery">
-                  <button type="submit" disabled={isSubmitting} className="btn-saved">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="btn-saved"
+                  >
                     Aceptar
                   </button>
                 </div>

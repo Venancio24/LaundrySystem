@@ -176,7 +176,7 @@ const Nota = ({ onMode, setMode, handleGetData, infoNotas }) => {
 
   const handleAddNote = () => {
     const newNote = { id: notes.length + 1, text: '', show: true };
-    const updatedNotes = notes.map((note) => ({ ...note, show: false }));
+    const updatedNotes = notes.map((note) => ({ ...note, show: true }));
     setNotes([...updatedNotes, newNote]);
   };
 

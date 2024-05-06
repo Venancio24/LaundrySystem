@@ -1,59 +1,66 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import { HeaderAdmin, HeaderCoord } from '../../components/PRIVATE/Header/index';
-import { PrivateRoutes, PublicRoutes, Roles } from '../../models/index';
-import { GetCodigos } from '../../redux/actions/aCodigo';
-import { GetOrdenServices_DateRange } from '../../redux/actions/aOrdenServices';
-import { GetPrendas } from '../../redux/actions/aPrenda';
-import { GetMetas } from '../../redux/actions/aMetas';
-import { DateCurrent, GetFirstFilter } from '../../utils/functions';
 import {
+  HeaderAdmin,
+  HeaderCoord,
+} from "../../components/PRIVATE/Header/index";
+import { PrivateRoutes, PublicRoutes, Roles } from "../../models/index";
+import { GetCodigos } from "../../redux/actions/aCodigo";
+import { GetOrdenServices_DateRange } from "../../redux/actions/aOrdenServices";
+import { GetMetas } from "../../redux/actions/aMetas";
+import { DateCurrent, GetFirstFilter } from "../../utils/functions";
+import {
+  LS_changeListPago,
   LS_newOrder,
   LS_updateListOrder,
   LS_updateOrder,
-  LS_updateRegisteredDay,
   setOrderServiceId,
-} from '../../redux/states/service_order';
+} from "../../redux/states/service_order";
 
-import { notifications } from '@mantine/notifications';
-import { useNavigate } from 'react-router-dom';
+import { notifications } from "@mantine/notifications";
+import { useNavigate } from "react-router-dom";
 
-import Portal from '../../components/PRIVATE/Portal/Portal';
+import Portal from "../../components/PRIVATE/Portal/Portal";
 
-import './mainLayout_Private.scss';
-import Gasto from '../../pages/private/coord/Gastos/Gasto';
-import { ReporteDiario } from '../../pages/private/coord/Reporte/index';
+import "./mainLayout_Private.scss";
+import Gasto from "../../pages/private/coord/Gastos/Gasto";
+import ReporteDiario from "../../pages/private/coord/Reporte/Diario/ReporteDiario";
 
-import { LS_nextCodigo } from '../../redux/states/codigo';
+import { LS_nextCodigo } from "../../redux/states/codigo";
+import { GetImpuesto, GetPuntos } from "../../redux/actions/aModificadores";
+import {
+  LS_updateImpuestos,
+  LS_updatePuntos,
+} from "../../redux/states/modificadores";
+import { GetPromocion } from "../../redux/actions/aPromociones";
+import { LS_updatePromociones } from "../../redux/states/promociones";
+import { GetInfoNegocio } from "../../redux/actions/aNegocio";
+import { LS_updateNegocio } from "../../redux/states/negocio";
+import { LS_FirtsLogin } from "../../redux/states/user";
+import { useDisclosure } from "@mantine/hooks";
+import { ScrollArea } from "@mantine/core";
+import { Modal } from "@mantine/core";
 
-import { LS_updatePrendas } from '../../redux/states/prenda';
-import { GetImpuesto, GetPuntos } from '../../redux/actions/aModificadores';
-import { LS_updateImpuestos, LS_updatePuntos } from '../../redux/states/modificadores';
-import { GetPromocion } from '../../redux/actions/aPromociones';
-import { LS_updatePromociones } from '../../redux/states/promociones';
-import { GetInfoNegocio } from '../../redux/actions/aNegocio';
-import { LS_updateNegocio } from '../../redux/states/negocio';
-import { LS_FirtsLogin } from '../../redux/states/user';
-import { useDisclosure } from '@mantine/hooks';
-import { ScrollArea } from '@mantine/core';
-import { Modal } from '@mantine/core';
-
-import Trash from './trash.png';
-import CloseEmergency from './close-emergency.png';
-import DoubleLogin from './double-login.png';
-import UpdateUser from './update-user.png';
-import TimeOut from '../out-of-time.png';
-import moment from 'moment';
-import LoaderSpiner from '../../components/LoaderSpinner/LoaderSpiner';
-import { useRef } from 'react';
-import { socket } from '../../utils/socket/connect';
-import { LS_newDelivery, LS_updateDelivery } from '../../redux/states/delivery';
-import { GetLastCuadre } from '../../redux/actions/aCuadre';
-import { updateLastCuadre } from '../../redux/states/cuadre';
+import Trash from "./trash.png";
+import CloseEmergency from "./close-emergency.png";
+import DoubleLogin from "./double-login.png";
+import UpdateUser from "./update-user.png";
+import TimeOut from "../out-of-time.png";
+import moment from "moment";
+import LoaderSpiner from "../../components/LoaderSpinner/LoaderSpiner";
+import { useRef } from "react";
+import { socket } from "../../utils/socket/connect";
+import { GetCuadre } from "../../redux/actions/aCuadre";
+import { GetListUser } from "../../redux/actions/aUser";
+import { getListCategorias } from "../../redux/actions/aCategorias";
+import { getProductos } from "../../redux/actions/aProductos";
+import { getServicios } from "../../redux/actions/aServicios";
+import { GetTipoGastos } from "../../redux/actions/aTipoGasto";
+import { updateRegistrosNCuadrados } from "../../redux/states/cuadre";
 
 const PrivateMasterLayout = (props) => {
   const [opened, { open, close }] = useDisclosure(false);
@@ -63,18 +70,25 @@ const PrivateMasterLayout = (props) => {
   const navigate = useNavigate();
 
   const [mGasto, setMGasto] = useState(false);
-  // const [mInformeDiario, setMInformeDiario] = useState(false);
+  const [mInformeDiario, setMInformeDiario] = useState(false);
 
   const { reserved } = useSelector((state) => state.orden);
-  const { lastCuadre } = useSelector((state) => state.cuadre);
 
   const infoCodigo = useSelector((state) => state.codigo.infoCodigo);
   const infoMetas = useSelector((state) => state.metas.infoMetas);
-  const infoPrendas = useSelector((state) => state.prenda.infoPrendas);
   const infoImpuesto = useSelector((state) => state.modificadores.InfoImpuesto);
   const infoPuntos = useSelector((state) => state.modificadores.InfoPuntos);
   const infoPromocion = useSelector((state) => state.promocion.infoPromocion);
   const infoNegocio = useSelector((state) => state.negocio.infoNegocio);
+  const infoCuadreActual = useSelector((state) => state.cuadre.cuadreActual);
+  const ListUsuarios = useSelector((state) => state.user.listUsuario);
+  const ListCategorias = useSelector(
+    (state) => state.categorias.listCategorias
+  );
+  const ListServicios = useSelector((state) => state.servicios.listServicios);
+  const ListProductos = useSelector((state) => state.productos.listProductos);
+
+  const ListTipoGastos = useSelector((state) => state.tipoGasto.infoTipoGasto);
 
   const [loading, setLoading] = useState(true);
 
@@ -111,12 +125,8 @@ const PrivateMasterLayout = (props) => {
             promises.push(dispatch(GetCodigos()));
           }
 
-          if (lastCuadre === null) {
-            promises.push(dispatch(GetLastCuadre()));
-          }
-
-          if (infoPrendas.length === 0) {
-            promises.push(dispatch(GetPrendas()));
+          if (ListTipoGastos.length === 0) {
+            promises.push(dispatch(GetTipoGastos()));
           }
 
           if (infoMetas.length === 0) {
@@ -139,6 +149,30 @@ const PrivateMasterLayout = (props) => {
             promises.push(dispatch(GetInfoNegocio()));
           }
 
+          if (infoCuadreActual === null) {
+            promises.push(
+              dispatch(
+                GetCuadre({ date: DateCurrent().format4, id: InfoUsuario._id })
+              )
+            );
+          }
+
+          if (ListUsuarios.length === 0) {
+            promises.push(dispatch(GetListUser()));
+          }
+
+          if (ListCategorias.length === 0) {
+            dispatch(getListCategorias());
+          }
+
+          if (ListServicios.length === 0) {
+            dispatch(getServicios());
+          }
+
+          if (ListProductos.length === 0) {
+            dispatch(getProductos());
+          }
+
           // Esperar a que todas las promesas se resuelvan
           const responses = await Promise.all(promises);
 
@@ -150,13 +184,16 @@ const PrivateMasterLayout = (props) => {
         } catch (error) {
           if (intentosActuales.current >= 3) {
             setLoading(true);
-            _handleShowModal('Advertencia', 'Error de sistema comunicarse con el Soporte Técnico', 'close-emergency');
+            _handleShowModal(
+              "Advertencia",
+              "Error de sistema comunicarse con el Soporte Técnico",
+              "close-emergency"
+            );
           }
           intentosActuales.current++;
         }
       }
     };
-
     fetchData();
   }, []);
 
@@ -176,16 +213,16 @@ const PrivateMasterLayout = (props) => {
           withCloseButton: false,
           withBorder: true,
           title: `Delivery Pendiente - ${r.Nombre}`,
-          message: 'Falta registrar datos!',
+          message: "Falta registrar datos!",
           styles: () => ({
             root: {
-              backgroundColor: '#5161ce',
-              width: '250px',
-              '&::before': { backgroundColor: '#fff' },
-              '&:hover': { backgroundColor: '#1e34c3' },
+              backgroundColor: "#5161ce",
+              width: "250px",
+              "&::before": { backgroundColor: "#fff" },
+              "&:hover": { backgroundColor: "#1e34c3" },
             },
-            title: { color: '#fff' },
-            description: { color: '#fff' },
+            title: { color: "#fff" },
+            description: { color: "#fff" },
           }),
           onClick: () => {
             const currentPath = new URL(window.location.href).pathname;
@@ -211,73 +248,71 @@ const PrivateMasterLayout = (props) => {
 
   useEffect(() => {
     // ORDER
-    socket.on('server:newOrder', (data) => {
+    socket.on("server:newOrder", (data) => {
       dispatch(LS_newOrder(data));
-      // if (data.datePago.fecha === DateCurrent().format4) {
-      //   dispatch(LS_updateRegisteredDay(data));
-      // }
-      dispatch(LS_updateRegisteredDay(data));
     });
-    socket.on('server:orderUpdated', (data) => {
+    socket.on("server:orderUpdated", (data) => {
       dispatch(LS_updateOrder(data));
-      dispatch(LS_updateRegisteredDay(data));
     });
-    socket.on('server:updateListOrder', (data) => {
+    socket.on("server:updateListOrder", (data) => {
       dispatch(LS_updateListOrder(data));
     });
-    socket.on('server:changeCuadre', (data) => {
-      dispatch(updateLastCuadre(data));
+    socket.on("server:changeCuadre", (data) => {
+      dispatch(GetCuadre({ date: DateCurrent().format4, id: InfoUsuario._id }));
     });
-    // DELIVERY
-    //-- New
-    socket.on('server:newDelivery', (data) => {
-      dispatch(LS_newDelivery(data));
+    // PAGO
+    socket.on("server:cPago", (data) => {
+      dispatch(LS_changeListPago(data));
+      if (data.info.isCounted) {
+        dispatch(updateRegistrosNCuadrados({ tipoMovimiento: "pagos", data }));
+      }
     });
-    //-- Update
-    socket.on('server:updateDelivery', (data) => {
-      dispatch(LS_updateDelivery(data));
+    // GASTO
+    socket.on("server:cGasto", (data) => {
+      dispatch(updateRegistrosNCuadrados({ tipoMovimiento: "gastos", data }));
     });
     // CODIGO
-    socket.on('server:newCodigo', (data) => {
+    socket.on("server:newCodigo", (data) => {
       dispatch(LS_nextCodigo(data));
     });
-    // PRENDAS
-    socket.on('server:cPricePrendas', (data) => {
-      dispatch(LS_updatePrendas(data));
-    });
     // PUNTOS
-    socket.on('server:cPuntos', (data) => {
+    socket.on("server:cPuntos", (data) => {
       dispatch(LS_updatePuntos(data));
     });
     // IMPUESTOS
-    socket.on('server:cImpuesto', (data) => {
+    socket.on("server:cImpuesto", (data) => {
       dispatch(LS_updateImpuestos(data));
     });
     // PROMOCIONES
-    socket.on('server:cPromotions', (data) => {
+    socket.on("server:cPromotions", (data) => {
       dispatch(LS_updatePromociones(data));
     });
     // NEGOCIO
-    socket.on('server:cNegocio', (data) => {
-      const { dias, horas, estado } = data.horario;
-      if (estado === false) {
-        _handleShowModal('Emergencia', 'Cierre total del sistema', 'close-emergency');
+    socket.on("server:cNegocio", (data) => {
+      const { horas, actividad } = data.funcionamiento;
+      if (actividad === false) {
+        if (InfoUsuario.rol !== Roles.ADMIN) {
+          _handleShowModal(
+            "Emergencia",
+            "Cierre total del sistema",
+            "close-emergency"
+          );
+        }
       } else {
         if (InfoUsuario.rol !== Roles.ADMIN) {
-          const currentDay = moment().isoWeekday();
           const currentHour = moment();
 
-          if (dias.includes(currentDay)) {
-            const startTime = moment(horas.inicio, 'HH:mm');
-            const endTime = moment(horas.fin, 'HH:mm');
+          const startTime = moment(horas.inicio, "HH:mm");
+          const endTime = moment(horas.fin, "HH:mm");
 
-            if (currentHour.isBetween(startTime, endTime)) {
-              dispatch(LS_updateNegocio(data));
-            } else {
-              _handleShowModal('Comunicado', 'Se encuentra fuera del Horario de Atencion', 'time-out');
-            }
+          if (currentHour.isBetween(startTime, endTime)) {
+            dispatch(LS_updateNegocio(data));
           } else {
-            _handleShowModal('Comunicado', 'Se encuentra fuera de Dias Laborables', 'time-out');
+            _handleShowModal(
+              "Comunicado",
+              "Se encuentra fuera del Horario de Atencion",
+              "time-out"
+            );
           }
         } else {
           dispatch(LS_updateNegocio(data));
@@ -285,64 +320,88 @@ const PrivateMasterLayout = (props) => {
       }
     });
     // LOGIN
-    socket.on('server:onLogin', (data) => {
+    socket.on("server:onLogin", (data) => {
       if (InfoUsuario._id === data) {
-        _handleShowModal('Comunicado', 'Se registro otro inicio de sesion con esta cuenta', 'double-login');
+        _handleShowModal(
+          "Comunicado",
+          "Se registro otro inicio de sesion con esta cuenta",
+          "double-login"
+        );
       }
     });
     // 1er LOGIN
-    socket.on('server:onFirtLogin', (data) => {
+    socket.on("server:onFirtLogin", (data) => {
       dispatch(LS_FirtsLogin(data));
     });
     // Cambio en los datos de usuario
-    socket.on('server:onChangeUser', (data) => {
+    socket.on("server:onChangeUser", (data) => {
       if (InfoUsuario._id === data) {
         _handleShowModal(
-          'Administracion',
-          'Hubo una Actualizacion en sus datos, vuelva a ingresar nuevamente',
-          'update-user'
+          "Administracion",
+          "Hubo una Actualizacion en sus datos, vuelva a ingresar nuevamente",
+          "update-user"
         );
       }
     });
     // Elimancion de Usuario
-    socket.on('server:onDeleteAccount', (data) => {
+    socket.on("server:onDeleteAccount", (data) => {
       if (InfoUsuario._id === data) {
-        _handleShowModal('Administracion', 'Su cuenta ha sido ELIMINADA', 'delete');
+        _handleShowModal(
+          "Administracion",
+          "Su cuenta ha sido ELIMINADA",
+          "delete"
+        );
       }
     });
 
     return () => {
       // Remove the event listener when the component unmounts
-      socket.off('server:newOrder');
-      socket.off('server:orderUpdated');
-      socket.off('server:updateListOrder');
+      socket.off("server:newOrder");
+      socket.off("server:orderUpdated");
+      socket.off("server:cPago");
+      socket.off("server:cGasto");
 
-      socket.off('server:newDelivery');
-      socket.off('server:updateDelivery');
+      socket.off("server:updateListOrder");
 
-      socket.off('server:cPricePrendas');
-      socket.off('server:cPuntos');
-      socket.off('server:cImpuesto');
-      socket.off('server:cPromotions');
-      socket.off('server:cNegocio');
-      socket.off('server:onLogin');
-      socket.off('server:onFirtLogin');
-      socket.off('server:onDeleteAccount');
-      socket.off('server:onChangeUser');
+      socket.off("server:cPricePrendas");
+      socket.off("server:cPuntos");
+      socket.off("server:cImpuesto");
+      socket.off("server:cPromotions");
+      socket.off("server:cNegocio");
+      socket.off("server:onLogin");
+      socket.off("server:onFirtLogin");
+      socket.off("server:onDeleteAccount");
+      socket.off("server:onChangeUser");
     };
   }, []);
 
   return (
-    <div className={`principal_container_private ${loading ? 'space-total' : null}`}>
+    <div
+      className={`principal_container_private ${
+        loading ? "space-total" : null
+      }`}
+    >
       {loading === true ? (
         <LoaderSpiner />
       ) : (
         <>
           <div className="header_pcp">
             <HeaderCoord />
-            {InfoUsuario.rol === Roles.ADMIN ? <HeaderAdmin /> : null}
+            {InfoUsuario.rol === Roles.ADMIN ||
+            InfoUsuario.rol === Roles.GERENTE ? (
+              <HeaderAdmin />
+            ) : null}
           </div>
-          <section className="body_pcp">{props.children}</section>
+          <section
+            className={`body_pcp ${
+              InfoUsuario.rol === Roles.ADMIN ||
+              InfoUsuario.rol === Roles.GERENTE
+                ? "mode-admin"
+                : "mode-user"
+            }`}
+          >
+            {props.children}
+          </section>
 
           <div id="btn-extra" className="btn-action-extra">
             {InfoUsuario.rol !== Roles.PERS ? (
@@ -356,7 +415,7 @@ const PrivateMasterLayout = (props) => {
                 Agregar Gasto
               </button>
             ) : null}
-            {/* <button
+            <button
               id="btn-gasto"
               className="add-gasto"
               onClick={() => {
@@ -364,9 +423,9 @@ const PrivateMasterLayout = (props) => {
               }}
             >
               Informe Diario
-            </button> */}
+            </button>
           </div>
-          {/* {mInformeDiario ? (
+          {mInformeDiario ? (
             <Portal
               onClose={() => {
                 setMInformeDiario(false);
@@ -374,7 +433,7 @@ const PrivateMasterLayout = (props) => {
             >
               <ReporteDiario onClose={setMInformeDiario} />
             </Portal>
-          ) : null} */}
+          ) : null}
           {mGasto ? (
             <Portal
               onClose={() => {
@@ -404,15 +463,15 @@ const PrivateMasterLayout = (props) => {
                 className="ico"
                 src={
                   data &&
-                  (data.ico === 'delete'
+                  (data.ico === "delete"
                     ? Trash
-                    : data.ico === 'close-emergency'
+                    : data.ico === "close-emergency"
                     ? CloseEmergency
-                    : data.ico === 'double-login'
+                    : data.ico === "double-login"
                     ? DoubleLogin
-                    : data.ico === 'update-user'
+                    : data.ico === "update-user"
                     ? UpdateUser
-                    : data.ico === 'time-out'
+                    : data.ico === "time-out"
                     ? TimeOut
                     : null)
                 }

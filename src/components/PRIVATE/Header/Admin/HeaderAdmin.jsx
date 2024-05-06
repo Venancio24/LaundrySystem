@@ -1,14 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { PrivateRoutes } from '../../../../models/index';
-import './headerAdmin.scss';
-import { oldOrder } from '../../../../services/global';
+import React, { useEffect, useState, useCallback } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { PrivateRoutes } from "../../../../models/index";
+import "./headerAdmin.scss";
+import { useSelector } from "react-redux";
 
 const HeaderAdmin = () => {
   const [stateHam2, setStateHam2] = useState(true);
   const location = useLocation();
+
+  const InfoNegocio = useSelector((state) => state.negocio.infoNegocio);
 
   const handleResize = () => {
     setTimeout(() => {
@@ -17,32 +19,37 @@ const HeaderAdmin = () => {
   };
 
   const initializeHeaderAdmin = /*useCallback(*/ () => {
-    const navbarp2 = document.getElementById('n-exclusivo');
-    const tabsp = navbarp2.querySelectorAll('li');
+    const navbarp2 = document.getElementById("n-exclusivo");
+    const tabsp = navbarp2.querySelectorAll("li");
 
-    const activeItemp = navbarp2.querySelector('.active');
-    const horiSelector = document.querySelector('.hori-selector-2');
+    const activeItemp = navbarp2.querySelector(".active");
+    const horiSelector = document.querySelector(".hori-selector-2");
     const currentPath = location.pathname;
 
-    const hrefs = Array.from(navbarp2.querySelectorAll('li a'), (link) => link.getAttribute('href'));
+    const hrefs = Array.from(navbarp2.querySelectorAll("li a"), (link) =>
+      link.getAttribute("href")
+    );
 
-    hrefs.push('/');
+    hrefs.push("/");
 
     if (hrefs.includes(currentPath)) {
-      activeItemp?.classList?.remove('active');
+      activeItemp?.classList?.remove("active");
       for (const tab of tabsp) {
-        const link = tab.querySelector('a');
-        const linkHref = link?.getAttribute('href');
+        const link = tab.querySelector("a");
+        const linkHref = link?.getAttribute("href");
 
-        if ((currentPath === '/' && linkHref === '/list-clientes') || currentPath === linkHref) {
-          horiSelector.style.display = 'block';
-          tab.classList.add('active');
+        if (
+          (currentPath === "/" && linkHref === "/list-clientes") ||
+          currentPath === linkHref
+        ) {
+          horiSelector.style.display = "block";
+          tab.classList.add("active");
         }
       }
 
-      const navbarp2 = document.getElementById('n-exclusivo');
-      const tabs = navbarp2.querySelectorAll('li');
-      const activeItem = navbarp2.querySelector('.active');
+      const navbarp2 = document.getElementById("n-exclusivo");
+      const tabs = navbarp2.querySelectorAll("li");
+      const activeItem = navbarp2.querySelector(".active");
 
       const activeItemHeight = activeItem.offsetHeight;
       const activeItemWidth = activeItem.offsetWidth;
@@ -55,11 +62,11 @@ const HeaderAdmin = () => {
       horiSelector.style.width = `${activeItemWidth}px`;
 
       for (const item of tabs) {
-        item.addEventListener('click', () => {
+        item.addEventListener("click", () => {
           for (const menuItem of tabs) {
-            menuItem.classList.remove('active');
+            menuItem.classList.remove("active");
           }
-          item.classList.add('active');
+          item.classList.add("active");
 
           if (stateHam2) {
             setStateHam2(false);
@@ -76,14 +83,14 @@ const HeaderAdmin = () => {
         });
       }
     } else {
-      activeItemp?.classList?.remove('active');
-      horiSelector.style.display = 'none';
+      activeItemp?.classList?.remove("active");
+      horiSelector.style.display = "none";
     }
   }; /*, [location.pathname, stateHam2])*/
 
   useEffect(() => {
     initializeHeaderAdmin();
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     // return () => {
     //   window.removeEventListener('resize', handleResize);
@@ -110,9 +117,11 @@ const HeaderAdmin = () => {
           <li>
             <Link to={`./${PrivateRoutes.SETTING}`}>Ajustes</Link>
           </li>
-          {oldOrder ? (
+          {InfoNegocio?.oldOrder ? (
             <li>
-              <Link to={`./${PrivateRoutes.REGISTER_OLDS}`}>Registro Antiguos</Link>
+              <Link to={`./${PrivateRoutes.REGISTER_OLDS}`}>
+                Registro Antiguos
+              </Link>
             </li>
           ) : null}
         </ul>

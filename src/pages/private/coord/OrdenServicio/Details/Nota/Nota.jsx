@@ -44,7 +44,7 @@ const Nota = ({ onReturn, infOrden }) => {
     dispatch(
       UpdateOrdenServices({
         id: idOrden,
-        infoRecibo: {
+        infoOrden: {
           notas: notes,
         },
         rol: InfoUsuario.rol,

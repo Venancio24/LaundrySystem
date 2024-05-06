@@ -1,33 +1,39 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
+import "./detalle.scss";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import Prendas from '../../../../../utils/img/Prendas/index';
-import { GetDeliverysID } from '../../../../../redux/actions/aDelivery';
-import './detalle.scss';
-import { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-
-import moment from 'moment';
-import { simboloMoneda } from '../../../../../services/global';
-import { DateDetail_Hora, cLetter, handleGetInfoPago } from '../../../../../utils/functions';
+import moment from "moment";
+import { simboloMoneda } from "../../../../../services/global";
+import {
+  DateDetail_Hora,
+  cLetter,
+  handleGetInfoPago,
+} from "../../../../../utils/functions";
 
 const Detalle = ({ infoD }) => {
   const [ordern, setOrder] = useState();
   const [statePago, setStatePago] = useState();
-  const dispatch = useDispatch();
-  const iDelivery = useSelector((state) => state.delivery.infoDeliveryID);
+  const ListUsuarios = useSelector((state) => state.user.listUsuario);
 
-  const calculateHeight = (description, fontSize, width, padding, lineHeightValue) => {
+  const calculateHeight = (
+    description,
+    fontSize,
+    width,
+    padding,
+    lineHeightValue
+  ) => {
     // Crear un elemento de textarea oculto para medir su contenido.
-    const hiddenTextarea = document.createElement('textarea');
-    hiddenTextarea.style.visibility = 'hidden';
-    hiddenTextarea.style.position = 'absolute';
-    hiddenTextarea.style.top = '-9999px';
+    const hiddenTextarea = document.createElement("textarea");
+    hiddenTextarea.style.visibility = "hidden";
+    hiddenTextarea.style.position = "absolute";
+    hiddenTextarea.style.top = "-9999px";
     hiddenTextarea.style.padding = `${padding}`;
-    hiddenTextarea.style.lineHeight = '1.2';
-    hiddenTextarea.style.letterSpacing = '2px';
+    hiddenTextarea.style.lineHeight = "1.2";
+    hiddenTextarea.style.letterSpacing = "2px";
     hiddenTextarea.style.float = `left`;
     hiddenTextarea.style.fontSize = fontSize; // Establecer el tamaño de fuente.
     hiddenTextarea.style.width = `${width}px`; // Establecer el ancho del textarea.
@@ -45,28 +51,28 @@ const Detalle = ({ infoD }) => {
   };
 
   const handleDescDelivery = (word) => {
-    const palabras = word.split(' ');
-    const resultado = palabras.slice(2).join(' ');
+    const palabras = word.split(" ");
+    const resultado = palabras.slice(2).join(" ");
 
     return resultado.charAt(0).toUpperCase() + resultado.slice(1);
   };
 
   const handleDateLarge = (fecha) => {
     const fechaObjeto = moment(fecha);
-    const fechaFormateada = fechaObjeto.format('dddd D [de] MMMM, YYYY');
+    const fechaFormateada = fechaObjeto.format("dddd D [de] MMMM, YYYY");
     return fechaFormateada;
   };
 
   const handleHour = (hora) => {
-    const hora12 = moment(hora, 'HH:mm').format('h:mm A');
+    const hora12 = moment(hora, "HH:mm").format("h:mm A");
     return hora12;
   };
 
-  useEffect(() => {
-    if (ordern?.Modalidad === 'Delivery') {
-      dispatch(GetDeliverysID(ordern._id));
-    }
-  }, [ordern]);
+  const handleInfoUser = (idUser) => {
+    // console.log(idUser);
+    const usuario = ListUsuarios.find((usuario) => usuario._id === idUser);
+    return usuario ? usuario.name.split(" ")[0] : "No Encontrado";
+  };
 
   useEffect(() => {
     setOrder(infoD);
@@ -82,63 +88,63 @@ const Detalle = ({ infoD }) => {
         <h1>{ordern?.onWaiting.showText} en Espera</h1>
       </div>
       <h1 className="mod-ord">{ordern?.Modalidad}</h1>
-      {ordern?.Modalidad === 'Delivery' && iDelivery ? (
-        <div className="list-delivery">
-          {iDelivery.map((e) => (
-            <div className="gasto-d" key={e._id}>
-              <div className="dsc_d">
-                <span>{handleDescDelivery(e.descripcion)}</span>
-              </div>
-              <div className="cant_d">
-                <span>
-                  {simboloMoneda} {e.monto}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : null}
       <table className="product-t">
         <thead>
           <tr>
             <th>Cantidad</th>
-            <th>Producto</th>
+            <th>Items</th>
             <th>Descripción</th>
             <th>Total</th>
           </tr>
         </thead>
         <tbody>
-          {ordern?.DetalleProducto.map((p, index) => (
+          {ordern?.DetalleOrden.map((p, index) => (
             <tr key={`${p._id}${index}`}>
               <td>{p.cantidad}</td>
-              <td>{p.producto}</td>
+              <td>{p.item}</td>
               <td className="tADescription">
                 <div className="contentDes">
                   <div id={`${index}-dsp`} className="textarea-container">
-                    <textarea id={`${index}-txtA`} className="hide" rows={5} value={p.descripcion} readOnly={true} />
+                    <textarea
+                      id={`${index}-txtA`}
+                      className="hide"
+                      rows={5}
+                      value={p.descripcion}
+                      readOnly={true}
+                    />
                     <button
                       type="button"
                       className="expand-button"
                       onClick={() => {
                         const element = document.getElementById(`${index}-dsp`);
-                        const textArea = document.getElementById(`${index}-txtA`);
+                        const textArea = document.getElementById(
+                          `${index}-txtA`
+                        );
 
                         if (element) {
-                          const hideElement = element.querySelector('.hide');
-                          const showElement = element.querySelector('.show');
-                          const iconElement = element.querySelector('#ico-action');
+                          const hideElement = element.querySelector(".hide");
+                          const showElement = element.querySelector(".show");
+                          const iconElement =
+                            element.querySelector("#ico-action");
 
                           let txtAreaShow = null;
                           if (hideElement) {
-                            hideElement.classList.replace('hide', 'show');
-                            iconElement.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                            hideElement.classList.replace("hide", "show");
+                            iconElement.classList.replace(
+                              "fa-chevron-down",
+                              "fa-chevron-up"
+                            );
 
-                            txtAreaShow = element.querySelector('.show');
+                            txtAreaShow = element.querySelector(".show");
 
-                            const width = window.getComputedStyle(txtAreaShow).width;
-                            const fontSize = window.getComputedStyle(txtAreaShow).fontSize;
-                            const padding = getComputedStyle(txtAreaShow).padding;
-                            const lineHeightValue = getComputedStyle(txtAreaShow).lineHeight;
+                            const width =
+                              window.getComputedStyle(txtAreaShow).width;
+                            const fontSize =
+                              window.getComputedStyle(txtAreaShow).fontSize;
+                            const padding =
+                              getComputedStyle(txtAreaShow).padding;
+                            const lineHeightValue =
+                              getComputedStyle(txtAreaShow).lineHeight;
 
                             txtAreaShow.style.height = `${calculateHeight(
                               p.descripcion,
@@ -148,10 +154,13 @@ const Detalle = ({ infoD }) => {
                               lineHeightValue
                             )}px`;
                           } else if (showElement) {
-                            txtAreaShow = element.querySelector('.show');
-                            showElement.classList.replace('show', 'hide');
+                            txtAreaShow = element.querySelector(".show");
+                            showElement.classList.replace("show", "hide");
                             txtAreaShow.style.height = null;
-                            iconElement.classList.replace('fa-chevron-up', 'fa-chevron-down');
+                            iconElement.classList.replace(
+                              "fa-chevron-up",
+                              "fa-chevron-down"
+                            );
                           }
                         }
                       }}
@@ -167,6 +176,14 @@ const Detalle = ({ infoD }) => {
         </tbody>
       </table>
       <div className="list-extra">
+        <div className="item-extra attent">
+          <div className="title">
+            <span>Atendido por :</span>
+          </div>
+          <div className="monto">
+            <span>{ordern?.attendedBy.name.split(" ")[0]}</span>
+          </div>
+        </div>
         {ordern?.Factura === true ? (
           <div className="item-extra fact">
             <div className="title">
@@ -198,16 +215,19 @@ const Detalle = ({ infoD }) => {
         <ul>
           {ordern?.ListPago.map((p, index) => (
             <li className="i-pago" key={index}>
-              <span className="_fecha">{DateDetail_Hora(p.date.fecha, p.date.hora)}</span>
+              <span className="_fecha">
+                {DateDetail_Hora(p.date.fecha, p.date.hora)}
+              </span>
               <span className="_monto">
                 {simboloMoneda}
                 {p.total}
               </span>
               <span className="_metodopago">{cLetter(p.metodoPago)}</span>
+              <span>{handleInfoUser(p.idUser)}</span>
               <span className="_ico">
-                {p.metodoPago === 'Tarjeta' ? (
+                {p.metodoPago === "Tarjeta" ? (
                   <i className="fa-solid fa-credit-card" />
-                ) : p.metodoPago === 'Efectivo' ? (
+                ) : p.metodoPago === "Efectivo" ? (
                   <i className="fa-solid fa-sack-dollar" />
                 ) : (
                   <i className="fa-solid fa-money-bill-transfer" />
@@ -215,7 +235,7 @@ const Detalle = ({ infoD }) => {
               </span>
             </li>
           ))}
-          <li className="i-final">
+          <div className="i-final">
             <span></span>
             <span className="if-estado"></span>
             <span className="if-monto">
@@ -230,11 +250,11 @@ const Detalle = ({ infoD }) => {
               </div>
               <div>
                 <div className="l-info">
-                  <span>Estado :</span>
+                  <span>Pago :</span>
                 </div>
                 <div> {statePago?.estado}</div>
               </div>
-              {statePago?.estado !== 'Completo' ? (
+              {statePago?.estado !== "Completo" ? (
                 <div>
                   <div className="l-info">
                     <span>Falta :</span>
@@ -247,7 +267,7 @@ const Detalle = ({ infoD }) => {
               ) : null}
             </span>
             <span></span>
-          </li>
+          </div>
         </ul>
       </div>
       <table className="info-table">
@@ -255,13 +275,15 @@ const Detalle = ({ infoD }) => {
           <tr>
             <td>Fecha Recepcion:</td>
             <td>
-              {handleDateLarge(ordern?.FechaIngreso.fecha)} / {handleHour(ordern?.FechaIngreso.hora)}
+              {handleDateLarge(ordern?.FechaIngreso.fecha)} /{" "}
+              {handleHour(ordern?.FechaIngreso.hora)}
             </td>
           </tr>
           <tr>
             <td>Fecha Prevista:</td>
             <td>
-              {handleDateLarge(ordern?.FechaPrevista.fecha)} / {handleHour(ordern?.FechaPrevista.hora)}
+              {handleDateLarge(ordern?.FechaPrevista.fecha)} /{" "}
+              {handleHour(ordern?.FechaPrevista.hora)}
             </td>
           </tr>
         </tbody>

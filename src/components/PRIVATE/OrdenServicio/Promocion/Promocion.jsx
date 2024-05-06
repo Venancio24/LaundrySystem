@@ -2,28 +2,31 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/display-name */
-import axios from 'axios';
-import React, { useState } from 'react';
-import './promocion.scss';
-import { useSelector } from 'react-redux';
-import Cupon from '../../Cupon/Cupon';
+import axios from "axios";
+import React, { useState, useEffect } from "react";
+import "./promocion.scss";
+import { useSelector } from "react-redux";
+import Cupon from "../../Cupon/Cupon";
 
 const Promocion = ({ /*onRedirect,*/ onAddCupon }) => {
   const infoPromocion = useSelector((state) => state.promocion.infoPromocion);
+  const [listPromos, setListPromos] = useState([]);
   const [givenPromotions, setGivenPromotions] = useState([]);
 
   const handleAddPromocion = async (promo) => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/generate-codigo-cupon`);
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/generate-codigo-cupon`
+      );
 
       if (response.data) {
         const codigoCupon = response.data;
         setGivenPromotions([...givenPromotions, { codigoCupon, ...promo }]);
       } else {
-        alert('No se pudo generar promocion');
+        alert("No se pudo generar promocion");
       }
     } catch (error) {
-      console.error('Error al realizar la solicitud:', error);
+      console.error("Error al realizar la solicitud:", error);
     }
   };
 
@@ -39,34 +42,41 @@ const Promocion = ({ /*onRedirect,*/ onAddCupon }) => {
     onAddCupon(promos);
   };
 
+  useEffect(() => {
+    const iPromos = infoPromocion.filter(
+      (promocion) => promocion.state === "activo"
+    );
+    setListPromos(iPromos);
+  }, [infoPromocion]);
+
   return (
     <div className="content-p">
-      {infoPromocion.length > 0 ? (
-        <div className="actions">
-          <button
-            type="button"
-            className="btn-delete"
-            onClick={() => {
-              const nuevoArray = givenPromotions.filter((_, index) => index < givenPromotions.length - 1);
-              setGivenPromotions(nuevoArray);
-            }}
-          >
-            Eliminar
-          </button>
-          <button
-            type="button"
-            className="btn-add-promo"
-            onClick={() => {
-              handleRegisterPromocion();
-            }}
-          >
-            Agregar Promocion
-          </button>
-        </div>
-      ) : null}
+      <div className="actions">
+        <button
+          type="button"
+          className="btn-delete"
+          onClick={() => {
+            const nuevoArray = givenPromotions.filter(
+              (_, index) => index < givenPromotions.length - 1
+            );
+            setGivenPromotions(nuevoArray);
+          }}
+        >
+          Eliminar
+        </button>
+        <button
+          type="button"
+          className="btn-add-promo"
+          onClick={() => {
+            handleRegisterPromocion();
+          }}
+        >
+          Agregar Promocion
+        </button>
+      </div>
       <div className="body-promos-cupones">
         <div className="list-promos">
-          {infoPromocion?.map((p) => (
+          {listPromos?.map((p) => (
             <button
               className="item-promo"
               key={p.codigo}

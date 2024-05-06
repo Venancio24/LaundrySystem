@@ -1,56 +1,75 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from "react-redux";
 
-import { AnularOrderService } from '../../../../../../redux/actions/aAnular';
-import { CancelEntrega_OrdenService, UpdateOrdenServices } from '../../../../../../redux/actions/aOrdenServices';
-import { DateCurrent, handleGetInfoPago } from '../../../../../../utils/functions';
+import {
+  CancelEntrega_OrdenService,
+  UpdateOrdenServices,
+} from "../../../../../../redux/actions/aOrdenServices";
+import {
+  DateCurrent,
+  handleGetInfoPago,
+} from "../../../../../../utils/functions";
 
-import { Text } from '@mantine/core';
-import { modals } from '@mantine/modals';
-import { Form, Formik } from 'formik';
-import * as Yup from 'yup';
+import { Text } from "@mantine/core";
+import { modals } from "@mantine/modals";
+import { Form, Formik } from "formik";
+import * as Yup from "yup";
 
-import Anular from '../Anular/Anular';
-import Entregar from './Entregar/Entregar';
-import Pagar from './Pagar/Pagar';
+import Anular from "../Anular/Anular";
+import Entregar from "./Entregar/Entregar";
+import Pagar from "./Pagar/Pagar";
 
-import { PrivateRoutes } from '../../../../../../models';
-import './endProcess.scss';
-import { socket } from '../../../../../../utils/socket/connect';
-import { Notify } from '../../../../../../utils/notify/Notify';
-import { simboloMoneda } from '../../../../../../services/global';
+import { PrivateRoutes } from "../../../../../../models";
+import "./endProcess.scss";
+import { socket } from "../../../../../../utils/socket/connect";
+import { Notify } from "../../../../../../utils/notify/Notify";
+import { simboloMoneda } from "../../../../../../services/global";
+import { GetDeliveryById } from "../../../../../../services/default.services";
+import { AddPago } from "../../../../../../redux/actions/aPago";
 
 const EndProcess = ({ IdCliente, onClose }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [onAction, setOnAction] = useState('principal');
+  const [onAction, setOnAction] = useState("principal");
 
+  const InfoNegocio = useSelector((state) => state.negocio.infoNegocio);
   const InfoUsuario = useSelector((state) => state.user.infoUsuario);
-  const infoCliente = useSelector((state) => state.orden.registered.find((item) => item._id === IdCliente));
 
-  const estadoPago = handleGetInfoPago(infoCliente.ListPago, infoCliente.totalNeto);
+  const infoCliente = useSelector((state) =>
+    state.orden.registered.find((item) => item._id === IdCliente)
+  );
 
-  const handleCancelarEntrega = () => {
-    dispatch(CancelEntrega_OrdenService(IdCliente)).then((res) => {
-      if (res.payload) {
-        onClose(false);
-      }
-    });
+  const infoTipoGastoDeliveryEnvio = useSelector(
+    (state) => state.tipoGasto.iDeliveryEnvio
+  );
+
+  const estadoPago = handleGetInfoPago(
+    infoCliente?.ListPago,
+    infoCliente?.totalNeto
+  );
+
+  const handleValidarCancelacion = async () => {
+    await dispatch(CancelEntrega_OrdenService(infoCliente._id));
+    onClose(false);
   };
 
   const handleAnular = (infoAnulacion) => {
     dispatch(
       UpdateOrdenServices({
         id: IdCliente,
-        infoRecibo: { estadoPrenda: 'anulado' },
+        infoOrden: { estadoPrenda: "anulado" },
         rol: InfoUsuario.rol,
-        infoAnulacion: { ...infoAnulacion, _id: IdCliente },
+        infoAnulacion: {
+          ...infoAnulacion,
+          _id: IdCliente,
+          idUser: InfoUsuario._id,
+        },
       })
     ).then((res) => {
       if (res.payload) {
@@ -61,11 +80,13 @@ const EndProcess = ({ IdCliente, onClose }) => {
 
   const openModalPagar = (values) => {
     modals.openConfirmModal({
-      title: 'Confirmar Pago',
+      title: "Confirmar Pago",
       centered: true,
-      children: <Text size="sm">¿ Estas seguro que quieres realizar el PAGO ?</Text>,
-      labels: { confirm: 'Si', cancel: 'No' },
-      confirmProps: { color: 'green' },
+      children: (
+        <Text size="sm">¿ Estas seguro que quieres realizar el PAGO ?</Text>
+      ),
+      labels: { confirm: "Si", cancel: "No" },
+      confirmProps: { color: "green" },
       //onCancel: () => console.log("Cancelado"),
       onConfirm: () => handleEditPago(values),
     });
@@ -73,11 +94,13 @@ const EndProcess = ({ IdCliente, onClose }) => {
 
   const openModalEntregar = (value) => {
     modals.openConfirmModal({
-      title: 'Confirmar Entrega',
+      title: "Confirmar Entrega",
       centered: true,
-      children: <Text size="sm">¿ Estas seguro que quieres realizar la ENTREGA ?</Text>,
-      labels: { confirm: 'Si', cancel: 'No' },
-      confirmProps: { color: 'green' },
+      children: (
+        <Text size="sm">¿ Estas seguro que quieres realizar la ENTREGA ?</Text>
+      ),
+      labels: { confirm: "Si", cancel: "No" },
+      confirmProps: { color: "green" },
       //onCancel: () => console.log("Cancelado"),
       onConfirm: () => handleEditEntrega(value),
     });
@@ -87,58 +110,52 @@ const EndProcess = ({ IdCliente, onClose }) => {
   const handleEditPago = async (values) => {
     const newPago = {
       ...values,
+      idOrden: IdCliente,
       date: {
         fecha: DateCurrent().format4,
         hora: DateCurrent().format3,
       },
+      isCounted: true,
+      idUser: InfoUsuario._id,
     };
 
-    const newEstadoPago = await handleGetInfoPago([...infoCliente.ListPago, newPago], infoCliente.totalNeto);
-    await dispatch(
-      UpdateOrdenServices({
-        id: IdCliente,
-        infoRecibo: {
-          ...infoCliente,
-          ListPago: [...infoCliente.ListPago, newPago],
-          Pago: newEstadoPago.estado,
-        },
-        rol: InfoUsuario.rol,
-      })
-    ).then((res) => {
-      if (res.payload) {
-        onClose();
-      }
-    });
+    await dispatch(AddPago(newPago));
+    onClose();
   };
 
   // Entregado
-  const handleEditEntrega = (iDelivery) => {
-    let infoDelivery;
-    if (infoCliente.Modalidad === 'Delivery') {
-      infoDelivery = {
-        name: infoCliente.Nombre,
-        descripcion: `[${String(infoCliente.codRecibo).padStart(4, '0')}] Delivery Devolucion en ${
-          iDelivery.tipoTrasporte
-        }`,
-        fecha: DateCurrent().format4,
-        hora: DateCurrent().format3,
-        monto: iDelivery.mDevolucion,
+  const handleEditEntrega = (values) => {
+    let infoGastoByDelivery;
+    if (infoCliente.Modalidad === "Delivery") {
+      infoGastoByDelivery = {
+        idTipoGasto: infoTipoGastoDeliveryEnvio._id,
+        tipo: infoTipoGastoDeliveryEnvio.name,
+        motivo: `[${String(infoCliente.codRecibo).padStart(
+          4,
+          "0"
+        )}] Delivery recojo en ${values.tipoTrasporte} - ${infoCliente.Nombre}`,
+        date: {
+          fecha: DateCurrent().format4,
+          hora: DateCurrent().format3,
+        },
+        monto: values.mDevolucion,
+        idUser: InfoUsuario._id,
       };
     }
 
     dispatch(
       UpdateOrdenServices({
         id: IdCliente,
-        infoRecibo: {
+        infoOrden: {
           ...infoCliente,
           dateEntrega: {
             fecha: DateCurrent().format4,
             hora: DateCurrent().format3,
           },
-          estadoPrenda: 'entregado',
+          estadoPrenda: "entregado",
           location: 1,
         },
-        ...(iDelivery && { infoDelivery }),
+        ...(infoGastoByDelivery && { infoGastoByDelivery }),
         rol: InfoUsuario.rol,
       })
     ).then((res) => {
@@ -149,54 +166,62 @@ const EndProcess = ({ IdCliente, onClose }) => {
   };
 
   const handleEntregar = () => {
-    if (infoCliente.Modalidad === 'Tienda') {
+    if (infoCliente.Modalidad === "Tienda") {
+      console.log("tienda");
       openModalEntregar();
     } else {
-      setOnAction('concluir');
+      console.log("delivery");
+      setOnAction("concluir");
     }
   };
   const validationSchema = Yup.object().shape({
     tipoTrasporte:
-      infoCliente.Modalidad === 'Delivery' && infoCliente.Pago === 'Completo'
-        ? Yup.string().required('Escoja un tipo de transporte')
+      infoCliente.Modalidad === "Delivery" && estadoPago.estado === "Completo"
+        ? Yup.string().required("Escoja un tipo de transporte")
         : null,
-    metodoPago: infoCliente.Pago !== 'Completo' ? Yup.string().required('Escoja Metodo de Pago') : null,
+    metodoPago:
+      estadoPago.estado !== "Completo"
+        ? Yup.string().required("Escoja Metodo de Pago")
+        : null,
     mDevolucion:
-      infoCliente.Modalidad === 'Delivery' && infoCliente.Pago === 'Completo'
-        ? Yup.string().required('Escoja Metodo de Pago')
+      infoCliente.Modalidad === "Delivery" && estadoPago.estado === "Completo"
+        ? Yup.string().required("Escoja Metodo de Pago")
         : null,
-    total: infoCliente.Pago !== 'Completo' ? Yup.string().required('Ingrese Monto a Pagar') : null,
+    total:
+      estadoPago.estado !== "Completo"
+        ? Yup.string().required("Ingrese Monto a Pagar")
+        : null,
   });
 
   const vInitialPago = {
-    total: '',
-    metodoPago: '',
+    total: "",
+    metodoPago: "",
   };
 
   const vInitialEntrega = {
-    tipoTrasporte: '',
-    mDevolucion: '',
+    tipoTrasporte: "",
+    mDevolucion: "",
   };
 
   useEffect(() => {
-    socket.on('server:orderUpdated:child', (data) => {
+    socket.on("server:orderUpdated:child", (data) => {
       if (infoCliente._id === data._id) {
-        if (data.estadoPrenda === 'anulado') {
-          Notify('ORDERN DE SERVICIO ANULADO', '', 'fail');
+        if (data.estadoPrenda === "anulado") {
+          Notify("ORDERN DE SERVICIO ANULADO", "", "fail");
         } else {
-          Notify('ORDERN DE SERVICIO ACTUALIZADO', '', 'warning');
+          Notify("ORDERN DE SERVICIO ACTUALIZADO", "", "warning");
         }
         onClose(false);
       }
     });
 
-    socket.on('server:updateListOrder:child', (data) => {
+    socket.on("server:updateListOrder:child", (data) => {
       data.some((orden) => {
         if (infoCliente._id === orden._id) {
-          if (orden.estadoPrenda === 'donado') {
-            Notify('ORDERN DE SERVICIO DONADO', '', 'fail');
+          if (orden.estadoPrenda === "donado") {
+            Notify("ORDERN DE SERVICIO DONADO", "", "fail");
           } else {
-            Notify('ORDERN DE SERVICIO ACTUALIZADO', '', 'warning');
+            Notify("ORDERN DE SERVICIO ACTUALIZADO", "", "warning");
           }
           onClose(false);
           return true; // Detener la iteración
@@ -207,8 +232,8 @@ const EndProcess = ({ IdCliente, onClose }) => {
 
     return () => {
       // Remove the event listener when the component unmounts
-      socket.off('server:orderUpdated:child');
-      socket.off('server:updateListOrder:child');
+      socket.off("server:orderUpdated:child");
+      socket.off("server:updateListOrder:child");
     };
   }, []);
 
@@ -216,62 +241,84 @@ const EndProcess = ({ IdCliente, onClose }) => {
     <div className="actions-container">
       <div className="header-ac">
         <h1>
-          {infoCliente.Nombre.split(' ').slice(0, 1).join(' ')} - {infoCliente.Modalidad}(N°{infoCliente.codRecibo})
+          {infoCliente.Nombre.split(" ").slice(0, 1).join(" ")} -{" "}
+          {infoCliente.Modalidad}(N°{infoCliente.codRecibo})
         </h1>
       </div>
       <hr />
       <div className="body-ac">
-        {onAction === 'principal' ? ( // Principal
+        {onAction === "principal" ? ( // Principal
           <div className="actions-init">
             {/* {infoCliente.estadoPrenda === 'pendiente' ? (
               <button type="button" className="btn-exm" onClick={handleButtonClick}>
                 {btnText}
               </button>
             ) : null} */}
-            {infoCliente.estadoPrenda === 'pendiente' && infoCliente.Pago === 'Completo' ? (
-              <button type="button" className="btn-exm" onClick={handleEntregar}>
+            {infoCliente.estadoPrenda === "pendiente" &&
+            estadoPago.estado === "Completo" ? (
+              <button
+                type="button"
+                className="btn-exm"
+                onClick={handleEntregar}
+              >
                 Entregar
               </button>
             ) : null}
-            {infoCliente.estadoPrenda === 'pendiente' && infoCliente.Pago !== 'Completo' ? (
+            {infoCliente.estadoPrenda === "pendiente" &&
+            estadoPago.estado !== "Completo" ? (
               <button
                 type="button"
                 className="btn-exm"
                 onClick={() => {
-                  setOnAction('concluir');
+                  setOnAction("concluir");
                 }}
               >
                 Pagar
               </button>
             ) : null}
-            {infoCliente.dateRecepcion.fecha === DateCurrent().format4 || infoCliente.estadoPrenda !== 'entregado' ? (
-              <button type="button" className="btn-exm" onClick={() => setOnAction('anular')}>
+            {InfoNegocio.rolQAnulan.includes(InfoUsuario.rol) &&
+            infoCliente.estadoPrenda !== "entregado" ? (
+              <button
+                type="button"
+                className="btn-exm"
+                onClick={() => setOnAction("anular")}
+              >
                 Anular
               </button>
             ) : null}
-            {infoCliente.estadoPrenda !== 'entregado' && infoCliente.modeRegistro !== 'antiguo' ? (
+            {infoCliente.estadoPrenda !== "entregado" &&
+            infoCliente.modeRegistro !== "antiguo" ? (
               <button
                 type="button"
                 className="btn-exm"
                 onClick={() => {
-                  navigate(`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.EDIT_ORDER_SERVICE}/${IdCliente}`);
+                  navigate(
+                    `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.EDIT_ORDER_SERVICE}/${IdCliente}`
+                  );
                 }}
               >
                 Editar
               </button>
             ) : null}
-            {infoCliente.dateEntrega.fecha === DateCurrent().format4 && infoCliente.estadoPrenda === 'entregado' ? (
-              <button type="button" className="btn-exm" onClick={handleCancelarEntrega}>
+            {infoCliente.dateEntrega.fecha === DateCurrent().format4 &&
+            infoCliente.estadoPrenda === "entregado" ? (
+              <button
+                type="button"
+                className="btn-exm"
+                onClick={handleValidarCancelacion}
+              >
                 Cancelar Entrega
               </button>
             ) : null}
           </div>
-        ) : onAction === 'concluir' ? (
+        ) : onAction === "concluir" ? (
           <Formik
-            initialValues={infoCliente.Pago !== 'Completo' ? vInitialPago : vInitialEntrega}
+            initialValues={
+              estadoPago.estado !== "Completo" ? vInitialPago : vInitialEntrega
+            }
             validationSchema={validationSchema}
             onSubmit={(values, { setSubmitting }) => {
-              if (infoCliente.Pago !== 'Completo') {
+              if (estadoPago.estado !== "Completo") {
                 openModalPagar(values);
               } else {
                 openModalEntregar(values);
@@ -280,20 +327,27 @@ const EndProcess = ({ IdCliente, onClose }) => {
               setSubmitting(false);
             }}
           >
-            {({ handleSubmit, setFieldValue, isSubmitting, values, errors, touched }) => (
+            {({
+              handleSubmit,
+              setFieldValue,
+              isSubmitting,
+              values,
+              errors,
+              touched,
+            }) => (
               <Form onSubmit={handleSubmit} className="content-pE">
                 <div className="trasporte-pago">
-                  {infoCliente.Pago !== 'Completo' ? (
+                  {estadoPago.estado !== "Completo" ? (
                     <>
                       <div
                         className="data-pay"
                         style={
-                          infoCliente.Pago !== 'Pendiente'
-                            ? { display: 'grid', gap: '15px' }
-                            : { display: 'flex', gap: '20px' }
+                          estadoPago.estado !== "Pendiente"
+                            ? { display: "grid", gap: "15px" }
+                            : { display: "flex", gap: "20px" }
                         }
                       >
-                        <div style={{ display: 'flex', gap: '20px' }}>
+                        <div style={{ display: "flex", gap: "20px" }}>
                           <div className="item-ipay total">
                             <div className="title">
                               <span>Total</span>
@@ -304,7 +358,8 @@ const EndProcess = ({ IdCliente, onClose }) => {
                               </span>
                             </div>
                           </div>
-                          {infoCliente.Pago !== 'Completo' && infoCliente.ListPago.length > 0 ? (
+                          {estadoPago.estado !== "Completo" &&
+                          infoCliente.ListPago.length > 0 ? (
                             <div className="item-ipay adelanto">
                               <div className="title">
                                 <span>Adelanto</span>
@@ -336,15 +391,29 @@ const EndProcess = ({ IdCliente, onClose }) => {
                       />
                     </>
                   ) : null}
-                  {infoCliente.Modalidad === 'Delivery' && infoCliente.Pago === 'Completo' ? (
-                    <Entregar setFieldValue={setFieldValue} errors={errors} touched={touched} values={values} />
+                  {infoCliente.Modalidad === "Delivery" &&
+                  estadoPago.estado === "Completo" ? (
+                    <Entregar
+                      setFieldValue={setFieldValue}
+                      errors={errors}
+                      touched={touched}
+                      values={values}
+                    />
                   ) : null}
                 </div>
                 <div className="actions-btns">
-                  <button type="button" className="btn-exm" onClick={() => setOnAction('principal')}>
+                  <button
+                    type="button"
+                    className="btn-exm"
+                    onClick={() => setOnAction("principal")}
+                  >
                     Retroceder
                   </button>
-                  <button className="btn-exm" type="submit" disabled={isSubmitting}>
+                  <button
+                    className="btn-exm"
+                    type="submit"
+                    disabled={isSubmitting}
+                  >
                     Guardar
                   </button>
                 </div>

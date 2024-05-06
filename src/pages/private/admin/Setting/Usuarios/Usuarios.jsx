@@ -1,27 +1,39 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import { Button, Select, Table, TextInput } from '@mantine/core';
-import * as Yup from 'yup';
-import { Text } from '@mantine/core';
-import { modals } from '@mantine/modals';
-import React, { useEffect, useState } from 'react';
-import { useFormik } from 'formik';
-import './usuarios.scss';
-import { ReactComponent as Eliminar } from '../../../../../utils/img/OrdenServicio/eliminar.svg';
-import { useDispatch, useSelector } from 'react-redux';
-import { DeleteUser, EditUser, GetListUser, RegisterUser } from '../../../../../redux/actions/aUser';
-import { clearDuplicated, LS_AddUser, LS_DeleteUser, LS_UpdateUser, resetUser } from '../../../../../redux/states/user';
-import io from 'socket.io-client';
-import LoaderSpiner from '../../../../../components/LoaderSpinner/LoaderSpiner';
-import { socket } from '../../../../../utils/socket/connect';
+import { Button, Select, Table, TextInput } from "@mantine/core";
+import * as Yup from "yup";
+import { Text } from "@mantine/core";
+import { modals } from "@mantine/modals";
+import React, { useEffect, useState } from "react";
+import { useFormik } from "formik";
+import "./usuarios.scss";
+import { ReactComponent as Eliminar } from "../../../../../utils/img/OrdenServicio/eliminar.svg";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  DeleteUser,
+  EditUser,
+  GetListUser,
+  RegisterUser,
+} from "../../../../../redux/actions/aUser";
+import {
+  clearDuplicated,
+  LS_AddUser,
+  LS_DeleteUser,
+  LS_UpdateUser,
+  resetUser,
+} from "../../../../../redux/states/user";
+import LoaderSpiner from "../../../../../components/LoaderSpinner/LoaderSpiner";
+import { socket } from "../../../../../utils/socket/connect";
+import { Roles } from "../../../../../models";
 
 const baseState = {
-  name: '',
-  phone: '',
-  email: '',
-  rol: '',
-  usuario: '',
-  password: '',
+  _id: "",
+  name: "",
+  phone: "",
+  email: "",
+  rol: "",
+  usuario: "",
+  password: "",
 };
 
 const Usuarios = () => {
@@ -34,16 +46,21 @@ const Usuarios = () => {
   const [initialValues, setInitialValues] = useState(baseState);
 
   const validationSchema = Yup.object().shape({
-    name: Yup.string().required('Campo obligatorio'),
-    phone: Yup.string().required('Campo obligatorio'),
-    email: Yup.string().required('Campo obligatorio').email('Debe ser un correo electrónico válido'),
-    rol: Yup.string().required('Campo obligatorio'),
-    usuario: Yup.string().required('Campo obligatorio'),
+    name: Yup.string().required("Campo obligatorio"),
+    phone: Yup.string().required("Campo obligatorio"),
+    email: Yup.string()
+      .required("Campo obligatorio")
+      .email("Debe ser un correo electrónico válido"),
+    rol: Yup.string().required("Campo obligatorio"),
+    usuario: Yup.string().required("Campo obligatorio"),
     password: onEdit
-      ? ''
+      ? ""
       : Yup.string()
-          .required('Campo obligatorio')
-          .matches(/^[a-zA-Z0-9]{5,}$/, 'Debe contener al menos 5 caracteres (solo letras y números)'),
+          .required("Campo obligatorio")
+          .matches(
+            /^[a-zA-Z0-9]{5,}$/,
+            "Debe contener al menos 5 caracteres (solo letras y números)"
+          ),
   });
   const formik = useFormik({
     enableReinitialize: true,
@@ -56,16 +73,18 @@ const Usuarios = () => {
 
   const valiProcess = (data) =>
     modals.openConfirmModal({
-      title: `${onEdit ? 'Actualizacion de Usuario' : 'Registro de Usuario'}`,
+      title: `${onEdit ? "Actualizacion de Usuario" : "Registro de Usuario"}`,
       centered: true,
       children: (
         <Text size="sm">
-          {onEdit ? '¿ Estas seguro de EDITAR este USUARIO ?' : '¿ Estas seguro de AGREGAR este nuevo USUARIO ?'}
+          {onEdit
+            ? "¿ Estas seguro de EDITAR este USUARIO ?"
+            : "¿ Estas seguro de AGREGAR este nuevo USUARIO ?"}
         </Text>
       ),
-      labels: { confirm: 'Si', cancel: 'No' },
-      confirmProps: { color: 'green' },
-      onCancel: () => console.log('Cancelado'),
+      labels: { confirm: "Si", cancel: "No" },
+      confirmProps: { color: "green" },
+      onCancel: () => console.log("Cancelado"),
       onConfirm: () => {
         if (onEdit === true) {
           setOnLoading(true);
@@ -76,7 +95,7 @@ const Usuarios = () => {
               formik.resetForm();
               setOnLoading(false);
             }
-            if ('error' in response) {
+            if ("error" in response) {
               setOnLoading(false);
             }
           });
@@ -88,7 +107,7 @@ const Usuarios = () => {
               formik.resetForm();
               setOnLoading(false);
             }
-            if ('error' in response) {
+            if ("error" in response) {
               setOnLoading(false);
             }
           });
@@ -98,12 +117,14 @@ const Usuarios = () => {
 
   const validDeleteUsuario = (id) =>
     modals.openConfirmModal({
-      title: 'Eliminar Usuario',
+      title: "Eliminar Usuario",
       centered: true,
-      children: <Text size="sm">¿ Estas seguro de eliminar este usuario ?</Text>,
-      labels: { confirm: 'Si', cancel: 'No' },
-      confirmProps: { color: 'red' },
-      onCancel: () => console.log('Cancelado'),
+      children: (
+        <Text size="sm">¿ Estas seguro de eliminar este usuario ?</Text>
+      ),
+      labels: { confirm: "Si", cancel: "No" },
+      confirmProps: { color: "red" },
+      onCancel: () => console.log("Cancelado"),
       onConfirm: () => dispatch(DeleteUser(id)),
     });
 
@@ -111,12 +132,24 @@ const Usuarios = () => {
     return (
       <div className="ico-req">
         <i className="fa-solid fa-circle-exclamation ">
-          <div className="info-req" style={{ pointerEvents: 'none' }}>
+          <div className="info-req" style={{ pointerEvents: "none" }}>
             <span>{mensaje}</span>
           </div>
         </i>
       </div>
     );
+  };
+
+  const validEnabledAccion = (user) => {
+    return InfoUsuario.rol === "admin"
+      ? false
+      : InfoUsuario.rol === "gerente" && user.rol === "gerente"
+      ? user._id === InfoUsuario._id
+        ? false
+        : true
+      : InfoUsuario.rol === "gerente" && user.rol !== "admin"
+      ? false
+      : true;
   };
 
   useEffect(() => {
@@ -133,29 +166,29 @@ const Usuarios = () => {
 
   useEffect(() => {
     // Nuevo Usuario Agregado
-    socket.on('server:onNewUser', (data) => {
+    socket.on("server:onNewUser", (data) => {
       dispatch(LS_AddUser(data));
     });
 
     // Usuario Eliminado
-    socket.on('server:onDeleteUser', (data) => {
+    socket.on("server:onDeleteUser", (data) => {
       dispatch(LS_DeleteUser(data));
       if (InfoUsuario._id === data) {
-        alert('Comunicado del Administrador : Su cuenta Fue Eliminada');
+        alert("Comunicado del Administrador : Su cuenta Fue Eliminada");
         dispatch(resetUser());
       }
     });
 
     // Usuario Actualizado
-    socket.on('server:onUpdateUser', (data) => {
+    socket.on("server:onUpdateUser", (data) => {
       dispatch(LS_UpdateUser(data));
     });
 
     return () => {
       // Remove the event listener when the component unmounts
-      socket.off('server:onNewUser');
-      socket.off('server:onDeleteUser');
-      socket.off('server:onUpdateUser');
+      socket.off("server:onNewUser");
+      socket.off("server:onDeleteUser");
+      socket.off("server:onUpdateUser");
     };
   }, []);
 
@@ -168,7 +201,7 @@ const Usuarios = () => {
           ) : (
             <>
               <div className="h-title">
-                <h1>{onEdit ? 'Editar Usuario' : 'Registrar Usuario'}</h1>
+                <h1>{onEdit ? "Editar Usuario" : "Registrar Usuario"}</h1>
                 {onEdit ? (
                   <button
                     className="btn"
@@ -190,9 +223,12 @@ const Usuarios = () => {
                   placeholder="Ingrese nombre"
                   autoComplete="off"
                   required
+                  // disabled={validEnabledAccion(initialValues)}
                   onChange={formik.handleChange}
                 />
-                {formik.errors.name && formik.touched.name && validIco(formik.errors.name)}
+                {formik.errors.name &&
+                  formik.touched.name &&
+                  validIco(formik.errors.name)}
               </div>
               <div className="input-item">
                 <TextInput
@@ -202,25 +238,35 @@ const Usuarios = () => {
                   placeholder="Ingrese numero"
                   autoComplete="off"
                   required
+                  // disabled={validEnabledAccion(initialValues)}
                   onChange={formik.handleChange}
                 />
-                {formik.errors.phone && formik.touched.phone && validIco(formik.errors.phone)}
+                {formik.errors.phone &&
+                  formik.touched.phone &&
+                  validIco(formik.errors.phone)}
               </div>
               <div className="input-item">
                 <TextInput
                   name="email"
                   label="Correo Electronico :"
-                  error={warningDuplicated.includes('correo') ? 'correo ya esta siendo usado' : false}
+                  error={
+                    warningDuplicated.includes("correo")
+                      ? "correo ya esta siendo usado"
+                      : false
+                  }
                   value={formik.values.email}
                   placeholder="Ingrese correo"
                   autoComplete="off"
                   required
+                  disabled={validEnabledAccion(initialValues)}
                   onChange={(e) => {
-                    formik.setFieldValue('email', e.target.value);
-                    dispatch(clearDuplicated('correo'));
+                    formik.setFieldValue("email", e.target.value);
+                    dispatch(clearDuplicated("correo"));
                   }}
                 />
-                {formik.errors.email && formik.touched.email && validIco(formik.errors.email)}
+                {formik.errors.email &&
+                  formik.touched.email &&
+                  validIco(formik.errors.email)}
               </div>
               <div className="input-item">
                 <Select
@@ -228,18 +274,55 @@ const Usuarios = () => {
                   label="Rol"
                   value={formik.values.rol}
                   onChange={(e) => {
-                    formik.setFieldValue('rol', e);
+                    formik.setFieldValue("rol", e);
                   }}
                   placeholder="Escoge el rol"
-                  clearable={initialValues.rol === 'admin' ? false : true}
+                  clearable={
+                    initialValues.rol === Roles.ADMIN ||
+                    initialValues.rol === Roles.GERENTE
+                      ? false
+                      : true
+                  }
                   searchable
+                  // disabled={validEnabledAccion(initialValues)}
+                  readOnly={
+                    initialValues._id === InfoUsuario._id ||
+                    initialValues.rol === Roles.GERENTE
+                  }
                   data={[
-                    { value: 'admin', label: 'Administrador', disabled: initialValues.rol === 'admin' ? false : true },
-                    { value: 'coord', label: 'Coordinador', disabled: initialValues.rol === 'admin' ? true : false },
-                    { value: 'pers', label: 'Personal', disabled: initialValues.rol === 'admin' ? true : false },
+                    {
+                      value: "admin",
+                      label: "Administrador",
+                      disabled: true,
+                    },
+                    {
+                      value: "gerente",
+                      label: "Gerente",
+                      disabled: InfoUsuario.rol === Roles.ADMIN ? false : true,
+                    },
+                    {
+                      value: "coord",
+                      label: "Coordinador",
+                      disabled:
+                        InfoUsuario.rol === Roles.ADMIN ||
+                        InfoUsuario.rol === Roles.GERENTE
+                          ? false
+                          : true,
+                    },
+                    {
+                      value: "pers",
+                      label: "Personal",
+                      disabled:
+                        InfoUsuario.rol === Roles.ADMIN ||
+                        InfoUsuario.rol === Roles.GERENTE
+                          ? false
+                          : true,
+                    },
                   ]}
                 />
-                {formik.errors.rol && formik.touched.rol && validIco(formik.errors.rol)}
+                {formik.errors.rol &&
+                  formik.touched.rol &&
+                  validIco(formik.errors.rol)}
               </div>
               <div className="account">
                 <div className="input-item">
@@ -247,41 +330,58 @@ const Usuarios = () => {
                     name="usuario"
                     label="Usuario :"
                     value={formik.values.usuario}
-                    error={warningDuplicated.includes('usuario') ? 'usuario ya existe' : false}
+                    error={
+                      warningDuplicated.includes("usuario")
+                        ? "usuario ya existe"
+                        : false
+                    }
+                    // disabled={validEnabledAccion(initialValues)}
                     placeholder="Ingrese usuario"
                     autoComplete="off"
                     required
                     onChange={(e) => {
-                      formik.setFieldValue('usuario', e.target.value);
-                      dispatch(clearDuplicated('usuario'));
+                      formik.setFieldValue("usuario", e.target.value);
+                      dispatch(clearDuplicated("usuario"));
                     }}
                   />
-                  {formik.errors.usuario && formik.touched.usuario && validIco(formik.errors.usuario)}
+                  {formik.errors.usuario &&
+                    formik.touched.usuario &&
+                    validIco(formik.errors.usuario)}
                 </div>
                 <div className="input-item">
                   <TextInput
                     name="password"
                     label="Contraseña :"
-                    description={onEdit ? 'el campo vacio, mantiene la contraseña anterior' : true}
+                    description={
+                      onEdit
+                        ? "el campo vacio, mantiene la contraseña anterior"
+                        : true
+                    }
                     value={formik.values.password}
                     placeholder="Ingrese contraseña"
                     autoComplete="off"
                     required={onEdit ? false : true}
+                    // disabled={validEnabledAccion(initialValues)}
                     onChange={formik.handleChange}
                   />
+
                   {onEdit
                     ? null
-                    : formik.errors.password && formik.touched.password && validIco(formik.errors.password)}
+                    : formik.errors.password &&
+                      formik.touched.password &&
+                      validIco(formik.errors.password)}
                 </div>
               </div>
               <Button
                 type="submit"
                 variant="gradient"
                 gradient={
-                  onEdit ? { from: 'rgba(255, 178, 46, 1)', to: 'red', deg: 90 } : { from: 'indigo', to: 'cyan' }
+                  onEdit
+                    ? { from: "rgba(255, 178, 46, 1)", to: "red", deg: 90 }
+                    : { from: "indigo", to: "cyan" }
                 }
               >
-                {onEdit ? 'Editar Usuario' : 'Registrar Usuario'}
+                {onEdit ? "Editar Usuario" : "Registrar Usuario"}
               </Button>
             </>
           )}
@@ -302,49 +402,56 @@ const Usuarios = () => {
               </tr>
             </thead>
             <tbody>
-              {ListUsuarios.map((p, index) => (
-                <tr key={index}>
-                  <td>{p.name}</td>
-                  <td>{p.phone}</td>
-                  <td>{p.email}</td>
-                  <td>{p.rol}</td>
-                  <td>{p.usuario}</td>
-                  <td>{p._validate ? 'SI' : 'NO'}</td>
-                  <td>
-                    <div className="actions">
-                      <button
-                        type="button"
-                        className="btn-edit"
-                        onClick={() => {
-                          setInitialValues({
-                            id: p?._id,
-                            name: p?.name,
-                            phone: p?.phone,
-                            email: p?.email,
-                            rol: p?.rol,
-                            usuario: p?.usuario,
-                            password: '',
-                          });
-                          setOnEdit(true);
-                        }}
-                      >
-                        <i className="fas fa-user-edit" />
-                      </button>
-                      {p.rol !== 'admin' ? (
-                        <button
-                          className="btn-delete"
-                          type="button"
-                          onClick={() => {
-                            validDeleteUsuario(p._id);
-                          }}
-                        >
-                          <i className="fas fa-user-times" />
-                        </button>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {ListUsuarios.filter((user) => user.state !== "eliminado").map(
+                (p, index) => (
+                  <tr key={index}>
+                    <td>{p.name}</td>
+                    <td>{p.phone}</td>
+                    <td>{p.email}</td>
+                    <td>{p.rol}</td>
+                    <td>{p.usuario}</td>
+                    <td>{p.state}</td>
+                    <td>
+                      <div className="actions">
+                        {validEnabledAccion(p) === false ? (
+                          <button
+                            type="button"
+                            className="btn-edit"
+                            onClick={() => {
+                              setInitialValues({
+                                _id: p?._id,
+                                name: p?.name,
+                                phone: p?.phone,
+                                email: p?.email,
+                                rol: p?.rol,
+                                usuario: p?.usuario,
+                                password: "",
+                              });
+                              setOnEdit(true);
+                            }}
+                          >
+                            <i className="fas fa-user-edit" />
+                          </button>
+                        ) : null}
+
+                        {validEnabledAccion(p) === false ? (
+                          p._id === InfoUsuario._id ? null : (
+                            <button
+                              className="btn-delete"
+                              type="button"
+                              onClick={() => {
+                                validDeleteUsuario(p._id);
+                              }}
+                            >
+                              <i className="fas fa-user-times" />
+                            </button>
+                          )
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                )
+              )}
             </tbody>
           </Table>
         ) : null}

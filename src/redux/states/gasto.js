@@ -1,21 +1,42 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { AddGasto, GetGastoDate, GetGastos } from '../actions/aGasto';
+import { createSlice } from "@reduxjs/toolkit";
+import { AddGasto, DeleteGasto, GetGastosByDate } from "../actions/aGasto";
 
 const gasto = createSlice({
-  name: 'gasto',
+  name: "gasto",
   initialState: {
     infoGasto: [],
+    listGastoByDate: [],
     isLoading: false,
     error: null,
   },
   reducers: {
-    LS_updateGasto: (state, action) => {
-      //state.infoGasto.push(action.payload);
-      const exists = state.infoGasto.findIndex((item) => item._id === action.payload._id);
-      if (exists === -1) {
-        state.infoGasto.push(action.payload);
-      }
-    },
+    // LS_changeListGastoByDate: (state, action) => {
+    //   const { tipo, info } = action.payload;
+    //   // Realizar la acción según el tipo
+    //   if (tipo === "deleted") {
+    //     // Eliminar el gasto del array ListGasto
+    //     state.listGastoByDate = state.listGastoByDate.filter(
+    //       (gasto) => gasto?._id !== info?._id
+    //     );
+    //   } else if (tipo === "updated") {
+    //     // Actualizar el gasto con la nueva información
+    //     const indexGasto = state.listGastoByDate.findIndex(
+    //       (gasto) => gasto?._id === info?._id
+    //     );
+    //     if (indexGasto !== -1) {
+    //       state.listGastoByDate[indexGasto] = info;
+    //     } else {
+    //       console.error("No se encontró el gasto a actualizar");
+    //     }
+    //   } else if (tipo === "added") {
+    //     // Agregar el nuevo gasto a ListGasto
+    //     if (!state.listGastoByDate.some((gasto) => gasto?._id === info?._id)) {
+    //       state.listGastoByDate.push(info);
+    //     }
+    //   } else {
+    //     console.error("Tipo de acción no válido");
+    //   }
+    // },
   },
   extraReducers: (builder) => {
     builder
@@ -26,7 +47,9 @@ const gasto = createSlice({
       })
       .addCase(AddGasto.fulfilled, (state, action) => {
         state.isLoading = false;
-        const exists = state.infoGasto.findIndex((item) => item._id === action.payload._id);
+        const exists = state.infoGasto.findIndex(
+          (item) => item._id === action.payload._id
+        );
         if (exists === -1) {
           state.infoGasto.push(action.payload);
         }
@@ -35,34 +58,36 @@ const gasto = createSlice({
         state.isLoading = false;
         state.error = action.error.message;
       })
-      // List
-      .addCase(GetGastos.pending, (state) => {
+      // Delete
+      .addCase(DeleteGasto.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(GetGastos.fulfilled, (state, action) => {
+      .addCase(DeleteGasto.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.infoGasto = action.payload;
+        state.infoGasto = state.infoGasto.filter(
+          (gasto) => gasto._id !== action.payload._id
+        );
       })
-      .addCase(GetGastos.rejected, (state, action) => {
+      .addCase(DeleteGasto.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message;
       })
       // List x Date
-      .addCase(GetGastoDate.pending, (state) => {
+      .addCase(GetGastosByDate.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(GetGastoDate.fulfilled, (state, action) => {
+      .addCase(GetGastosByDate.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.infoGasto = action.payload;
+        state.listGastoByDate = action.payload;
       })
-      .addCase(GetGastoDate.rejected, (state, action) => {
+      .addCase(GetGastosByDate.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message;
       });
   },
 });
 
-export const { LS_updateGasto } = gasto.actions;
+// export const { LS_changeListGastoByDate } = gasto.actions;
 export default gasto.reducer;

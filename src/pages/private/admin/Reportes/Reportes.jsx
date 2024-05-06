@@ -1,127 +1,181 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from 'react';
-import './reportes.scss';
-import { Link } from 'react-router-dom';
-import { PrivateRoutes } from '../../../../models';
-import Ordenes from './Ordenes/Ordenes';
-import Gasto from './Gastos/Gasto';
-import Portal from '../../../../components/PRIVATE/Portal/Portal';
+import React, { useState } from "react";
+import "./reportes.scss";
+import { PrivateRoutes, Roles } from "../../../../models";
+import Ordenes from "./Ordenes/Ordenes";
+import Portal from "../../../../components/PRIVATE/Portal/Portal";
+import Target from "../../../../components/Target/Target";
+
+import Iconos from "../../../../utils/img/Icono/index";
+
+const {
+  iRCuadreCaja,
+  iRGastos,
+  iRPendiente,
+  iRPortafolio,
+  iRMensual,
+  iRAlmacen,
+  iRAanulado,
+} = Iconos;
+
+import Backgrounds from "../../../../utils/img/Background/index";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import Anulados from "./Anulados/Anulados";
+const {
+  rBCuadredCaja,
+  rBGastos,
+  rBPendiente,
+  rBPortafolio,
+  rBMensual,
+  rBAlmacen,
+  rBAnulado,
+} = Backgrounds;
 
 const Reportes = () => {
-  const [isMenuActive, setIsMenuActive] = useState(true);
-  const [titleCenter, setTitleCenter] = useState();
-
+  const [mAnulado, setMAnulado] = useState(false);
   const [mMensual, setMMensual] = useState(false);
-  const [mGasto, setMGasto] = useState(false);
+  const InfoUsuario = useSelector((store) => store.user.infoUsuario);
+  const navigate = useNavigate();
 
-  const toggleMenu = () => {
-    setIsMenuActive(!isMenuActive);
-  };
+  const handleValidarAcceso = (type, page, accesos) => {
+    const hasPermission = accesos.includes(InfoUsuario.rol);
 
-  const handleMouseEnter = (tipoR) => {
-    // Manejar el evento onMouseEnter (al pasar el mouse sobre el elemento)
-    // Puedes cambiar el estilo o realizar otras acciones aquí
-    setTitleCenter(tipoR);
-  };
-
-  const handleMouseLeave = () => {
-    // Manejar el evento onMouseLeave (al sacar el mouse del elemento)
-    // Puedes cambiar el estilo o realizar otras acciones aquí
-    setTitleCenter();
+    if (hasPermission) {
+      if (type === "modal") {
+        if (page === "Ordenes") {
+          setMMensual(true);
+        } else if (page === "Anulado") {
+          setMAnulado(true);
+        }
+      } else {
+        navigate(page);
+      }
+    } else {
+      alert("No tienes Acceso a estos reportes");
+    }
   };
 
   const listReports = [
     {
-      id: '0',
-      ico: 'fa-solid fa-clipboard-list',
-      type_show: 'page',
-      title: 'Reporte de Pendientes',
+      imgIco: iRPendiente,
+      imgBack: rBPendiente,
+      type_show: "page",
+      acceso: [Roles.ADMIN, Roles.GERENTE],
+      title: "Ordenes Pendientes",
+      descripcion:
+        "Listado Ordenes pendiente, tiempo en custodia, reenviar Almacen",
       page: `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.REPORTE_PENDIENTES}`,
     },
     {
-      id: '1',
-      ico: 'fa-solid fa-calendar',
-      type_show: 'modal',
-      title: 'Reporte Mensual',
-      page: () => setMMensual(true),
+      imgIco: iRGastos,
+      imgBack: rBGastos,
+      type_show: "page",
+      acceso: [Roles.ADMIN, Roles.GERENTE],
+      title: "Gastos",
+      descripcion:
+        "Lista de Gasto segun Tipo, exportacion excel, segun cantidad y monto gastado",
+      page: `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.REPORTE_GASTO}`,
     },
     {
-      id: '2',
-      ico: 'fa-solid fa-warehouse',
-      type_show: 'page',
-      title: 'Reporte de Almacen',
+      imgIco: iRPortafolio,
+      imgBack: rBPortafolio,
+      type_show: "page",
+      acceso: [Roles.ADMIN],
+      title: "Servicios",
+      descripcion:
+        "Listado Servicions, (servicios +/- rentables) por precio y cantidad, exportacion a excel",
+      page: `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.REPORTE_PRODUCTOS}`,
+    },
+    {
+      imgIco: iRCuadreCaja,
+      imgBack: rBCuadredCaja,
+      type_show: "page",
+      acceso: [Roles.ADMIN, Roles.GERENTE],
+      title: "Cuadres de Caja",
+      descripcion:
+        "Listado Cuadres Diarios y Movimientos no Guardados o Cuadrados, exportar a excel",
+      page: `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.REPORTE_CUADRE_CAJA}`,
+    },
+    {
+      imgIco: iRMensual,
+      imgBack: rBMensual,
+      type_show: "modal",
+      acceso: [Roles.ADMIN],
+      title: "Ordenes Mensual",
+      descripcion:
+        "Listado Ordenes mensual, exportacion en excel, montos pagados y facturados",
+      page: "Ordenes",
+    },
+    {
+      imgIco: iRAlmacen,
+      imgBack: rBAlmacen,
+      type_show: "page",
+      acceso: [Roles.ADMIN, Roles.GERENTE],
+      title: "Almacen",
+      descripcion:
+        "Listado Ordenes en Almacen, tiempo en custodia, Enviar a DONACION",
       page: `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.REPORTE_ALMACEN}`,
     },
     {
-      id: '3',
-      ico: 'fas fa-hand-holding-usd',
-      type_show: 'modal',
-      title: 'Reporte de Gastos',
-      page: () => setMGasto(true),
+      imgIco: iRAanulado,
+      imgBack: rBAnulado,
+      type_show: "modal",
+      acceso: [Roles.ADMIN, Roles.GERENTE],
+      title: "Anulados",
+      descripcion:
+        "Listado Anulacion mensuales, responsable, motivos, montos. exportado en excel",
+      page: "Anulado",
     },
   ];
 
   const items = listReports.map((report, index) => {
-    const maths = (360 / listReports.length) * index;
-
-    // Estilo en línea para aplicar la transformación
-    const sLi = {
-      transform: `rotate(${maths}deg)`,
-    };
-    const sA = {
-      transform: `rotate(-${maths}deg)`,
-    };
+    const modelTarg = (
+      <Target
+        title={report.title}
+        descripcion={report.descripcion}
+        imgIco={report.imgIco}
+        imgBack={report.imgBack}
+      />
+    );
 
     return (
-      <li
-        key={report.id}
-        style={sLi}
-        onMouseEnter={() => handleMouseEnter(report.title)}
-        onMouseLeave={handleMouseLeave}
-      >
-        {report.type_show === 'page' ? (
-          <Link to={report.page} style={sA}>
-            <span className={`fa ${report.ico}`}></span>
-          </Link>
-        ) : (
-          <button className="btn-report" onClick={report.page} style={sA}>
-            <span className={`fa ${report.ico}`}></span>
-          </button>
-        )}
+      <li key={index}>
+        <button
+          className="card-report"
+          onClick={() =>
+            handleValidarAcceso(report.type_show, report.page, report.acceso)
+          }
+        >
+          {modelTarg}
+        </button>
       </li>
     );
   });
 
   return (
     <div className="content-reportes">
-      <div className={`content ${isMenuActive ? 'is-active' : ''}`}>
-        <div id="nav" className="cp-nav">
-          <button id="radial-menu" className="cp-nav__button" onClick={toggleMenu}>
-            {titleCenter ? <span>{titleCenter}</span> : <span>Reportes</span>}
-          </button>
-          <nav>
-            <ul>{items}</ul>
-          </nav>
-        </div>
-      </div>
-      {mMensual && (
-        <Portal
-          onClose={() => {
-            setMMensual(false);
-          }}
-        >
-          <Ordenes onClose={() => setMMensual(false)} />
-        </Portal>
-      )}
-      {mGasto && (
-        <Portal
-          onClose={() => {
-            setMGasto(false);
-          }}
-        >
-          <Gasto onClose={() => setMGasto(false)} />
-        </Portal>
-      )}
+      <ul className="cards">
+        {items}
+        {mMensual && (
+          <Portal
+            onClose={() => {
+              setMMensual(false);
+            }}
+          >
+            <Ordenes onClose={() => setMMensual(false)} />
+          </Portal>
+        )}
+        {mAnulado && (
+          <Portal
+            onClose={() => {
+              setMAnulado(false);
+            }}
+          >
+            <Anulados onClose={() => setMAnulado(false)} />
+          </Portal>
+        )}
+      </ul>
     </div>
   );
 };

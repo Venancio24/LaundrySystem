@@ -1,28 +1,32 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useMemo, useState } from 'react';
-import { Modal, ScrollArea, Text } from '@mantine/core';
-import { MantineReactTable } from 'mantine-react-table';
-import axios from 'axios';
+import React, { useEffect, useMemo, useState } from "react";
+import { Modal, ScrollArea, Text, Textarea } from "@mantine/core";
+import { MantineReactTable } from "mantine-react-table";
+import axios from "axios";
 
-import './almacen.scss';
+import "./almacen.scss";
 
-import { modals } from '@mantine/modals';
-import ExcelJS from 'exceljs';
-import { useDisclosure } from '@mantine/hooks';
-import { Box, MultiSelect } from '@mantine/core';
-import { List, ThemeIcon } from '@mantine/core';
-import imgDetalle from '../../../../../utils/img/Otros/detalle2.png';
-import { handleGetInfoPago, handleOnWaiting, handleProductoCantidad } from '../../../../../utils/functions';
+import { modals } from "@mantine/modals";
+import ExcelJS from "exceljs";
+import { useDisclosure } from "@mantine/hooks";
+import { Box, MultiSelect } from "@mantine/core";
+import { List, ThemeIcon } from "@mantine/core";
+import imgDetalle from "../../../../../utils/img/Otros/detalle2.png";
+import {
+  handleGetInfoPago,
+  handleItemsCantidad,
+  handleOnWaiting,
+} from "../../../../../utils/functions";
 
-import Detalle from '../Detalle/Detalle';
-import { handleRemoveFStorage } from '../../../../../services/default.services';
-import { Notify } from '../../../../../utils/notify/Notify';
-import { socket } from '../../../../../utils/socket/connect';
-import { useDispatch } from 'react-redux';
-import { LS_updateListOrder } from '../../../../../redux/states/service_order';
-import { simboloMoneda } from '../../../../../services/global';
+import Detalle from "../Detalle/Detalle";
+import { handleRemoveFStorage } from "../../../../../services/default.services";
+import { Notify } from "../../../../../utils/notify/Notify";
+import { socket } from "../../../../../utils/socket/connect";
+import { useDispatch, useSelector } from "react-redux";
+import { LS_updateListOrder } from "../../../../../redux/states/service_order";
+import { simboloMoneda } from "../../../../../services/global";
 
 const Almacen = () => {
   const [loading, setLoading] = useState(false);
@@ -32,12 +36,18 @@ const Almacen = () => {
   const [inDonation, setInDonation] = useState([]);
   const [infoAlmacenados, setInfoAlmacenados] = useState([]);
   const dispatch = useDispatch();
-  const [onModal, setOnModal] = useState('');
+  const [onModal, setOnModal] = useState("");
   const [onDetail, setOnDetail] = useState();
+
+  const iDelivery = useSelector((state) => state.servicios.serviceDelivery);
 
   const handleGetAlmacenados = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/get-warehouse-service-order`);
+      const response = await axios.get(
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/lava-ya/get-warehouse-service-order`
+      );
       if (response) {
         const info = response.data;
 
@@ -45,7 +55,11 @@ const Almacen = () => {
       }
     } catch (error) {
       console.log(error.response.data.mensaje);
-      Notify('Error', 'No se pudo obtener lista de ordenes almacenados', 'fail');
+      Notify(
+        "Error",
+        "No se pudo obtener lista de ordenes almacenados",
+        "fail"
+      );
     }
   };
 
@@ -54,17 +68,17 @@ const Almacen = () => {
 
     // Crear un nuevo libro de Excel
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Datos');
+    const worksheet = workbook.addWorksheet("Datos");
 
     // Estilos para el encabezado
     const headerStyle = {
       fill: {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: '333333' }, // Color de fondo para la cabecera (gris oscuro)
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "333333" }, // Color de fondo para la cabecera (gris oscuro)
       },
       font: {
-        color: { argb: 'FFFFFF' }, // Color del texto en la cabecera (blanco)
+        color: { argb: "FFFFFF" }, // Color del texto en la cabecera (blanco)
         bold: true, // Texto en negrita
       },
     };
@@ -72,16 +86,17 @@ const Almacen = () => {
     // Agregar la cabecera
     worksheet
       .addRow([
-        'Orden',
-        'Nombre',
-        'Modalidad',
-        'Monto Pagado',
-        'Pago',
-        'Total Neto',
-        'Productos',
-        'Celular',
-        'En Espera',
-        'Fecha de Ingreso',
+        "N° Orden",
+        "Nombre",
+        "Modalidad",
+        "Monto Cobrado",
+        "Pago",
+        "Monto Facturado",
+        "Items",
+        "Celular",
+        "Direccion",
+        "En Espera",
+        "Fecha de Ingreso",
       ])
       .eachCell((cell) => {
         cell.fill = headerStyle.fill;
@@ -89,33 +104,38 @@ const Almacen = () => {
       });
     infoAlmacenados.forEach((item) => {
       //const quantitiesText = item.cantidad.join('\n');
-      const productsText = Array.from(item.Producto).join('\n');
+      const itemsText = Array.from(item.items).join("\n");
       const estadoPago = handleGetInfoPago(item.ListPago, item.totalNeto);
 
       worksheet.addRow([
         item.Recibo,
         item.Nombre,
         item.Modalidad,
-        estadoPago.pago > 0 ? `${simboloMoneda} ${estadoPago.pago}` : '-',
+        estadoPago.pago > 0 ? +estadoPago.pago : 0,
         estadoPago.estado,
-        `${simboloMoneda} ${item.totalNeto}`,
-        productsText,
-        item.Celular ? item.Celular : '-',
+        +item.totalNeto,
+        itemsText,
+        item.Celular ? item.Celular : "-",
+        item.Direccion ? item.Direccion : "-",
         item.onWaiting.showText,
         item.FechaIngreso.fecha,
       ]);
     });
 
-    const productsColumn = worksheet.getColumn(7);
+    const itemsColumn = worksheet.getColumn(7);
 
     worksheet.eachRow((row) => {
-      row.alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
+      row.alignment = {
+        wrapText: true,
+        horizontal: "center",
+        vertical: "middle",
+      };
     });
 
     // Ajustar automáticamente el ancho de las columnas excepto "Products" basado en el contenido
     let maxLengthColumns = 0;
     await worksheet.columns.forEach((column) => {
-      if (column !== productsColumn) {
+      if (column !== itemsColumn) {
         column.eachCell({ includeEmpty: true }, (cell) => {
           const cellLength = cell.value ? cell.value.toString().length : 10;
           maxLengthColumns = Math.max(maxLengthColumns, cellLength);
@@ -127,7 +147,7 @@ const Almacen = () => {
     const maxLineLengths = [];
     await worksheet.eachRow({ includeEmpty: true }, (row) => {
       const cell = row.getCell(7); // Obtener la celda de la columna "Products"
-      const lines = cell.text.split('\n');
+      const lines = cell.text.split("\n");
       let maxLength = 0;
       lines.forEach((line) => {
         const lineLength = line.length;
@@ -137,7 +157,7 @@ const Almacen = () => {
     });
 
     const maxLength = Math.max(...maxLineLengths);
-    productsColumn.width = maxLength + 4;
+    itemsColumn.width = maxLength + 4;
 
     // Aplicar autofiltro a todas las columnas y filas
     const totalRows = worksheet.rowCount;
@@ -148,24 +168,26 @@ const Almacen = () => {
       to: { row: totalRows, column: totalColumns },
     };
 
-    const HeaderProducts = worksheet.getCell('E1');
+    const HeaderItems = worksheet.getCell("G1");
 
-    productsColumn.alignment = {
-      horizontal: 'left',
-      vertical: 'middle',
+    itemsColumn.alignment = {
+      horizontal: "left",
+      vertical: "middle",
       wrapText: true,
       indent: 1,
     };
-    HeaderProducts.alignment = { horizontal: 'center', vertical: 'middle' };
+    HeaderItems.alignment = { horizontal: "center", vertical: "middle" };
 
     // Guardar el archivo
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
     const url = URL.createObjectURL(blob);
 
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = fileName + '.xlsx';
+    a.download = fileName + ".xlsx";
     a.click();
 
     URL.revokeObjectURL(url);
@@ -183,11 +205,14 @@ const Almacen = () => {
 
   const handleDonarAlmacenados = async (Ids) => {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/add-to-donation`, { Ids });
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/add-to-donation`,
+        { Ids }
+      );
 
       const res = response.data;
       dispatch(LS_updateListOrder(res));
-      socket.emit('client:updateListOrder', res);
+      socket.emit("client:updateListOrder", res);
 
       return res;
     } catch (error) {
@@ -201,59 +226,77 @@ const Almacen = () => {
 
     await handleDonarAlmacenados(Ids)
       .then((res) => {
-        const updatedInfoAlmacenados = infoAlmacenados.filter((p) => !Ids.includes(p._id));
+        const updatedInfoAlmacenados = infoAlmacenados.filter(
+          (p) => !Ids.includes(p._id)
+        );
 
         setInfoAlmacenados(updatedInfoAlmacenados);
         setInDonation(res);
         setRowSelection([]);
         setOrderSelection([]);
-        setOnModal('Donados');
+        setOnModal("Donados");
         open();
       })
       .catch(() => {
-        Notify('Error', 'No se pudo enviar a donacion', 'fail');
+        Notify("Error", "No se pudo enviar a donacion", "fail");
       });
   };
 
   const openConfirmacion = async () => {
     modals.openConfirmModal({
-      title: 'Donacion',
+      title: "Donacion",
       centered: true,
       children: (
         <Text size="sm">
-          ¿Estás seguro de Donar{' '}
-          {orderSelection.length === 1 ? 'la fila seleccionada' : `las ${orderSelection.length} filas seleccionadas`} ?
+          ¿Estás seguro de Donar{" "}
+          {orderSelection.length === 1
+            ? "la fila seleccionada"
+            : `las ${orderSelection.length} filas seleccionadas`}{" "}
+          ?
         </Text>
       ),
-      labels: { confirm: 'Si', cancel: 'No' },
-      confirmProps: { color: 'green' },
+      labels: { confirm: "Si", cancel: "No" },
+      confirmProps: { color: "green" },
       //onCancel: () => console.log("cancelado"),
       onConfirm: () => handleDonar(),
     });
   };
 
   const handleGetFactura = (info) => {
-    const transformData = (info) => ({
-      _id: info._id,
-      Recibo: String(info.codRecibo).padStart(4, '0'),
-      Nombre: info.Nombre,
-      Modalidad: info.Modalidad,
-      Producto: handleProductoCantidad(info.Producto),
-      DetalleProducto: info.Producto,
-      //cantidad: handleCantidad(d.Producto),
-      totalNeto: `${simboloMoneda} ${info.totalNeto}`,
-      Celular: info.celular,
-      Pago: info.Pago,
-      ListPago: info.ListPago,
-      FechaPago: info.datePago,
-      FechaIngreso: info.dateRecepcion,
-      FechaPrevista: info.datePrevista,
-      FechaAlmacenamiento: info.dateStorage,
-      Factura: info.factura,
-      CargosExtras: info.cargosExtras,
-      Descuento: info.descuento,
-      onWaiting: handleOnWaiting(info.dateRecepcion.fecha, info.estadoPrenda, info.dateEntrega.fecha),
-    });
+    const transformData = (info) => {
+      const listItems = info.Items.filter(
+        (item) => item.identificador !== iDelivery._id
+      );
+
+      const estadoPago = handleGetInfoPago(info.ListPago, info.totalNeto);
+
+      return {
+        _id: info._id,
+        Recibo: String(info.codRecibo).padStart(4, "0"),
+        Nombre: info.Nombre,
+        Modalidad: info.Modalidad,
+        items: handleItemsCantidad(listItems),
+        DetalleOrden: info.Items,
+        attendedBy: info.attendedBy,
+        totalNeto: info.totalNeto,
+        Celular: info.celular,
+        Direccion: info.direccion ? info.direccion : "- SIN INFORMACION -",
+        Pago: estadoPago.estado,
+        ListPago: info.ListPago,
+        FechaPago: info.datePago,
+        FechaIngreso: info.dateRecepcion,
+        FechaPrevista: info.datePrevista,
+        FechaAlmacenamiento: info.dateStorage,
+        Factura: info.factura,
+        CargosExtras: info.cargosExtras,
+        Descuento: info.descuento,
+        onWaiting: handleOnWaiting(
+          info.dateRecepcion.fecha,
+          info.estadoPrenda,
+          info.dateEntrega.fecha
+        ),
+      };
+    };
 
     if (Array.isArray(info)) {
       // If info is an array, re-order and transform each object in the array
@@ -267,50 +310,70 @@ const Almacen = () => {
   const columns = useMemo(
     () => [
       {
-        accessorKey: 'Recibo',
-        header: 'Codigo',
+        accessorKey: "Recibo",
+        header: "Codigo",
         mantineFilterTextInputProps: {
-          placeholder: 'N°',
+          placeholder: "N°",
         },
         size: 75,
       },
       {
-        accessorKey: 'Nombre',
-        header: 'Nombre',
+        accessorKey: "Nombre",
+        header: "Nombre",
         mantineFilterTextInputProps: {
-          placeholder: 'Cliente',
+          placeholder: "Cliente",
         },
         size: 150,
       },
 
       {
-        accessorKey: 'Celular',
-        header: 'Celular',
+        accessorKey: "Celular",
+        header: "Celular",
         mantineFilterTextInputProps: {
-          placeholder: 'Numero',
+          placeholder: "Numero",
         },
         size: 100,
       },
       {
-        accessorKey: 'Pago',
-        header: 'Pago',
-        filterVariant: 'select',
-        mantineFilterSelectProps: { data: ['Completo', 'Incompleto', 'Pendiente'] },
-        mantineFilterTextInputProps: { placeholder: 'C / I / P' },
-        editVariant: 'select',
+        accessorKey: "Direccion",
+        header: "Direccion",
+        enableColumnFilter: false,
+        mantineFilterTextInputProps: {
+          placeholder: "Direccion",
+        },
+        Cell: ({ cell }) => (
+          <Textarea
+            autosize
+            minRows={1}
+            maxRows={3}
+            readOnly
+            value={cell.getValue()}
+          />
+        ),
+        size: 200,
+      },
+      {
+        accessorKey: "Pago",
+        header: "Pago",
+        filterVariant: "select",
+        mantineFilterSelectProps: {
+          data: ["Completo", "Incompleto", "Pendiente"],
+        },
+        mantineFilterTextInputProps: { placeholder: "C / I / P" },
+        editVariant: "select",
         mantineEditSelectProps: {
           data: [
             {
-              value: 'Completo',
-              label: 'Completo',
+              value: "Completo",
+              label: "Completo",
             },
             {
-              value: 'Incompleto',
-              label: 'Incompleto',
+              value: "Incompleto",
+              label: "Incompleto",
             },
             {
-              value: 'Pendiente',
-              label: 'Pendiente',
+              value: "Pendiente",
+              label: "Pendiente",
             },
           ],
         },
@@ -318,10 +381,10 @@ const Almacen = () => {
         size: 100,
       },
       {
-        accessorKey: 'Producto',
-        header: 'Producto',
+        accessorKey: "items",
+        header: "Items",
         mantineFilterTextInputProps: {
-          placeholder: 'Producto',
+          placeholder: "Item",
         },
         Cell: ({ cell }) => (
           <MultiSelect
@@ -335,24 +398,24 @@ const Almacen = () => {
         size: 180,
       },
       {
-        accessorKey: 'FechaIngreso.fecha',
-        header: 'Fecha Ingreso',
+        accessorKey: "FechaIngreso.fecha",
+        header: "Fecha Ingreso",
         mantineFilterTextInputProps: {
-          placeholder: 'A-M-D',
+          placeholder: "A-M-D",
         },
         size: 120,
       },
       {
-        accessorKey: 'FechaAlmacenamiento.fecha',
-        header: 'Fecha Almacenamiento',
+        accessorKey: "FechaAlmacenamiento.fecha",
+        header: "Fecha Almacenamiento",
         mantineFilterTextInputProps: {
-          placeholder: 'A-M-D',
+          placeholder: "A-M-D",
         },
         size: 150,
       },
       {
-        accessorKey: 'onWaiting',
-        header: 'Orden en Espera...',
+        accessorKey: "onWaiting",
+        header: "Orden en Espera...",
         enableColumnFilter: false,
         Cell: ({ cell }) =>
           // Wrapped the arrow function with parentheses
@@ -366,10 +429,10 @@ const Almacen = () => {
                   : cell.getValue().nDias >= 21 && cell.getValue().nDias <= 30
                   ? theme.colors.yellow[9]
                   : theme.colors.red[9],
-                borderRadius: '4px',
-                color: '#fff',
-                textAlign: 'center',
-                padding: '10px 15px',
+                borderRadius: "4px",
+                color: "#fff",
+                textAlign: "center",
+                padding: "10px 15px",
               })}
             >
               {cell.getValue().showText}
@@ -400,10 +463,11 @@ const Almacen = () => {
   // }, []);
 
   useEffect(() => {
-    const filterById = (array, data) => array.filter((item) => data._id !== item._id);
+    const filterById = (array, data) =>
+      array.filter((item) => data._id !== item._id);
 
     const handleUpdate = (data) => {
-      if (data.location !== 2 || data.estadoPrenda === 'anulado') {
+      if (data.location !== 2 || data.estadoPrenda === "anulado") {
         const updatedInfoAlmacenados = filterById(infoAlmacenados, data);
         const updatedRowSelection = filterById(rowSelection, data);
         const updatedOrderSelection = filterById(orderSelection, data);
@@ -415,7 +479,9 @@ const Almacen = () => {
         const facturaToAdd = handleGetFactura(data);
 
         // Check if the facturaToAdd already exists in infoAlmacenados
-        const facturaExistsIndex = infoAlmacenados.findIndex((factura) => factura._id === facturaToAdd._id);
+        const facturaExistsIndex = infoAlmacenados.findIndex(
+          (factura) => factura._id === facturaToAdd._id
+        );
 
         if (facturaExistsIndex !== -1) {
           // La factura ya existe, actualízala
@@ -426,22 +492,25 @@ const Almacen = () => {
           });
         } else {
           // La factura no existe, agrégala
-          setInfoAlmacenados((prevInfoAlmacenados) => [...prevInfoAlmacenados, facturaToAdd]);
+          setInfoAlmacenados((prevInfoAlmacenados) => [
+            ...prevInfoAlmacenados,
+            facturaToAdd,
+          ]);
         }
       }
     };
 
-    socket.on('server:orderUpdated:child', (data) => handleUpdate(data));
+    socket.on("server:orderUpdated:child", (data) => handleUpdate(data));
 
-    socket.on('server:updateListOrder:child', (data) => {
+    socket.on("server:updateListOrder:child", (data) => {
       data.forEach((orden) => {
         handleUpdate(orden);
       });
     });
     return () => {
       // Remove the event listener when the component unmounts
-      socket.off('server:orderUpdated:child');
-      socket.off('server:updateListOrder:child');
+      socket.off("server:orderUpdated:child");
+      socket.off("server:updateListOrder:child");
     };
   }, [infoAlmacenados]);
 
@@ -450,7 +519,10 @@ const Almacen = () => {
       <h1>ALMACEN</h1>
       <div className="list-a">
         <div className="actions">
-          <button className={`button_wrapper ${loading ? 'loading' : ''}`} onClick={handleExport}>
+          <button
+            className={`button_wrapper ${loading ? "loading" : ""}`}
+            onClick={handleExport}
+          >
             <div className="icon">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -459,7 +531,11 @@ const Almacen = () => {
                 strokeWidth="1.75"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75"
+                />
               </svg>
             </div>
           </button>
@@ -472,8 +548,9 @@ const Almacen = () => {
         </div>
         {orderSelection.length > 0 ? (
           <span>
-            Existe {orderSelection.length} fila{orderSelection.length > 1 ? 's' : null} selecciona
-            {orderSelection.length > 1 ? 'das' : null}
+            Existe {orderSelection.length} fila
+            {orderSelection.length > 1 ? "s" : null} selecciona
+            {orderSelection.length > 1 ? "das" : null}
           </span>
         ) : null}
         <MantineReactTable
@@ -481,7 +558,7 @@ const Almacen = () => {
           data={infoAlmacenados}
           initialState={{
             showColumnFilters: true,
-            density: 'xs',
+            density: "xs",
             pagination: { pageSize: 5 },
           }}
           filterFns={{
@@ -490,7 +567,7 @@ const Almacen = () => {
             },
           }}
           localization={{
-            filterCustomFilterFn: 'Custom Filter Fn',
+            filterCustomFilterFn: "Custom Filter Fn",
           }}
           enableColumnActions={false}
           enableSorting={false}
@@ -498,12 +575,14 @@ const Almacen = () => {
           mantineTableProps={{
             highlightOnHover: false,
           }}
-          positionToolbarAlertBanner={'none'}
+          positionToolbarAlertBanner={"none"}
           mantineTableBodyRowProps={({ row }) => ({
             onDoubleClick: (event) => {
               const isSelected = row.getIsSelected();
               if (isSelected) {
-                const updatedSelection = orderSelection.filter((selectedRow) => selectedRow._id !== row.original._id);
+                const updatedSelection = orderSelection.filter(
+                  (selectedRow) => selectedRow._id !== row.original._id
+                );
                 setOrderSelection(updatedSelection);
               } else {
                 setOrderSelection([...orderSelection, row.original]);
@@ -516,14 +595,14 @@ const Almacen = () => {
             },
             selected: rowSelection[row.id],
             sx: {
-              cursor: 'pointer',
+              cursor: "pointer",
             },
           })}
           enableRowActions={true}
           displayColumnDefOptions={{
-            'mrt-row-actions': {
+            "mrt-row-actions": {
               size: 70,
-              header: 'Detalle',
+              header: "Detalle",
             },
           }}
           renderRowActions={({ row }) => (
@@ -533,7 +612,7 @@ const Almacen = () => {
               alt="detalle"
               onDoubleClick={(e) => {
                 e.stopPropagation();
-                setOnModal('Detalle');
+                setOnModal("Detalle");
                 setOnDetail(row.original);
                 open();
               }}
@@ -551,18 +630,20 @@ const Almacen = () => {
         onClose={() => {
           close();
           setOnDetail();
-          setOnModal('');
+          setOnModal("");
         }}
         size={550}
         scrollAreaComponent={ScrollArea.Autosize}
         title={
-          onModal === 'Donados'
-            ? 'Ordenes Donados correctamente'
-            : `Detalle de Pedido - ${onDetail?.Nombre.toUpperCase()} (codigo : ${onDetail?.Recibo})`
+          onModal === "Donados"
+            ? "Ordenes Donados correctamente"
+            : `Detalle de Pedido - ${onDetail?.Nombre.toUpperCase()} (codigo : ${
+                onDetail?.Recibo
+              })`
         }
         centered
       >
-        {onModal === 'Donados' ? (
+        {onModal === "Donados" ? (
           <List
             spacing="xs"
             size="sm"
@@ -575,7 +656,8 @@ const Almacen = () => {
           >
             {inDonation.map((a) => (
               <List.Item key={a._id}>
-                Orden de Servicio N° {a.codRecibo} | {`"${a.Nombre.toUpperCase()}"`}
+                Orden de Servicio N° {a.codRecibo} |{" "}
+                {`"${a.Nombre.toUpperCase()}"`}
               </List.Item>
             ))}
           </List>

@@ -18,7 +18,7 @@ export const AnularOrderService = createAsyncThunk(
         dispatch(
           UpdateOrdenServices({
             id,
-            info: { infoRecibo: { estadoPrenda: 'anulado' } },
+            info: { infoOrden: { estadoPrenda: 'anulado' } },
             rol: infoAnulacion.rol,
           })
         );

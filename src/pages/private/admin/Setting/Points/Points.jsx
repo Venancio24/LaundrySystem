@@ -1,17 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import React, { useEffect } from 'react';
-import './points.scss';
-import { useFormik } from 'formik';
+import React, { useEffect } from "react";
+import "./points.scss";
+import { useFormik } from "formik";
 
-import { modals } from '@mantine/modals';
-import { Button, NumberInput, Text } from '@mantine/core';
+import { modals } from "@mantine/modals";
+import { Button, NumberInput, Text } from "@mantine/core";
 
-import { useNavigate } from 'react-router-dom';
-import { PrivateRoutes } from '../../../../../models';
-import { updatePuntos } from '../../../../../redux/actions/aModificadores';
-import { useDispatch, useSelector } from 'react-redux';
-import { nameMoneda } from '../../../../../services/global';
+import { useNavigate } from "react-router-dom";
+import { PrivateRoutes } from "../../../../../models";
+import { updatePuntos } from "../../../../../redux/actions/aModificadores";
+import { useDispatch, useSelector } from "react-redux";
+import { nameMoneda } from "../../../../../services/global";
 
 const Points = () => {
   const dispatch = useDispatch();
@@ -33,12 +33,16 @@ const Points = () => {
 
   const openModal = (data) =>
     modals.openConfirmModal({
-      title: 'Actualizacion de Puntos',
+      title: "Actualizacion de Puntos",
       centered: true,
-      children: <Text size="sm">¿ Estas seguro de realizar cambios en el valor de los puntos ?</Text>,
-      labels: { confirm: 'Si', cancel: 'No' },
-      confirmProps: { color: 'green' },
-      onCancel: () => console.log('Cancelado'),
+      children: (
+        <Text size="sm">
+          ¿ Estas seguro de realizar cambios en el valor de los puntos ?
+        </Text>
+      ),
+      labels: { confirm: "Si", cancel: "No" },
+      confirmProps: { color: "green" },
+      onCancel: () => console.log("Cancelado"),
       onConfirm: () => handleUpdatePuntos(data),
     });
 
@@ -48,8 +52,8 @@ const Points = () => {
   };
 
   useEffect(() => {
-    formik.setFieldValue('score', parseInt(InfoPuntos.score));
-    formik.setFieldValue('valor', parseInt(InfoPuntos.valor));
+    formik.setFieldValue("score", parseInt(InfoPuntos.score));
+    formik.setFieldValue("valor", parseInt(InfoPuntos.valor));
   }, [InfoPuntos]);
 
   return (
@@ -63,11 +67,10 @@ const Points = () => {
             value={formik.values.valor}
             precision={0}
             onChange={(e) => {
-              formik.setFieldValue('valor', !Number.isNaN(e) ? e : 0);
+              formik.setFieldValue("valor", !Number.isNaN(e) ? e : 0);
             }}
             min={1}
             step={1}
-            max={1000}
             hideControls
             autoComplete="off"
           />
@@ -77,16 +80,19 @@ const Points = () => {
             value={formik.values.score}
             precision={0}
             onChange={(e) => {
-              formik.setFieldValue('score', !Number.isNaN(e) ? e : 0);
+              formik.setFieldValue("score", !Number.isNaN(e) ? e : 0);
             }}
             min={1}
             step={1}
-            max={1000}
             hideControls
             autoComplete="off"
           />
 
-          <Button type="submit" variant="gradient" gradient={{ from: 'indigo', to: 'cyan' }}>
+          <Button
+            type="submit"
+            variant="gradient"
+            gradient={{ from: "indigo", to: "cyan" }}
+          >
             Actualizar Valor
           </Button>
         </form>
