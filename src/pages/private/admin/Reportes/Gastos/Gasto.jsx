@@ -254,7 +254,7 @@ const Gasto = ({ onClose }) => {
     };
 
     fetchData();
-  }, [filterBy, infoGasto]);
+  }, [filterBy]);
 
   useEffect(() => {
     handleGetGastos();
