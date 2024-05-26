@@ -1,2 +1,2 @@
-export { default as AddOrderService_Delivery } from "./Delivery/Delivery";
-export { default as AddOrderService_Tienda } from "./Tienda/Tienda";
+export { default as AddOrderService_RDelivery } from "./Delivery/Delivery";
+export { default as AddOrderService_R } from "./Tienda/Tienda";

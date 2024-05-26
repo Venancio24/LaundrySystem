@@ -12,6 +12,7 @@ import { PrivateRoutes } from "../../../../../models";
 import { updatePuntos } from "../../../../../redux/actions/aModificadores";
 import { useDispatch, useSelector } from "react-redux";
 import { nameMoneda } from "../../../../../services/global";
+import { formatThousandsSeparator } from "../../../../../utils/functions";
 
 const Points = () => {
   const dispatch = useDispatch();
@@ -31,7 +32,8 @@ const Points = () => {
     },
   });
 
-  const openModal = (data) =>
+  const openModal = (data) => {
+    let confirmationEnabled = true;
     modals.openConfirmModal({
       title: "Actualizacion de Puntos",
       centered: true,
@@ -43,8 +45,14 @@ const Points = () => {
       labels: { confirm: "Si", cancel: "No" },
       confirmProps: { color: "green" },
       onCancel: () => console.log("Cancelado"),
-      onConfirm: () => handleUpdatePuntos(data),
+      onConfirm: () => {
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          handleUpdatePuntos(data);
+        }
+      },
     });
+  };
 
   const handleUpdatePuntos = async (info) => {
     dispatch(updatePuntos(info));
@@ -65,11 +73,12 @@ const Points = () => {
             name="valor"
             label={`Valor en ${nameMoneda} :`}
             value={formik.values.valor}
-            precision={0}
+            formatter={(value) => formatThousandsSeparator(value)}
+            precision={2}
             onChange={(e) => {
               formik.setFieldValue("valor", !Number.isNaN(e) ? e : 0);
             }}
-            min={1}
+            min={0.01}
             step={1}
             hideControls
             autoComplete="off"
@@ -78,6 +87,7 @@ const Points = () => {
             name="score"
             label="Puntos :"
             value={formik.values.score}
+            formatter={(value) => formatThousandsSeparator(value)}
             precision={0}
             onChange={(e) => {
               formik.setFieldValue("score", !Number.isNaN(e) ? e : 0);

@@ -1,12 +1,17 @@
 .container-gasto {
+  display: grid;
+  place-items: center;
+  gap: 5px;
+  h1 {
+    text-align: center;
+    line-height: 0.8;
+  }
   .info-gasto {
     display: grid;
     gap: 15px;
     padding: 10px 20px;
-    h1 {
-      text-align: center;
-      line-height: 1;
-    }
+    padding-top: 0;
+
     .input-g {
       position: relative;
     }

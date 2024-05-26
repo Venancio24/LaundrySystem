@@ -135,12 +135,6 @@ const HeaderUser = () => {
             <div className="left" />
             <div className="right" />
           </div>
-
-          {/* <li>
-            <Link to={`./${PrivateRoutes.PERSONAL}`} className="active">
-              ASISTENCIA
-            </Link>
-          </li>*/}
           <li>
             <Link
               to={`./${PrivateRoutes.LIST_ORDER_SERVICE}`}
@@ -154,13 +148,17 @@ const HeaderUser = () => {
           userState.rol === Roles.COORD ? (
             <>
               <li>
-                <Link to={`./${PrivateRoutes.REGISTER_TIENDA}`}>Tienda</Link>
-              </li>
-              <li>
-                <Link to={`./${PrivateRoutes.REGISTER_DELIVERY}`}>
-                  Delivery
+                <Link to={`./${PrivateRoutes.REGISTER}`}>
+                  {InfoNegocio?.hasMobility ? "REGISTRAR" : "Tienda"}
                 </Link>
               </li>
+              {!InfoNegocio?.hasMobility ? (
+                <li>
+                  <Link to={`./${PrivateRoutes.REGISTER_DELIVERY}`}>
+                    Delivery
+                  </Link>
+                </li>
+              ) : null}
               <li>
                 <Link to={`./${PrivateRoutes.CUADRE_CAJA}`}>
                   Cuadre de Caja

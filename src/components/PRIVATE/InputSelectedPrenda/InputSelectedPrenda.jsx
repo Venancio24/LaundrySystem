@@ -60,7 +60,7 @@ const InputSelectedPrenda = ({ listenClick, tabI, disabled }) => {
 
   return (
     <Select
-      label="Escoga Prenda :"
+      label="Escoja Servicio :"
       placeholder="Escoga para agregar"
       itemComponent={SelectItem}
       data={data}

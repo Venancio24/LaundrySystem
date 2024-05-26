@@ -25,19 +25,6 @@ export const AddGasto = createAsyncThunk(
   }
 );
 
-export const GetGasto = createAsyncThunk("gasto/GetGastos", async () => {
-  try {
-    const response = await axios.get(
-      `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/get-gastos`
-    );
-
-    return response.data;
-  } catch (error) {
-    // Puedes manejar los errores aquí
-    throw new Error(`No se pudieron obtener los datos del usuario - ${error}`);
-  }
-});
-
 export const GetGastosByDate = createAsyncThunk(
   "gastos/GetGastosDate",
   async (fecha) => {

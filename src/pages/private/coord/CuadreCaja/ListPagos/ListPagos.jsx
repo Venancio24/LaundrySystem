@@ -3,7 +3,10 @@
 import React, { useEffect } from "react";
 import styled from "styled-components";
 import { ingresoDigital } from "../../../../../services/global";
-import { DateFormat24h } from "../../../../../utils/functions";
+import {
+  DateFormat24h,
+  formatThousandsSeparator,
+} from "../../../../../utils/functions";
 import { Text } from "@mantine/core";
 import { ReactComponent as Eliminar } from "../../../../../utils/img/OrdenServicio/eliminar.svg";
 import "./listPagos.scss";
@@ -190,8 +193,8 @@ const InfoExtra = styled.div.withConfig({
       tr {
         grid-template-columns: ${({ showDelete }) =>
           showDelete === "y"
-            ? "200px 300px 80px 100px 50px"
-            : "200px 300px 80px 100px"};
+            ? "120px 300px 80px 100px 50px"
+            : "120px 300px 80px 100px"};
       }
       thead {
         tr {
@@ -230,7 +233,7 @@ const ListPagos = ({
   const InfoUsuario = useSelector((state) => state.user.infoUsuario);
   const [showDelete, setShowDelete] = useState("n");
 
-  const handleNoPagar = (id) => {
+  const handleEliminarGasto = (id) => {
     modals.openConfirmModal({
       title: "Elimiancion de Gasto",
       centered: true,
@@ -250,9 +253,9 @@ const ListPagos = ({
 
   return (
     <InfoExtra showDelete={showDelete}>
-      <div className="efectivo tb-info">
-        <span>EFECTIVO</span>
-        {iClienteEfectivo ? (
+      {iClienteEfectivo.length > 0 ? (
+        <div className="efectivo tb-info">
+          <span>EFECTIVO</span>
           <div className="paid-orders-efectivo">
             <table>
               <thead>
@@ -264,23 +267,25 @@ const ListPagos = ({
                 </tr>
               </thead>
               <tbody>
-                {iClienteEfectivo.map((cliente, index) => (
-                  <tr key={index}>
-                    <td>{cliente.orden}</td>
-                    <td>{cliente.Modalidad}</td>
-                    <td>{cliente.nombre}</td>
-                    <td>{cliente.total}</td>
-                  </tr>
-                ))}
+                {iClienteEfectivo
+                  .sort((a, b) => parseInt(a.orden) - parseInt(b.orden))
+                  .map((cliente, index) => (
+                    <tr key={index}>
+                      <td>{cliente.orden}</td>
+                      <td>{cliente.Modalidad}</td>
+                      <td>{cliente.nombre}</td>
+                      <td>{formatThousandsSeparator(cliente.total)}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
       <div>
-        <div className="gastos tb-info">
-          <span>GASTOS</span>
-          {iGastos ? (
+        {iGastos.length > 0 ? (
+          <div className="gastos tb-info">
+            <span>GASTOS</span>
             <div className="daily-expenses">
               <table>
                 <thead>
@@ -300,13 +305,13 @@ const ListPagos = ({
                       <td>{gasto.tipo}</td>
                       <td>{gasto.motivo}</td>
                       <td>{DateFormat24h(gasto.date.hora)}</td>
-                      <td>{gasto.monto}</td>
+                      <td>{formatThousandsSeparator(gasto.monto)}</td>
 
                       {savedActivated === false && type !== "view" ? (
                         <td
                           className="delete-row"
                           onClick={() => {
-                            handleNoPagar(gasto._id);
+                            handleEliminarGasto(gasto._id);
                           }}
                         >
                           <Eliminar className="ic-d" />
@@ -317,11 +322,12 @@ const ListPagos = ({
                 </tbody>
               </table>
             </div>
-          ) : null}
-        </div>
-        <div className="transferencia tb-info">
-          <span>{ingresoDigital}</span>
-          {iClienteTransferencia ? (
+          </div>
+        ) : null}
+        {iClienteTransferencia.length > 0 ? (
+          <div className="transferencia tb-info">
+            <span>{ingresoDigital}</span>
+
             <div className="paid-orders-tranf">
               <table>
                 <thead>
@@ -333,22 +339,25 @@ const ListPagos = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {iClienteTransferencia.map((cliente, index) => (
-                    <tr key={index}>
-                      <td>{cliente.orden}</td>
-                      <td>{cliente.Modalidad}</td>
-                      <td>{cliente.nombre}</td>
-                      <td>{cliente.total}</td>
-                    </tr>
-                  ))}
+                  {iClienteTransferencia
+                    .sort((a, b) => parseInt(a.orden) - parseInt(b.orden))
+                    .map((cliente, index) => (
+                      <tr key={index}>
+                        <td>{cliente.orden}</td>
+                        <td>{cliente.Modalidad}</td>
+                        <td>{cliente.nombre}</td>
+                        <td>{formatThousandsSeparator(cliente.total)}</td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
-          ) : null}
-        </div>
-        <div className="tarjeta tb-info">
-          <span>TARJETA</span>
-          {iClienteTarjeta ? (
+          </div>
+        ) : null}
+        {iClienteTarjeta.length > 0 ? (
+          <div className="tarjeta tb-info">
+            <span>TARJETA</span>
+
             <div className="paid-orders-tarj">
               <table>
                 <thead>
@@ -360,26 +369,28 @@ const ListPagos = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {iClienteTarjeta.map((cliente, index) => (
-                    <tr
-                      key={index}
-                      className={`${
-                        cliente.estadoPrenda === "anulado"
-                          ? "mode-anulado"
-                          : null
-                      }`}
-                    >
-                      <td>{cliente.orden}</td>
-                      <td>{cliente.Modalidad}</td>
-                      <td>{cliente.nombre}</td>
-                      <td>{cliente.total}</td>
-                    </tr>
-                  ))}
+                  {iClienteTarjeta
+                    .sort((a, b) => parseInt(a.orden) - parseInt(b.orden))
+                    .map((cliente, index) => (
+                      <tr
+                        key={index}
+                        className={`${
+                          cliente.estadoPrenda === "anulado"
+                            ? "mode-anulado"
+                            : null
+                        }`}
+                      >
+                        <td>{cliente.orden}</td>
+                        <td>{cliente.Modalidad}</td>
+                        <td>{cliente.nombre}</td>
+                        <td>{formatThousandsSeparator(cliente.total)}</td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
     </InfoExtra>
   );

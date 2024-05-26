@@ -2,6 +2,7 @@
   display: grid;
   place-items: center;
   gap: 10px;
+  padding-top: 15px;
   .mod-ord {
   }
   .inWaiting {
@@ -265,7 +266,7 @@
             font-weight: 600;
             width: 80px;
             position: absolute;
-            right: 70px;
+            right: 130px;
             text-align: left;
           }
         }

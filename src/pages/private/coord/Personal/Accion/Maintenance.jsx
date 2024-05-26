@@ -40,7 +40,9 @@ const Maintenance = ({ onClose, onAdd }) => {
     },
   });
 
-  const confirmAdd = (data) =>
+  const confirmAdd = (data) => {
+    let confirmationEnabled = true;
+
     modals.openConfirmModal({
       title: "Registro de Personal",
       centered: true,
@@ -51,11 +53,15 @@ const Maintenance = ({ onClose, onAdd }) => {
       confirmProps: { color: "green" },
       //onCancel: () => console.log("Cancelado"),
       onConfirm: () => {
-        formik.resetForm();
-        onClose();
-        onAdd(data);
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          formik.resetForm();
+          onClose();
+          onAdd(data);
+        }
       },
     });
+  };
 
   return (
     <form onSubmit={formik.handleSubmit} className="action-personal">

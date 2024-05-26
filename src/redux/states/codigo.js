@@ -1,8 +1,8 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { GetCodigos, UpdateNextCodigo } from '../actions/aCodigo';
+import { createSlice } from "@reduxjs/toolkit";
+import { GetCodigos, UpdateNextCodigo } from "../actions/aCodigo";
 
 const codigo = createSlice({
-  name: 'codigo',
+  name: "codigo",
   initialState: {
     infoCodigo: [],
     isLoading: false,

@@ -31,18 +31,6 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-.portal-container {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  z-index: 4;
-}
-
 .mantine-ionxj9 {
   right: unset;
 }
@@ -129,4 +117,17 @@ li {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555; /* Color del mango al pasar el cursor sobre él */
+}
+
+.mantine-Modal-content {
+  min-width: 200px;
+  max-width: 100%;
+}
+.mantine-Modal-header {
+  position: relative;
+}
+.mantine-Modal-header button {
+  position: absolute;
+  right: 10px;
+  top: 10px;
 }

@@ -28,7 +28,6 @@ const Editar = () => {
   const ClienteId = useSelector((state) => state.orden.orderServiceId);
 
   const handleEditar = async (updateData) => {
-    console.log(updateData);
     const { infoOrden, infoPago, rol } = updateData;
     await dispatch(UpdateOrdenServices({ id, infoOrden, infoPago, rol })).then(
       (res) => {
@@ -63,14 +62,10 @@ const Editar = () => {
     <>
       {ClienteId ? (
         <div className="edit-orden-service">
-          <div className="title-action">
-            {ClienteId.estado === "reservado" ? (
-              <h1 className="elegantshadow">Registro de Delivery Pendiente</h1>
-            ) : (
-              <h1 className="elegantshadow">Edicion de Descripcion</h1>
-            )}
-          </div>
           <OrdenServicio
+            titleMode={
+              ClienteId.estado === "reservado" ? "REGISTRAR" : "ACTUALIZAR"
+            }
             mode={ClienteId.Modalidad}
             action={"Editar"}
             onAction={handleEditar}

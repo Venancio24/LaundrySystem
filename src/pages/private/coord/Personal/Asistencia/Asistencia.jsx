@@ -186,20 +186,26 @@ const Asistencia = () => {
     []
   );
 
-  const confirmEditInfoPersonal = (data) =>
+  const confirmEditInfoPersonal = (data) => {
+    let confirmationEnabled = true;
+
     modals.openConfirmModal({
-      title: "Registro de Personal",
+      title: "Actualizar Informacion de Personal",
       centered: true,
       children: (
-        <Text size="sm">¿ Estas seguro de Agregar este Personal Nuevo ?</Text>
+        <Text size="sm">¿ Estas seguro de Actualizar este Personal ?</Text>
       ),
       labels: { confirm: "Si", cancel: "No" },
       confirmProps: { color: "green" },
       //onCancel: () => console.log("Cancelado"),
       onConfirm: () => {
-        handleUpdateInfoPersonal(data, id);
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          handleUpdateInfoPersonal(data, id);
+        }
       },
     });
+  };
 
   const hangleGetInfoAsistencia = async () => {
     try {

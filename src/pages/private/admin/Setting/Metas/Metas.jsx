@@ -1,16 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import React, { useEffect } from 'react';
-import './metas.scss';
-import { useFormik } from 'formik';
+import React, { useEffect } from "react";
+import "./metas.scss";
+import { useFormik } from "formik";
 
-import { modals } from '@mantine/modals';
-import { Button, NumberInput, Text } from '@mantine/core';
+import { modals } from "@mantine/modals";
+import { Button, NumberInput, Text } from "@mantine/core";
 
-import { useNavigate } from 'react-router-dom';
-import { PrivateRoutes } from '../../../../../models';
-import { useDispatch, useSelector } from 'react-redux';
-import { UpdateMetas } from '../../../../../redux/actions/aMetas';
+import { useNavigate } from "react-router-dom";
+import { PrivateRoutes } from "../../../../../models";
+import { useDispatch, useSelector } from "react-redux";
+import { UpdateMetas } from "../../../../../redux/actions/aMetas";
+import { formatThousandsSeparator } from "../../../../../utils/functions";
 
 const Metas = () => {
   const dispatch = useDispatch();
@@ -30,16 +31,26 @@ const Metas = () => {
     },
   });
 
-  const openModal = (data) =>
+  const openModal = (data) => {
+    let confirmationEnabled = true;
+
     modals.openConfirmModal({
-      title: 'Actualizacion de Metas',
+      title: "Actualizacion de Metas",
       centered: true,
-      children: <Text size="sm">¿ Estas seguro de realizar cambios en las Metas ?</Text>,
-      labels: { confirm: 'Si', cancel: 'No' },
-      confirmProps: { color: 'green' },
-      onCancel: () => console.log('Cancelado'),
-      onConfirm: () => handleUpdateMetas(data),
+      children: (
+        <Text size="sm">¿ Estas seguro de realizar cambios en las Metas ?</Text>
+      ),
+      labels: { confirm: "Si", cancel: "No" },
+      confirmProps: { color: "green" },
+      onCancel: () => console.log("Cancelado"),
+      onConfirm: () => {
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          handleUpdateMetas(data);
+        }
+      },
     });
+  };
 
   const handleUpdateMetas = async (info) => {
     dispatch(UpdateMetas(info));
@@ -47,9 +58,9 @@ const Metas = () => {
   };
 
   useEffect(() => {
-    formik.setFieldValue('Tienda', parseInt(infoMetas.Tienda));
-    formik.setFieldValue('Delivery', parseInt(infoMetas.Delivery));
-    formik.setFieldValue('Total', parseInt(infoMetas.Total));
+    formik.setFieldValue("Tienda", parseInt(infoMetas.Tienda));
+    formik.setFieldValue("Delivery", parseInt(infoMetas.Delivery));
+    formik.setFieldValue("Total", parseInt(infoMetas.Total));
   }, [infoMetas]);
 
   return (
@@ -61,16 +72,21 @@ const Metas = () => {
             name="Total"
             label="Meta Mensual :"
             value={formik.values.Total}
+            formatter={(value) => formatThousandsSeparator(value)}
             precision={0}
             onChange={(e) => {
-              formik.setFieldValue('Total', !Number.isNaN(e) ? e : 0);
+              formik.setFieldValue("Total", !Number.isNaN(e) ? e : 0);
             }}
             min={1}
             step={1}
             hideControls
             autoComplete="off"
           />
-          <Button type="submit" variant="gradient" gradient={{ from: 'indigo', to: 'cyan' }}>
+          <Button
+            type="submit"
+            variant="gradient"
+            gradient={{ from: "indigo", to: "cyan" }}
+          >
             Actualizar Meta
           </Button>
         </form>

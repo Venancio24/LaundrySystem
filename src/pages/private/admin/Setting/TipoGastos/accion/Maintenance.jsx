@@ -40,6 +40,7 @@ const Maintenance = ({ info, cancelarEdit }) => {
   });
 
   const handleNewTipoGasto = (data) => {
+    let confirmationEnabled = true;
     modals.openConfirmModal({
       title: "Registrando tipo de Gasto",
       centered: true,
@@ -52,14 +53,18 @@ const Maintenance = ({ info, cancelarEdit }) => {
       confirmProps: { color: "green" },
 
       onConfirm: () => {
-        dispatch(AddTipoGasto(data));
-        formik.resetForm();
-        Notify("Tipo de Gasto Agregado Exitosamente", "", "success");
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          dispatch(AddTipoGasto(data));
+          formik.resetForm();
+          Notify("Tipo de Gasto Agregado Exitosamente", "", "success");
+        }
       },
     });
   };
 
   const handleUpdateTipoGasto = (data) => {
+    let confirmationEnabled = true;
     modals.openConfirmModal({
       title: "Actualizando tipo de Gasto",
       centered: true,
@@ -70,10 +75,13 @@ const Maintenance = ({ info, cancelarEdit }) => {
       confirmProps: { color: "green" },
 
       onConfirm: () => {
-        dispatch(UpdateTipoGastos({ id: info._id, infoTipoGasto: data }));
-        Notify("Tipo de Gasto Actualizado Exitosamente", "", "success");
-        formik.resetForm();
-        cancelarEdit();
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          dispatch(UpdateTipoGastos({ id: info._id, infoTipoGasto: data }));
+          Notify("Tipo de Gasto Actualizado Exitosamente", "", "success");
+          formik.resetForm();
+          cancelarEdit();
+        }
       },
     });
   };

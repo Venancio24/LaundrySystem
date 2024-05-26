@@ -10,20 +10,15 @@ import styled from "styled-components";
 import {
   DateCurrent,
   cLetter,
-  redondearNumero,
+  formatThousandsSeparator,
 } from "../../../../utils/functions/index";
 import { DatePickerInput } from "@mantine/dates";
 
-import { GetGastosByDate } from "../../../../redux/actions/aGasto";
 import {
   GetCuadre,
   SaveCuadre,
   UpdateCuadre,
 } from "../../../../redux/actions/aCuadre";
-import {
-  GetAnuladoId,
-  GetOrderId,
-} from "../../../../services/default.services";
 
 import { modals } from "@mantine/modals";
 import { Button, Text } from "@mantine/core";
@@ -41,7 +36,6 @@ import InfoCuadre from "./InfoCuadre/InfoCuadre";
 import FinalBalance from "./FinalBalance/FinalBalance";
 import ListPagos from "./ListPagos/ListPagos";
 import Portal from "../../../../components/PRIVATE/Portal/Portal";
-import { GetPagosByDate } from "../../../../redux/actions/aPago";
 
 const CuadreCaja = () => {
   const navigate = useNavigate();
@@ -245,6 +239,7 @@ const CuadreCaja = () => {
   };
 
   const openModal = (value) => {
+    let confirmationEnabled = true;
     const clonedElement = certificateTemplateRef.current.cloneNode(true);
 
     modals.openConfirmModal({
@@ -267,12 +262,15 @@ const CuadreCaja = () => {
       withCloseButton: false,
       closeOnClickOutside: false,
       onConfirm: () => {
-        setOnLoading(true);
-        setTimeout(() => {
-          value === true
-            ? handleSaved(clonedElement)
-            : handleGeneratePdf(clonedElement);
-        }, 500);
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          setOnLoading(true);
+          setTimeout(() => {
+            value === true
+              ? handleSaved(clonedElement)
+              : handleGeneratePdf(clonedElement);
+          }, 500);
+        }
       },
     });
   };
@@ -721,7 +719,7 @@ const CuadreCaja = () => {
               <div className="i-final">
                 <span>
                   {cLetter(valueFinalINS?.tipo)} : &nbsp;&nbsp; {simboloMoneda}{" "}
-                  {redondearNumero(valueFinalINS?.total)}
+                  {formatThousandsSeparator(valueFinalINS?.total)}
                 </span>
               </div>
             </div>

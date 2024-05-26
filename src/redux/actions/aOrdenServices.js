@@ -4,29 +4,6 @@ import axios from "axios";
 import { Notify } from "../../utils/notify/Notify";
 import { socket } from "../../utils/socket/connect";
 
-// export const GetOrdenServices_Date = createAsyncThunk(
-//   "service_order/GetOrdenServices_Date",
-//   async (datePago) => {
-//     try {
-//       const response = await axios.get(
-//         `${
-//           import.meta.env.VITE_BACKEND_URL
-//         }/api/lava-ya/get-factura/date/${datePago}`
-//       );
-//       return response.data;
-//     } catch (error) {
-//       // Puedes manejar los errores aquí
-//       console.log(error.response.data.mensaje);
-//       Notify(
-//         "Error",
-//         "No se pudo obtemer la lista de Ordenes de Servicio",
-//         "fail"
-//       );
-//       throw new Error(error);
-//     }
-//   }
-// );
-
 export const GetOrdenServices_DateRange = createAsyncThunk(
   "service_order/GetOrdenServices_DateRange",
   async ({ dateInicio, dateFin }) => {
@@ -78,11 +55,16 @@ export const AddOrdenServices = createAsyncThunk(
 
       if ("newGasto" in res) {
         const { newGasto } = res;
-        console.log(newGasto);
         socket.emit("client:cGasto", newGasto);
       }
 
-      socket.emit("client:newOrder", res);
+      if ("newCodigo" in res) {
+        const { newCodigo } = res;
+        socket.emit("client:updateCodigo", newCodigo);
+      }
+
+      socket.emit("client:newOrder", newOrder);
+
       return newOrder;
     } catch (error) {
       console.log(error.response.data.mensaje);
@@ -111,9 +93,6 @@ export const UpdateOrdenServices = createAsyncThunk(
         ...(infoOrden.Modalidad === "Delivery" &&
           infoOrden.estadoPrenda === "entregado" && { infoGastoByDelivery }),
       };
-
-      console.log(dataSend);
-
       const response = await axios.put(
         `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/update-factura/${id}`,
         dataSend
@@ -136,7 +115,6 @@ export const UpdateOrdenServices = createAsyncThunk(
 
       if ("newGasto" in res) {
         const { newGasto } = res;
-        console.log(newGasto);
         socket.emit("client:cGasto", newGasto);
       }
 

@@ -1,15 +1,16 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { TextInput } from '@mantine/core';
-import React from 'react';
-import styled from 'styled-components';
-import { ingresoDigital, simboloMoneda } from '../../../../../services/global';
+import { TextInput } from "@mantine/core";
+import React from "react";
+import styled from "styled-components";
+import { ingresoDigital } from "../../../../../services/global";
+import { formatThousandsSeparator } from "../../../../../utils/functions";
 
 const InfoCuadreStyle = styled.div`
   display: grid;
   grid-template-rows: 305px auto;
   padding: 20px 10%;
-
+  gap: 30px;
   .form-ic {
     max-width: 300px;
     display: grid;
@@ -77,33 +78,71 @@ const InfoCuadre = ({
   return (
     <InfoCuadreStyle>
       <div className="form-ic">
-        <TextInput label="Caja Inicial" radius="md" value={cajaInicial} readOnly />
-        <TextInput label="Gastos" radius="md" value={gastos} readOnly />
-        <TextInput label="Pedidos Pagados (EFECTIVO)" radius="md" value={pedidosPagadosEfectivo} readOnly />
-        <TextInput label="En caja deberia haber :" radius="md" id="m-previsto" value={montoPrevisto} readOnly />
+        <TextInput
+          label="Caja Inicial"
+          radius="md"
+          value={formatThousandsSeparator(cajaInicial)}
+          readOnly
+        />
+        <TextInput
+          label="Pedidos Pagados (EFECTIVO)"
+          radius="md"
+          value={formatThousandsSeparator(pedidosPagadosEfectivo)}
+          readOnly
+        />
+
+        <TextInput
+          label="Gastos"
+          radius="md"
+          value={formatThousandsSeparator(gastos)}
+          readOnly
+        />
+
+        <TextInput
+          label="En caja deberia haber :"
+          radius="md"
+          id="m-previsto"
+          value={formatThousandsSeparator(montoPrevisto)}
+          readOnly
+        />
       </div>
       <div className="response-ic">
         <div className="bloques-states">
           <div className="states">
             <div className="bloque title sb">SOBRA</div>
-            <div className="bloque res">{Number(stateCuadre) > 0 ? `${simboloMoneda} ${stateCuadre}` : 'NO'}</div>
+            <div className="bloque res">
+              {Number(stateCuadre) > 0
+                ? formatThousandsSeparator(stateCuadre, true)
+                : "NO"}
+            </div>
           </div>
           <div className="states ">
             <div className="bloque title cd">CUADRA</div>
-            <div className="bloque res">{Number(stateCuadre) === 0 ? 'SI' : 'NO'}</div>
+            <div className="bloque res">
+              {Number(stateCuadre) === 0 ? "SI" : "NO"}
+            </div>
           </div>
           <div className="states ">
             <div className="bloque title fl">FALTA</div>
-            <div className="bloque res">{Number(stateCuadre) < 0 ? `${simboloMoneda} ${stateCuadre}` : 'NO'}</div>
+            <div className="bloque res">
+              {Number(stateCuadre) < 0
+                ? formatThousandsSeparator(stateCuadre, true)
+                : "NO"}
+            </div>
           </div>
         </div>
         <TextInput
           label={`Pedidos Pagados (${ingresoDigital}) :`}
           radius="md"
-          value={pedidosPagadosTransferencia}
+          value={formatThousandsSeparator(pedidosPagadosTransferencia)}
           readOnly
         />
-        <TextInput label={`Pedidos Pagados (TARJETA) :`} radius="md" value={pedidosPagadosTarjeta} readOnly />
+        <TextInput
+          label={`Pedidos Pagados (TARJETA) :`}
+          radius="md"
+          value={formatThousandsSeparator(pedidosPagadosTarjeta)}
+          readOnly
+        />
       </div>
     </InfoCuadreStyle>
   );

@@ -62,12 +62,15 @@
         }
         .input-item-switch {
           display: grid;
-          grid-template-rows: min-content max-content;
-          gap: 5px;
-          .l-description {
-            font-size: 15px;
-            font-weight: 600;
-            color: #363636;
+          gap: 10px;
+          fieldset {
+            padding: 0 !important;
+            legend {
+              font-size: 15px;
+              .toggle > label {
+                font-size: 14px !important;
+              }
+            }
           }
         }
       }

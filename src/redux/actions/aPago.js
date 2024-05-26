@@ -3,20 +3,6 @@ import axios from "axios";
 import { Notify } from "../../utils/notify/Notify";
 import { socket } from "../../utils/socket/connect";
 
-export const GetPagosByDate = createAsyncThunk(
-  "pago/GetPagosPorFecha",
-  async (fecha) => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/get-pagos/${fecha}`
-      );
-      return response.data;
-    } catch (error) {
-      Notify("Error", "No se pudo obtener los pagos por fecha", "fail");
-    }
-  }
-);
-
 export const AddPago = createAsyncThunk("pago/AddPago", async (newPago) => {
   try {
     const response = await axios.post(
@@ -46,6 +32,7 @@ export const UpdatePago = createAsyncThunk(
       );
 
       const infoRes = response.data;
+      console.log(infoRes);
       const { info } = infoRes;
       socket.emit("client:cPago", infoRes);
       return info;

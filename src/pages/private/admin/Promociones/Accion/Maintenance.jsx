@@ -82,7 +82,9 @@ const Maintenance = ({ info, onClose }) => {
     },
   });
 
-  const handleAddPromocion = (data) =>
+  const handleAddPromocion = (data) => {
+    let confirmationEnabled = true;
+
     modals.openConfirmModal({
       title: "Registro de Promocion",
       centered: true,
@@ -93,13 +95,18 @@ const Maintenance = ({ info, onClose }) => {
       confirmProps: { color: "green" },
       //onCancel: () => console.log("Cancelado"),
       onConfirm: () => {
-        dispatch(addPromocion(data));
-        formik.resetForm();
-        onClose();
+        if (confirmationEnabled) {
+          dispatch(addPromocion(data));
+          formik.resetForm();
+          onClose();
+        }
       },
     });
+  };
 
-  const handleUpdatePromocion = (data) =>
+  const handleUpdatePromocion = (data) => {
+    let confirmationEnabled = true;
+
     modals.openConfirmModal({
       title: "Actualizacion de Promocion",
       centered: true,
@@ -110,11 +117,15 @@ const Maintenance = ({ info, onClose }) => {
       confirmProps: { color: "green" },
       //onCancel: () => console.log("Cancelado"),
       onConfirm: () => {
-        dispatch(updatePromocion({ infoPromo: data, id: info._id }));
-        formik.resetForm();
-        onClose();
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          dispatch(updatePromocion({ infoPromo: data, id: info._id }));
+          formik.resetForm();
+          onClose();
+        }
       },
     });
+  };
 
   const filtrarServicios = (servicios, categorias) => {
     const mapeoCategorias = categorias.reduce((acc, categoria) => {

@@ -10,6 +10,7 @@ import { MonthPickerInput } from "@mantine/dates";
 import moment from "moment";
 import { Roles } from "../../../../../models";
 import { useSelector } from "react-redux";
+import { formatThousandsSeparator } from "../../../../../utils/functions";
 
 const Items = () => {
   const [data, setData] = useState([]);
@@ -73,73 +74,6 @@ const Items = () => {
   const bottomData = ascendingData.slice(0, minPrendas).reverse();
 
   const exportToExcel = async () => {
-    // const workbook = new ExcelJS.Workbook();
-    // const worksheet = workbook.addWorksheet("Prueba");
-
-    // // Establecer estilo de celda para la cabecera
-    // const headerStyle = {
-    //   font: { bold: true, size: 16 },
-    //   fill: { type: "pattern", pattern: "solid", fgColor: { argb: "CCCCCC" } },
-    // };
-
-    // // Definir las columnas
-    // worksheet.columns = [
-    //   { header: "Nombre", key: "nombre", width: 15 },
-    //   { header: "Efectivo", key: "efectivo", width: 30 },
-    //   { header: "Descripción", key: "descripcion", width: 30 },
-    //   { header: "Monto", key: "monto", width: 15 },
-    // ];
-
-    // // Combinar celdas para la cabecera
-    // worksheet.mergeCells("B1:C1");
-    // worksheet.getCell("B1").value = "Efectivo";
-    // worksheet.getCell("B1").style = headerStyle;
-
-    // // Agregar datos
-    // PruebaData.forEach((persona) => {
-    //   const nombre = persona.nombre;
-    //   persona.Efectivo.forEach((pago, index) => {
-    //     const row = {
-    //       nombre: index === 0 ? nombre : "",
-    //       descripcion: pago.descripcion,
-    //       monto: pago.monto,
-    //     };
-    //     worksheet.addRow(row);
-    //   });
-    //   persona.Yape.forEach((pago) => {
-    //     const row = {
-    //       nombre: "",
-    //       descripcion: pago.descripcion,
-    //       monto: pago.monto,
-    //     };
-    //     worksheet.addRow(row);
-    //   });
-    //   persona.Tarjeta.forEach((pago) => {
-    //     const row = {
-    //       nombre: "",
-    //       descripcion: pago.descripcion,
-    //       monto: pago.monto,
-    //     };
-    //     worksheet.addRow(row);
-    //   });
-    // });
-
-    // // Generar el archivo Excel
-    // const buffer = await workbook.xlsx.writeBuffer();
-    // const blob = new Blob([buffer], {
-    //   type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    // });
-    // const url = window.URL.createObjectURL(blob);
-
-    // // Crear un enlace temporal y simular clic para descargar
-    // const link = document.createElement("a");
-    // link.href = url;
-    // link.download = "prueba.xlsx";
-    // link.click();
-
-    // // Liberar el objeto URL creado
-    // window.URL.revokeObjectURL(url);
-
     const fileName = `Reporte de ${
       tipoFiltro === "productos" ? "Productos" : "Servicios"
     }`;
@@ -320,8 +254,10 @@ const Items = () => {
               ) : (
                 <tspan x="50">
                   {valorizarX === "montoGenerado"
-                    ? `${simboloMoneda} ${d.value}`
-                    : `${d.value} ${d.data.simboloMedida} `}
+                    ? `${formatThousandsSeparator(d.value, true)}`
+                    : `${formatThousandsSeparator(d.value)} ${
+                        d.data.simboloMedida
+                      } `}
                 </tspan>
               );
             }}
@@ -383,11 +319,12 @@ const Items = () => {
                     <tr key={index}>
                       <td>{item.nombre}</td>
                       <td>
-                        {item.cantidad} {item.simboloMedida}
+                        {formatThousandsSeparator(item.cantidad)}{" "}
+                        {item.simboloMedida}
                       </td>
                       {InfoUsuario.rol === Roles.ADMIN ? (
                         <td>
-                          {simboloMoneda} {item.montoGenerado}
+                          {formatThousandsSeparator(item.montoGenerado, true)}
                         </td>
                       ) : null}
                     </tr>
@@ -444,8 +381,10 @@ const Items = () => {
                 return <tspan x="-15">{d.value}</tspan>;
               } else {
                 return valorizarX === "montoGenerado"
-                  ? `${simboloMoneda} ${d.value}`
-                  : `${d.value} ${d.data.simboloMedida}`;
+                  ? `${formatThousandsSeparator(d.value, true)}`
+                  : `${formatThousandsSeparator(d.value)} ${
+                      d.data.simboloMedida
+                    }`;
               }
             }}
             axisTop={null}

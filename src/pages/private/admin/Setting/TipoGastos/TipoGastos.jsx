@@ -66,6 +66,7 @@ const TipoGastos = () => {
   };
 
   const handleDeleteTipoGasto = async (id) => {
+    let confirmationEnabled = true;
     setPActions(false);
     setAction("Add");
 
@@ -79,18 +80,21 @@ const TipoGastos = () => {
       confirmProps: { color: "red" },
       onCancel: handleCloseAction,
       onConfirm: async () => {
-        try {
-          const actionResult = await dispatch(DeleteTipoGastos(id));
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          try {
+            const actionResult = await dispatch(DeleteTipoGastos(id));
 
-          unwrapResult(actionResult);
-          Notify("Categoria Elinado Exitosamente", "", "success");
-          handleCloseAction();
-        } catch (error) {
-          if (error.itemsAsociados) {
-            Notify("Error al Eliminar Categoria", "", "fail");
+            unwrapResult(actionResult);
+            Notify("Categoria Elinado Exitosamente", "", "success");
+            handleCloseAction();
+          } catch (error) {
+            if (error.itemsAsociados) {
+              Notify("Error al Eliminar Categoria", "", "fail");
+            }
           }
+          setPActions(false);
         }
-        setPActions(false);
       },
     });
   };

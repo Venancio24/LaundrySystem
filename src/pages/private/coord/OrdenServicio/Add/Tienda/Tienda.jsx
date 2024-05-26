@@ -45,11 +45,8 @@ const Tienda = () => {
     <>
       {redirect === false ? (
         <div className="content-tienda">
-          <div className="title-action">
-            <h1 className="elegantshadow">Agregando Factura</h1>
-            <h1 className="elegantshadow">- TIENDA -</h1>
-          </div>
           <OrdenServicio
+            titleMode="REGISTRAR"
             mode={"Tienda"}
             action={"Guardar"}
             onAction={handleRegistrar}

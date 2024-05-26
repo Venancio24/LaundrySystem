@@ -1,14 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import React from 'react';
-import styled from 'styled-components';
-import { simboloMoneda } from '../../../../../services/global';
-import { NumberInput } from '@mantine/core';
-import { useEffect } from 'react';
-import { DateCurrent } from '../../../../../utils/functions';
-import { useSelector } from 'react-redux';
-import moment from 'moment';
+import React from "react";
+import styled from "styled-components";
+import { simboloMoneda } from "../../../../../services/global";
+import { NumberInput } from "@mantine/core";
+import { useEffect } from "react";
+import { formatThousandsSeparator } from "../../../../../utils/functions";
 
 const CashCounterStyle = styled.div`
   margin: auto;
@@ -112,7 +110,7 @@ const CashCounterStyle = styled.div`
         height: 30px;
         color: #3d44c9;
         border-radius: 7px;
-        font-family: 'PT Sans', sans-serif;
+        font-family: "PT Sans", sans-serif;
         font-weight: bold;
         background: transparent;
         outline: 0;
@@ -125,7 +123,7 @@ const CashCounterStyle = styled.div`
           display: inline-block;
           font-size: 18px;
           padding: auto;
-          font-family: 'PT Sans', sans-serif;
+          font-family: "PT Sans", sans-serif;
           font-weight: bold;
           color: #67688a77;
         }
@@ -134,7 +132,13 @@ const CashCounterStyle = styled.div`
   }
 `;
 
-const CashCounter = ({ ListMontos, totalCaja, handleChangeTotalCaja, handleChangeMontos, sDisabledCuadre }) => {
+const CashCounter = ({
+  ListMontos,
+  totalCaja,
+  handleChangeTotalCaja,
+  handleChangeMontos,
+  sDisabledCuadre,
+}) => {
   const handleCalculateTotalNeto = (Montos) => {
     let totalNeto = 0;
     if (Montos && Montos.length > 0) {
@@ -145,7 +149,7 @@ const CashCounter = ({ ListMontos, totalCaja, handleChangeTotalCaja, handleChang
       }, 0);
     }
 
-    handleChangeTotalCaja(totalNeto.toFixed(2));
+    handleChangeTotalCaja(totalNeto);
   };
 
   useEffect(() => {
@@ -173,7 +177,7 @@ const CashCounter = ({ ListMontos, totalCaja, handleChangeTotalCaja, handleChang
               <td>
                 <NumberInput
                   name="codigo"
-                  value={mS.cantidad ? parseFloat(mS.cantidad) : ''}
+                  value={mS.cantidad ? +mS.cantidad : ""}
                   precision={0}
                   onChange={(e) => {
                     const updatedMontos = [...ListMontos];
@@ -181,7 +185,7 @@ const CashCounter = ({ ListMontos, totalCaja, handleChangeTotalCaja, handleChang
                       ...updatedMontos[index],
                     };
                     updatedMonto.cantidad = e;
-                    updatedMonto.total = mS.monto * e;
+                    updatedMonto.total = (mS.monto * e).toFixed(2);
                     updatedMontos[index] = updatedMonto;
                     handleChangeMontos(updatedMontos);
                   }}
@@ -194,7 +198,7 @@ const CashCounter = ({ ListMontos, totalCaja, handleChangeTotalCaja, handleChang
               </td>
               <td>
                 <label htmlFor="">
-                  {simboloMoneda} {parseFloat(mS.total.toFixed(1))}
+                  {formatThousandsSeparator((+mS.total).toFixed(2), true)}
                 </label>
               </td>
             </tr>
@@ -210,7 +214,7 @@ const CashCounter = ({ ListMontos, totalCaja, handleChangeTotalCaja, handleChang
             type="text"
             placeholder="Descuento..."
             autoComplete="off"
-            value={totalCaja}
+            value={formatThousandsSeparator(+totalCaja.toFixed(2))}
             readOnly
           />
         </div>

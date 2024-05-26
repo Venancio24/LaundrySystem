@@ -1,4 +1,5 @@
 import moment from "moment";
+import { formatThousandsSeparator } from "../formatNumber/formatNumber";
 
 export function handleCantidad(products) {
   let sumaOtrosProductos = 0;
@@ -120,7 +121,11 @@ export function handleItemsCantidad(productos) {
       return acc;
     }, [])
     .map((item) => {
+      // Redondea la cantidad a 2 decimales máximo
+      const cantidadRedondeada = parseFloat(item.cantidad.toFixed(2));
       // Retorna el texto con el formato deseado, usando simboloMedida para determinar la unidad
-      return `${item.item} - (${item.cantidad}${item.simboloMedida})`;
+      return `${item.item} - (${formatThousandsSeparator(cantidadRedondeada)}${
+        item.simboloMedida
+      })`;
     });
 }

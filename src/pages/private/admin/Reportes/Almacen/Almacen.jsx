@@ -243,6 +243,8 @@ const Almacen = () => {
   };
 
   const openConfirmacion = async () => {
+    let confirmationEnabled = true;
+
     modals.openConfirmModal({
       title: "Donacion",
       centered: true,
@@ -258,7 +260,12 @@ const Almacen = () => {
       labels: { confirm: "Si", cancel: "No" },
       confirmProps: { color: "green" },
       //onCancel: () => console.log("cancelado"),
-      onConfirm: () => handleDonar(),
+      onConfirm: () => {
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          handleDonar();
+        }
+      },
     });
   };
 

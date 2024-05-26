@@ -1,13 +1,11 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 
-import { NumberInput } from '@mantine/core';
-import { formatValue } from '../../../../../../../utils/functions';
-import { ReactComponent as Moto } from '../../../../../../../utils/img/Delivery/moto.svg';
-import { ReactComponent as Taxi } from '../../../../../../../utils/img/Delivery/taxi-lateral.svg';
-import { ReactComponent as Tienda } from '../../../../../../../utils/img/Delivery/tienda.svg';
-import { simboloMoneda } from '../../../../../../../services/global';
+import { NumberInput } from "@mantine/core";
+
+import { ReactComponent as DeliveryPropio } from "../../../../../../../utils/img/Delivery/delivery-propio.svg";
+import { ReactComponent as DeliveryPrivado } from "../../../../../../../utils/img/Delivery/delivery-privado.svg";
 
 const Entregar = ({ setFieldValue, errors, touched, values }) => {
   const inputRef = useRef(null);
@@ -22,101 +20,97 @@ const Entregar = ({ setFieldValue, errors, touched, values }) => {
 
   return (
     <>
-      <fieldset className="checkbox-group">
-        <legend className="checkbox-group-legend">Entregar por :</legend>
-        <div className="checkbox">
-          <label className="checkbox-wrapper">
-            <input
-              className="checkbox-input"
-              type="radio"
-              name="tipoTrasporte"
-              value="Taxi"
-              onChange={(e) => {
-                setFieldValue('tipoTrasporte', e.target.value);
-                // setFieldValue('mDevolucion', 6);
-                setShouldFocusInput(true);
-              }}
-            />
-            <span className="checkbox-tile">
-              <span className="checkbox-icon">
-                <Taxi className="custom-icon" />
-              </span>
-              <span className="checkbox-label">Taxi</span>
-            </span>
-          </label>
+      <fieldset className="content-movilidad">
+        <legend className="legend-c-movilidad">
+          &nbsp;&nbsp;
+          <span className="accion">&nbsp;(GASTO POR ENVIO)</span>
+          &nbsp;&nbsp;
+        </legend>
+        <div className="group-fieldset">
+          <fieldset className="checkbox-sub-group">
+            <legend className="checkbox-group-legend">
+              &nbsp;&nbsp;PAGADO&nbsp;&nbsp;
+            </legend>
+            <div className="checkbox">
+              <label className="checkbox-wrapper">
+                <input
+                  type="radio"
+                  className="checkbox-input"
+                  name="tipoTrasporte"
+                  value="Privado"
+                  onClick={(e) => {
+                    setFieldValue("tipoTrasporte", e.target.value);
+                    setFieldValue("mDevolucion", "");
+                    setShouldFocusInput(true);
+                  }}
+                />
+                <span className="checkbox-tile">
+                  <span className="checkbox-icon">
+                    <DeliveryPrivado className="custom-icon" />
+                  </span>
+                  <span className="checkbox-label">Privado</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset className="checkbox-sub-group">
+            <legend className="checkbox-group-legend">
+              &nbsp;&nbsp;GRATIS&nbsp;&nbsp;
+            </legend>
+            <div className="checkbox">
+              <label className="checkbox-wrapper">
+                <input
+                  type="radio"
+                  className="checkbox-input"
+                  name="tipoTrasporte"
+                  value="Propio"
+                  onClick={(e) => {
+                    setFieldValue("tipoTrasporte", e.target.value);
+                    setFieldValue("mDevolucion", 0);
+                    setShouldFocusInput(true);
+                  }}
+                />
+                <span className="checkbox-tile">
+                  <span className="checkbox-icon">
+                    <DeliveryPropio className="custom-icon" />
+                  </span>
+                  <span className="checkbox-label">Propio</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
         </div>
-        <div className="checkbox">
-          <label className="checkbox-wrapper">
-            <input
-              className="checkbox-input"
-              type="radio"
-              name="tipoTrasporte"
-              value="Moto"
-              onChange={(e) => {
-                setFieldValue('tipoTrasporte', e.target.value);
-                setFieldValue('mDevolucion', '');
-                setShouldFocusInput(true);
-              }}
-            />
-            <span className="checkbox-tile">
-              <span className="checkbox-icon">
-                <Moto className="custom-icon" />
-              </span>
-              <span className="checkbox-label">Moto</span>
-            </span>
-          </label>
-        </div>
-        <div className="checkbox">
-          <label className="checkbox-wrapper">
-            <input
-              className="checkbox-input"
-              type="radio"
-              name="tipoTrasporte"
-              value="Tienda"
-              onClick={(e) => {
-                setFieldValue('tipoTrasporte', e.target.value);
-                setFieldValue('mDevolucion', 0);
-                setShouldFocusInput(true);
-              }}
-            />
-            <span className="checkbox-tile">
-              <span className="checkbox-icon">
-                <Tienda className="custom-icon" />
-              </span>
-              <span className="checkbox-label">Tienda</span>
-            </span>
-          </label>
-        </div>
-        {errors.tipoTrasporte && touched.tipoTrasporte && (
+        {errors.tipoDelivery && touched.tipoDelivery && (
           <div className="ico-req">
             <i className="fa-solid fa-circle-exclamation ">
-              <div className="info-req" style={{ pointerEvents: 'none' }}>
-                <span>{errors.tipoTrasporte}</span>
+              <div className="info-req" style={{ pointerEvents: "none" }}>
+                <span>{errors.tipoDelivery}</span>
               </div>
             </i>
           </div>
         )}
       </fieldset>
-      <div className="data-prices">
+      <div className="input-info-required">
         <NumberInput
           name="mDevolucion"
           value={values.mDevolucion}
           ref={inputRef}
-          disabled={values.tipoTrasporte === 'Tienda' ? true : false}
-          // parser={(value) => value.replace(/S\/\s?|(,*)/g, '')}
-          parser={(value) => value.replace(new RegExp(`${simboloMoneda}\\s?|(,*)`, 'g'), '')}
-          formatter={formatValue}
+          disabled={values.tipoTrasporte === "Propio" ? true : false}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")
+          }
           placeholder="Ingrese Monto"
           precision={2}
           step={0.05}
+          min={0}
           hideControls={true}
           autoComplete="off"
-          onChange={(value) => setFieldValue('mDevolucion', value)}
+          onChange={(value) => setFieldValue("mDevolucion", value)}
         />
         {errors.mDevolucion && touched.mDevolucion && (
           <div className="ico-req">
             <i className="fa-solid fa-circle-exclamation ">
-              <div className="info-req" style={{ pointerEvents: 'none' }}>
+              <div className="info-req" style={{ pointerEvents: "none" }}>
                 <span>{errors.mDevolucion}</span>
               </div>
             </i>

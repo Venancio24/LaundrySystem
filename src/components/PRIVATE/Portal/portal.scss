@@ -22,12 +22,25 @@
 }
 
 .portal-container {
-  overflow: visible;
-  min-width: 220px;
-  // min-height: 100px;
+  min-width: 330px;
+  max-width: 672px;
   max-height: 650px;
-  // overflow: auto;
+  width: max-content;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   z-index: 11;
+  @media only screen and (max-width: 600px) {
+    width: 90%;
+  }
+  @media only screen and (max-height: 500px) {
+    height: 90%;
+  }
   &::-webkit-scrollbar {
     width: 0;
     height: 0;
@@ -45,5 +58,11 @@
     &:focus {
       fill: #2260ff;
     }
+  }
+
+  .content {
+    overflow: hidden; // Contenido interno no desbordará
+    width: 100%; // Ocupa todo el espacio disponible
+    height: 100%; // Ocupa todo el espacio disponible
   }
 }

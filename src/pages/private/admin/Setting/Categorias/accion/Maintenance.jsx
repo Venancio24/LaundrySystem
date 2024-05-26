@@ -40,6 +40,7 @@ const Maintenance = ({ info, cancelarEdit }) => {
   });
 
   const handleNewServicio = (data) => {
+    let confirmationEnabled = true;
     modals.openConfirmModal({
       title: "Registro de Categoria",
       centered: true,
@@ -50,14 +51,18 @@ const Maintenance = ({ info, cancelarEdit }) => {
       confirmProps: { color: "green" },
 
       onConfirm: () => {
-        dispatch(addCategoria(data));
-        formik.resetForm();
-        Notify("Categoria Agregado Exitosamente", "", "success");
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          dispatch(addCategoria(data));
+          formik.resetForm();
+          Notify("Categoria Agregado Exitosamente", "", "success");
+        }
       },
     });
   };
 
   const handleUpdateServicio = (data) => {
+    let confirmationEnabled = true;
     modals.openConfirmModal({
       title: "Actualizacion de Categoria",
       centered: true,
@@ -68,12 +73,15 @@ const Maintenance = ({ info, cancelarEdit }) => {
       confirmProps: { color: "green" },
 
       onConfirm: () => {
-        dispatch(
-          updateCategoria({ idCategoria: info._id, categoriaData: data })
-        );
-        Notify("Categoria Actualizado Exitosamente", "", "success");
-        formik.resetForm();
-        cancelarEdit();
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          dispatch(
+            updateCategoria({ idCategoria: info._id, categoriaData: data })
+          );
+          Notify("Categoria Actualizado Exitosamente", "", "success");
+          formik.resetForm();
+          cancelarEdit();
+        }
       },
     });
   };

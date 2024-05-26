@@ -23,12 +23,12 @@ import { Notify } from "../../../../../utils/notify/Notify";
 import { socket } from "../../../../../utils/socket/connect";
 import { useDispatch, useSelector } from "react-redux";
 import { LS_updateListOrder } from "../../../../../redux/states/service_order";
-import { simboloMoneda } from "../../../../../services/global";
 
 const Pendientes = () => {
   const [rowSelection, setRowSelection] = useState([]);
   const [orderSelection, setOrderSelection] = useState([]);
   const [opened, { open, close }] = useDisclosure(false);
+
   const [infoPendientes, setInfoPendientes] = useState([]);
   const [inWarehouse, setInWarehouse] = useState([]);
   const [key, setKey] = useState(0);
@@ -404,6 +404,8 @@ const Pendientes = () => {
   };
 
   const openConfirmacion = async () => {
+    let confirmationEnabled = true;
+
     modals.openConfirmModal({
       title: "Registro de Factura",
       centered: true,
@@ -419,7 +421,12 @@ const Pendientes = () => {
       labels: { confirm: "Si", cancel: "No" },
       confirmProps: { color: "green" },
       //onCancel: () => console.log("cancelado"),
-      onConfirm: () => handleChangeLocation_OrderService(),
+      onConfirm: () => {
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          handleChangeLocation_OrderService();
+        }
+      },
     });
   };
 
@@ -592,8 +599,7 @@ const Pendientes = () => {
           setOnDetail();
           setOnModal("");
         }}
-        size={550}
-        scrollAreaComponent={ScrollArea.Autosize}
+        size="auto"
         title={
           onModal === "Almacenados"
             ? "Ordenes Almacenadas correctamente"
@@ -601,6 +607,7 @@ const Pendientes = () => {
                 onDetail?.Recibo
               })`
         }
+        scrollAreaComponent={ScrollArea.Autosize}
         centered
       >
         {onModal === "Almacenados" ? (

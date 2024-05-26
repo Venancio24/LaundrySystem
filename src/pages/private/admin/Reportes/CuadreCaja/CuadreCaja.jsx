@@ -4,7 +4,7 @@ import "./cuadreCaja.scss";
 import axios from "axios";
 import Portal from "../../../../../components/PRIVATE/Portal/Portal";
 import { Fragment } from "react";
-import { redondearNumero } from "../../../../../utils/functions/formatNumber/formatNumber";
+import { formatThousandsSeparator } from "../../../../../utils/functions/formatNumber/formatNumber";
 import { ingresoDigital, simboloMoneda } from "../../../../../services/global";
 import ExcelJS from "exceljs";
 import { cLetter } from "../../../../../utils/functions";
@@ -502,7 +502,7 @@ const CuadreCaja = () => {
                                   }}
                                   className="fila"
                                 >
-                                  {redondearNumero(
+                                  {formatThousandsSeparator(
                                     cuadresTransformados[rowIndex]?.cajaInicial
                                   )}
                                 </td>
@@ -520,7 +520,7 @@ const CuadreCaja = () => {
                                   }}
                                   className="fila"
                                 >
-                                  {redondearNumero(
+                                  {formatThousandsSeparator(
                                     cuadresTransformados[rowIndex]?.ingresos
                                       .efectivo
                                   )}
@@ -538,7 +538,7 @@ const CuadreCaja = () => {
                                   }}
                                   className="fila"
                                 >
-                                  {redondearNumero(
+                                  {formatThousandsSeparator(
                                     cuadresTransformados[rowIndex]?.egresos
                                   )}
                                 </td>
@@ -555,7 +555,7 @@ const CuadreCaja = () => {
                                   }}
                                   className="fila"
                                 >
-                                  {redondearNumero(
+                                  {formatThousandsSeparator(
                                     cuadresTransformados[rowIndex]?.montoCaja
                                   )}
                                 </td>
@@ -572,7 +572,7 @@ const CuadreCaja = () => {
                                   }}
                                   className="fila"
                                 >
-                                  {redondearNumero(
+                                  {formatThousandsSeparator(
                                     cuadresTransformados[rowIndex]?.corte
                                   )}
                                 </td>
@@ -589,7 +589,7 @@ const CuadreCaja = () => {
                                   }}
                                   className="fila"
                                 >
-                                  {redondearNumero(
+                                  {formatThousandsSeparator(
                                     cuadresTransformados[rowIndex]?.cajaFinal
                                   )}
                                 </td>
@@ -624,8 +624,11 @@ const CuadreCaja = () => {
                               }}
                               className="fila"
                             >
-                              {Math.abs(
-                                cuadresTransformados[rowIndex]?.margenError
+                              {formatThousandsSeparator(
+                                Math.abs(
+                                  cuadresTransformados[rowIndex]?.margenError
+                                ),
+                                true
                               )}
                             </td>
                             <td
@@ -671,7 +674,7 @@ const CuadreCaja = () => {
                                   }}
                                   className="fila"
                                 >
-                                  {redondearNumero(
+                                  {formatThousandsSeparator(
                                     cuadresTransformados[rowIndex]?.ingresos
                                       .transferencia
                                   )}
@@ -690,7 +693,7 @@ const CuadreCaja = () => {
                                   }}
                                   className="fila"
                                 >
-                                  {redondearNumero(
+                                  {formatThousandsSeparator(
                                     cuadresTransformados[rowIndex]?.ingresos
                                       .tarjeta
                                   )}
@@ -737,7 +740,7 @@ const CuadreCaja = () => {
                               rowSpan={numFilas}
                             >
                               {ingresosTotales
-                                ? redondearNumero(ingresosTotales)
+                                ? formatThousandsSeparator(ingresosTotales)
                                 : ""}
                             </td>
                             <td
@@ -748,7 +751,7 @@ const CuadreCaja = () => {
                               rowSpan={numFilas}
                             >
                               {egresosTotales
-                                ? redondearNumero(egresosTotales)
+                                ? formatThousandsSeparator(egresosTotales)
                                 : ""}
                             </td>
                             <td
@@ -813,7 +816,7 @@ const CuadreCaja = () => {
               <div className="i-final">
                 <span>
                   {cLetter(valueFinalINS?.tipo)} : &nbsp;&nbsp; {simboloMoneda}{" "}
-                  {redondearNumero(valueFinalINS?.total)}
+                  {formatThousandsSeparator(valueFinalINS?.total)}
                 </span>
               </div>
             </div>

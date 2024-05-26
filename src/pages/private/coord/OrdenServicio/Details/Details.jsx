@@ -16,8 +16,11 @@ import "./details.scss";
 import { useState } from "react";
 import moment from "moment";
 import { DateDetail_Hora } from "../../../../../utils/functions/dateCurrent/dateCurrent";
-import { simboloMoneda } from "../../../../../services/global";
-import { cLetter, handleGetInfoPago } from "../../../../../utils/functions";
+import {
+  cLetter,
+  formatThousandsSeparator,
+  handleGetInfoPago,
+} from "../../../../../utils/functions";
 
 const Details = ({ IdCliente }) => {
   const dispatch = useDispatch();
@@ -114,7 +117,7 @@ const Details = ({ IdCliente }) => {
             <tbody>
               {infoCliente?.Items.map((p, index) => (
                 <tr key={`${p._id}${index}`}>
-                  <td>{p.cantidad}</td>
+                  <td>{formatThousandsSeparator(p.cantidad)}</td>
                   <td>{p.item}</td>
                   <td className="tADescription">
                     <div className="contentDes">
@@ -165,7 +168,7 @@ const Details = ({ IdCliente }) => {
                       </div>
                     </div>
                   </td>
-                  <td>{p.total}</td>
+                  <td>{formatThousandsSeparator(p.total)}</td>
                 </tr>
               ))}
             </tbody>
@@ -202,13 +205,17 @@ const Details = ({ IdCliente }) => {
                 {infoCliente.factura ? (
                   <tr>
                     <td>Factura:</td>
-                    <td>{infoCliente.cargosExtras.igv.importe}</td>
+                    <td>
+                      {formatThousandsSeparator(
+                        infoCliente.cargosExtras.igv.importe
+                      )}
+                    </td>
                   </tr>
                 ) : null}
                 {infoCliente.descuento > 0 ? (
                   <tr>
                     <td>Decuento:</td>
-                    <td>{infoCliente.descuento}</td>
+                    <td>{formatThousandsSeparator(infoCliente.descuento)}</td>
                   </tr>
                 ) : null}
                 <tr>
@@ -220,7 +227,9 @@ const Details = ({ IdCliente }) => {
           </div>
 
           <div className="more-a">
-            <h2>Total - S/{infoCliente.totalNeto}</h2>{" "}
+            <h2>
+              Total - {formatThousandsSeparator(infoCliente.totalNeto, true)}
+            </h2>{" "}
           </div>
           <div className="list-pagos">
             <div className="title">Lista de Pagos</div>
@@ -232,8 +241,7 @@ const Details = ({ IdCliente }) => {
                     {DateDetail_Hora(p.date.fecha, p.date.hora)}
                   </span>
                   <span className="_monto">
-                    {simboloMoneda}
-                    {p.total}
+                    {formatThousandsSeparator(p.total, true)}
                   </span>
                   <span className="_metodopago">{cLetter(p.metodoPago)}</span>
                   <span>{handleInfoUser(p.idUser)}</span>
@@ -256,10 +264,7 @@ const Details = ({ IdCliente }) => {
                     <div className="l-info">
                       <span>Subtotal :</span>
                     </div>
-                    <div>
-                      {simboloMoneda}
-                      {statePago?.pago}
-                    </div>
+                    <div>{formatThousandsSeparator(statePago?.pago, true)}</div>
                   </div>
                   <div>
                     <div className="l-info">
@@ -273,8 +278,7 @@ const Details = ({ IdCliente }) => {
                         <span>Falta :</span>
                       </div>
                       <div>
-                        {simboloMoneda}
-                        {statePago?.falta}
+                        {formatThousandsSeparator(statePago?.falta, true)}
                       </div>
                     </div>
                   ) : null}

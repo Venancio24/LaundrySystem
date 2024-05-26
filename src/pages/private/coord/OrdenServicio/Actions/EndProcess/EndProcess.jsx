@@ -29,7 +29,6 @@ import "./endProcess.scss";
 import { socket } from "../../../../../../utils/socket/connect";
 import { Notify } from "../../../../../../utils/notify/Notify";
 import { simboloMoneda } from "../../../../../../services/global";
-import { GetDeliveryById } from "../../../../../../services/default.services";
 import { AddPago } from "../../../../../../redux/actions/aPago";
 
 const EndProcess = ({ IdCliente, onClose }) => {
@@ -79,6 +78,7 @@ const EndProcess = ({ IdCliente, onClose }) => {
   };
 
   const openModalPagar = (values) => {
+    let confirmationEnabled = true;
     modals.openConfirmModal({
       title: "Confirmar Pago",
       centered: true,
@@ -88,11 +88,17 @@ const EndProcess = ({ IdCliente, onClose }) => {
       labels: { confirm: "Si", cancel: "No" },
       confirmProps: { color: "green" },
       //onCancel: () => console.log("Cancelado"),
-      onConfirm: () => handleEditPago(values),
+      onConfirm: () => {
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          handleEditPago(values);
+        }
+      },
     });
   };
 
   const openModalEntregar = (value) => {
+    let confirmationEnabled = true;
     modals.openConfirmModal({
       title: "Confirmar Entrega",
       centered: true,
@@ -102,7 +108,12 @@ const EndProcess = ({ IdCliente, onClose }) => {
       labels: { confirm: "Si", cancel: "No" },
       confirmProps: { color: "green" },
       //onCancel: () => console.log("Cancelado"),
-      onConfirm: () => handleEditEntrega(value),
+      onConfirm: () => {
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          handleEditEntrega(value);
+        }
+      },
     });
   };
 
@@ -126,14 +137,16 @@ const EndProcess = ({ IdCliente, onClose }) => {
   // Entregado
   const handleEditEntrega = (values) => {
     let infoGastoByDelivery;
-    if (infoCliente.Modalidad === "Delivery") {
+    if (infoCliente.Modalidad === "Delivery" && !InfoNegocio?.hasMobility) {
       infoGastoByDelivery = {
         idTipoGasto: infoTipoGastoDeliveryEnvio._id,
         tipo: infoTipoGastoDeliveryEnvio.name,
         motivo: `[${String(infoCliente.codRecibo).padStart(
           4,
           "0"
-        )}] Delivery recojo en ${values.tipoTrasporte} - ${infoCliente.Nombre}`,
+        )}] Delivery ENVIO en Transporte ${values.tipoTrasporte} - ${
+          infoCliente.Nombre
+        }`,
         date: {
           fecha: DateCurrent().format4,
           hora: DateCurrent().format3,
@@ -166,14 +179,15 @@ const EndProcess = ({ IdCliente, onClose }) => {
   };
 
   const handleEntregar = () => {
-    if (infoCliente.Modalidad === "Tienda") {
-      console.log("tienda");
+    if (infoCliente.Modalidad === "Tienda" || InfoNegocio?.hasMobility) {
+      console.log("tienda o delivery (propio)");
       openModalEntregar();
     } else {
-      console.log("delivery");
+      console.log("delivery particular");
       setOnAction("concluir");
     }
   };
+
   const validationSchema = Yup.object().shape({
     tipoTrasporte:
       infoCliente.Modalidad === "Delivery" && estadoPago.estado === "Completo"
@@ -286,8 +300,7 @@ const EndProcess = ({ IdCliente, onClose }) => {
                 Anular
               </button>
             ) : null}
-            {infoCliente.estadoPrenda !== "entregado" &&
-            infoCliente.modeRegistro !== "antiguo" ? (
+            {infoCliente.estadoPrenda !== "entregado" ? (
               <button
                 type="button"
                 className="btn-exm"
@@ -317,24 +330,15 @@ const EndProcess = ({ IdCliente, onClose }) => {
               estadoPago.estado !== "Completo" ? vInitialPago : vInitialEntrega
             }
             validationSchema={validationSchema}
-            onSubmit={(values, { setSubmitting }) => {
+            onSubmit={(values) => {
               if (estadoPago.estado !== "Completo") {
                 openModalPagar(values);
               } else {
                 openModalEntregar(values);
               }
-              // openModalPagarEntregar(values);
-              setSubmitting(false);
             }}
           >
-            {({
-              handleSubmit,
-              setFieldValue,
-              isSubmitting,
-              values,
-              errors,
-              touched,
-            }) => (
+            {({ handleSubmit, setFieldValue, values, errors, touched }) => (
               <Form onSubmit={handleSubmit} className="content-pE">
                 <div className="trasporte-pago">
                   {estadoPago.estado !== "Completo" ? (
@@ -391,7 +395,8 @@ const EndProcess = ({ IdCliente, onClose }) => {
                       />
                     </>
                   ) : null}
-                  {infoCliente.Modalidad === "Delivery" &&
+                  {!InfoNegocio?.hasMobility &&
+                  infoCliente.Modalidad === "Delivery" &&
                   estadoPago.estado === "Completo" ? (
                     <Entregar
                       setFieldValue={setFieldValue}
@@ -409,11 +414,7 @@ const EndProcess = ({ IdCliente, onClose }) => {
                   >
                     Retroceder
                   </button>
-                  <button
-                    className="btn-exm"
-                    type="submit"
-                    disabled={isSubmitting}
-                  >
+                  <button className="btn-exm" type="submit">
                     Guardar
                   </button>
                 </div>

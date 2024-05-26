@@ -19,6 +19,7 @@ import {
   handleGetInfoPago,
   handleOnWaiting,
   handleItemsCantidad,
+  formatThousandsSeparator,
 } from "../../../../../utils/functions/index";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -133,12 +134,15 @@ const List = () => {
             readOnly
           />
         ),
-        size: 190,
+        size: 250,
       },
       {
         accessorKey: "PParcial",
         header: "Monto Cobrado",
         //enableSorting: false,
+        Cell: ({ cell }) => (
+          <Box>{formatThousandsSeparator(cell.getValue(), true)}</Box>
+        ),
         mantineFilterTextInputProps: {
           placeholder: "Monto",
         },
@@ -157,20 +161,19 @@ const List = () => {
           data: [
             {
               value: "COMPLETO",
-              label: "Completo",
+              label: "COMPLETO",
             },
             {
               value: "INCOMPLETO",
-              label: "Incompleto",
+              label: "INCOMPLETO",
             },
             {
               value: "PENDIENTE",
-              label: "Pendiente",
+              label: "PENDIENTE",
             },
           ],
         },
         enableEditing: false,
-        Cell: ({ cell }) => <Box>{cell.getValue().toUpperCase()}</Box>,
         size: 150,
       },
       {
@@ -178,20 +181,13 @@ const List = () => {
         header: "Total",
         //enableSorting: false,
         Cell: ({ cell }) => (
-          <Box>
-            {cell.getValue()?.toLocaleString?.(confMoneda, {
-              style: "currency",
-              currency: tipoMoneda,
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0,
-            })}
-          </Box>
+          <Box>{formatThousandsSeparator(cell.getValue(), true)}</Box>
         ),
         enableEditing: false,
         mantineFilterTextInputProps: {
           placeholder: "Total",
         },
-        size: 70,
+        size: 130,
       },
       {
         accessorKey: "Celular",
@@ -350,9 +346,9 @@ const List = () => {
           Nombre: d.Nombre,
           Modalidad: d.Modalidad,
           items: handleItemsCantidad(listItems),
-          PParcial: `${simboloMoneda} ${estadoPago.pago}`,
+          PParcial: estadoPago.pago,
           Pago: estadoPago.estado,
-          totalNeto: `${simboloMoneda} ${d.totalNeto}`,
+          totalNeto: d.totalNeto,
           DNI: d.dni,
           Celular: d.celular,
           Direccion: d.direccion,
@@ -614,7 +610,7 @@ const List = () => {
                   : "",
               border:
                 pressedRow === row.original.Id ? "2px solid #6582ff" : "none",
-              userSelect: "none",
+              // userSelect: "none",
             },
           })}
           enableStickyHeader={true}

@@ -18,7 +18,7 @@ const HeaderAdmin = () => {
     }, 200);
   };
 
-  const initializeHeaderAdmin = /*useCallback(*/ () => {
+  const initializeHeaderAdmin = () => {
     const navbarp2 = document.getElementById("n-exclusivo");
     const tabsp = navbarp2.querySelectorAll("li");
 
@@ -78,7 +78,7 @@ const HeaderAdmin = () => {
           const itemLeft = item.offsetLeft;
           horiSelector.style.top = `${itemTop}px`;
           horiSelector.style.left = `${itemLeft}px`;
-          //horiSelector.style.height = `${itemHeight - 2}px`;
+          horiSelector.style.height = `${itemHeight - 2}px`;
           horiSelector.style.width = `${itemWidth}px`;
         });
       }
@@ -86,15 +86,11 @@ const HeaderAdmin = () => {
       activeItemp?.classList?.remove("active");
       horiSelector.style.display = "none";
     }
-  }; /*, [location.pathname, stateHam2])*/
+  };
 
   useEffect(() => {
     initializeHeaderAdmin();
     window.addEventListener("resize", handleResize);
-
-    // return () => {
-    //   window.removeEventListener('resize', handleResize);
-    // };
   }, [location.pathname]);
 
   return (
@@ -106,14 +102,16 @@ const HeaderAdmin = () => {
             <div className="right" />
           </div>
           <li>
+            <Link to={`./${PrivateRoutes.PERSONAL}`} className="active">
+              ASISTENCIA
+            </Link>
+          </li>
+          <li>
             <Link to={`./${PrivateRoutes.PROMOCIONES}`}>Promociones</Link>
           </li>
           <li>
             <Link to={`./${PrivateRoutes.REPORTES}`}>Reportes</Link>
           </li>
-          {/* <li>
-            <Link to={`./${PrivateRoutes.GRAFICOS}`}>Graficos</Link>
-          </li> */}
           <li>
             <Link to={`./${PrivateRoutes.SETTING}`}>Ajustes</Link>
           </li>

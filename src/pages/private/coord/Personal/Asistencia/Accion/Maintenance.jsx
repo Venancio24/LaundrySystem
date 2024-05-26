@@ -81,7 +81,9 @@ const Maintenance = ({ info, onClose, onAddAsistencia }) => {
     return { hora: hours, minutos: minutes };
   };
 
-  const handleValidateAdd = (data) =>
+  const handleValidateAdd = (data) => {
+    let confirmationEnabled = true;
+
     modals.openConfirmModal({
       title: "Registro de Asistencia",
       centered: true,
@@ -94,11 +96,15 @@ const Maintenance = ({ info, onClose, onAddAsistencia }) => {
       confirmProps: { color: "green" },
       //onCancel: () => console.log("Cancelado"),
       onConfirm: () => {
-        onAddAsistencia(data);
-        formik.resetForm();
-        onClose();
+        if (confirmationEnabled) {
+          confirmationEnabled = false;
+          onAddAsistencia(data);
+          formik.resetForm();
+          onClose();
+        }
       },
     });
+  };
 
   const handleGetDay = (date) => {
     const formattedDayOfWeek = moment(date, "YYYY-MM-DD").format("dddd");

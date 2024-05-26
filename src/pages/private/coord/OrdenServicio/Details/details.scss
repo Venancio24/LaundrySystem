@@ -1,11 +1,11 @@
 .content-detail {
   width: 100%;
   height: 80vh;
-  min-width: 500px;
   max-width: 650px;
   max-height: 600px;
   overflow: auto;
   text-align: center;
+  display: grid;
   &::-webkit-scrollbar {
     width: 0 !important;
     display: none;

@@ -119,18 +119,6 @@ const ReporteDiario = ({ onClose }) => {
                     }, minmax(100px, 1fr))`,
                   }}
                   data-fechaprevista={dayData.FechaPrevista}
-                  ref={(element) => {
-                    if (
-                      element &&
-                      DateCurrent().format4 ===
-                        element.getAttribute("data-fechaprevista")
-                    ) {
-                      element.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start",
-                      });
-                    }
-                  }}
                 >
                   <td>{dayData.FechaPrevista}</td>
                   <td>{dayData.CantidadPedido}</td>
@@ -144,7 +132,7 @@ const ReporteDiario = ({ onClose }) => {
                   })}
                   <td>
                     {dayData.InfoItems.find(
-                      (item) => item.identificador === iDelivery._id
+                      (item) => item.identificador === iDelivery?._id
                     )?.Cantidad || 0}
                   </td>
                 </tr>

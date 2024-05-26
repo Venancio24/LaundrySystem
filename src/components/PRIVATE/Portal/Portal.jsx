@@ -1,24 +1,24 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
-import { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
-import { ReactComponent as Close } from './Cruzar.svg';
+import { useEffect, useState } from "react";
+import ReactDOM from "react-dom";
+import { ReactComponent as Close } from "./Cruzar.svg";
 
-import './portal.scss';
+import "./portal.scss";
 
 const Portal = ({ children, onClose }) => {
-  const portalRoot = document.getElementById('portal-root');
+  const portalRoot = document.getElementById("portal-root");
   const [mounted, setMounted] = useState(false);
   const [isAppearing, setIsAppearing] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         startClosing();
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
 
     setTimeout(() => {
       setMounted(true);
@@ -28,7 +28,7 @@ const Portal = ({ children, onClose }) => {
     }, 0);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [onClose]);
 
@@ -45,7 +45,9 @@ const Portal = ({ children, onClose }) => {
       startClosing();
     };
 
-    const backdropClass = isAppearing ? 'portal-backdrop portal-enter-active' : 'portal-backdrop';
+    const backdropClass = isAppearing
+      ? "portal-backdrop portal-enter-active"
+      : "portal-backdrop";
 
     return ReactDOM.createPortal(
       <div className={backdropClass}>

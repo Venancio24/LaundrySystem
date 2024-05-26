@@ -17,6 +17,7 @@ import { simboloMoneda } from "../../../../../services/global";
 import SwitchModel from "../../../../../components/SwitchModel/SwitchModel";
 import "./gasto.scss";
 import { useEffect } from "react";
+import { formatThousandsSeparator } from "../../../../../utils/functions";
 
 const Gasto = ({ onClose }) => {
   const [datePrincipal, setDatePrincipal] = useState(new Date());
@@ -53,9 +54,7 @@ const Gasto = ({ onClose }) => {
           placeholder: "",
         },
         Cell: ({ cell }) => (
-          <Box>
-            {simboloMoneda} {cell.getValue()}
-          </Box>
+          <Box>{formatThousandsSeparator(cell.getValue(), true)}</Box>
         ),
       },
     ],
@@ -80,23 +79,6 @@ const Gasto = ({ onClose }) => {
     } catch (error) {
       console.error("Error al obtener los gastos:", error);
     }
-  };
-
-  const openModal = () => {
-    onClose();
-    const month = moment.utc(datePrincipal).format("MMMM");
-    modals.openConfirmModal({
-      title: "Reporte de Gasto Mensual",
-      centered: true,
-      children: (
-        <Text size="sm">
-          ¿ Desea Generar Reporte de : {month.toUpperCase()} ?
-        </Text>
-      ),
-      labels: { confirm: "Si", cancel: "No" },
-      confirmProps: { color: "green" },
-      onConfirm: () => exportToExcel(),
-    });
   };
 
   const handleTransformData = (info) => {
@@ -279,9 +261,11 @@ const Gasto = ({ onClose }) => {
           }}
           activeOuterRadiusOffset={8}
           arcLabel={(info) => {
-            return `${filterBy === "monto" ? simboloMoneda : ""} ${
-              info.value
-            } ${filterBy === "cantidad" ? "u" : ""}`;
+            return `${
+              filterBy === "monto" ? simboloMoneda : ""
+            } ${formatThousandsSeparator(info.value)} ${
+              filterBy === "cantidad" ? "u" : ""
+            }`;
           }}
           borderWidth={1}
           borderColor={{
@@ -383,12 +367,6 @@ const Gasto = ({ onClose }) => {
             enableBottomToolbar={false}
             enableRowNumbers
             enableStickyHeader
-            mantineTableContainerProps={{
-              sx: {
-                // maxHeight: "400px",
-                // maxWidth: "1000px",
-              },
-            }}
             renderDetailPanel={({ row }) => (
               <div className="sub-row">
                 <div className="gasto-by-tipo">
@@ -419,7 +397,7 @@ const Gasto = ({ onClose }) => {
                           <tr>
                             <td>Monto :</td>
                             <td>
-                              {simboloMoneda} {gasto.monto}
+                              {formatThousandsSeparator(gasto.monto, true)}
                             </td>
                           </tr>
                         </tbody>
@@ -428,20 +406,10 @@ const Gasto = ({ onClose }) => {
                 </div>
               </div>
             )}
-            // mantineTableBodyRowProps={({ row }) => ({
-            //   onDoubleClick: () => {
-            //     setRowPick(row.original);
-            //     setPActions(true);
-            //   },
-            // })}
             positionExpandColumn="last"
           />
         </div>
       </div>
-
-      {/* <button className="xport-xsls" onClick={openModal}>
-        Exportar a Excel
-      </button> */}
     </div>
   );
 };

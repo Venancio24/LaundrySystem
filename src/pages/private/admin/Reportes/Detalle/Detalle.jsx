@@ -11,6 +11,7 @@ import { simboloMoneda } from "../../../../../services/global";
 import {
   DateDetail_Hora,
   cLetter,
+  formatThousandsSeparator,
   handleGetInfoPago,
 } from "../../../../../utils/functions";
 
@@ -100,7 +101,7 @@ const Detalle = ({ infoD }) => {
         <tbody>
           {ordern?.DetalleOrden.map((p, index) => (
             <tr key={`${p._id}${index}`}>
-              <td>{p.cantidad}</td>
+              <td>{formatThousandsSeparator(p.cantidad)}</td>
               <td>{p.item}</td>
               <td className="tADescription">
                 <div className="contentDes">
@@ -170,7 +171,7 @@ const Detalle = ({ infoD }) => {
                   </div>
                 </div>
               </td>
-              <td>{p.total}</td>
+              <td>{formatThousandsSeparator(p.total)}</td>
             </tr>
           ))}
         </tbody>
@@ -190,7 +191,12 @@ const Detalle = ({ infoD }) => {
               <span>Factura</span>
             </div>
             <div className="monto">
-              <span>{ordern?.CargosExtras.igv.importe}</span>
+              <span>
+                {formatThousandsSeparator(
+                  ordern?.CargosExtras.igv.importe,
+                  true
+                )}
+              </span>
             </div>
           </div>
         ) : null}
@@ -200,15 +206,13 @@ const Detalle = ({ infoD }) => {
               <span>Descuento</span>
             </div>
             <div className="monto">
-              <span>
-                {simboloMoneda} {ordern?.Descuento}
-              </span>
+              <span>{formatThousandsSeparator(ordern?.Descuento, true)}</span>
             </div>
           </div>
         ) : null}
       </div>
       <div className="more-a">
-        <h3>Total: {ordern?.totalNeto}</h3>
+        <h3>Total: {formatThousandsSeparator(ordern?.totalNeto)}</h3>
       </div>
       <div className="list-pagos">
         <div className="title">Lista de Pagos</div>
@@ -219,8 +223,7 @@ const Detalle = ({ infoD }) => {
                 {DateDetail_Hora(p.date.fecha, p.date.hora)}
               </span>
               <span className="_monto">
-                {simboloMoneda}
-                {p.total}
+                {formatThousandsSeparator(p.total, true)}
               </span>
               <span className="_metodopago">{cLetter(p.metodoPago)}</span>
               <span>{handleInfoUser(p.idUser)}</span>
@@ -243,10 +246,7 @@ const Detalle = ({ infoD }) => {
                 <div className="l-info">
                   <span>Subtotal :</span>
                 </div>
-                <div>
-                  {simboloMoneda}
-                  {statePago?.pago}
-                </div>
+                <div>{formatThousandsSeparator(statePago?.pago, true)}</div>
               </div>
               <div>
                 <div className="l-info">
@@ -259,10 +259,7 @@ const Detalle = ({ infoD }) => {
                   <div className="l-info">
                     <span>Falta :</span>
                   </div>
-                  <div>
-                    {simboloMoneda}
-                    {statePago?.falta}
-                  </div>
+                  <div>{formatThousandsSeparator(statePago?.falta, true)}</div>
                 </div>
               ) : null}
             </span>
