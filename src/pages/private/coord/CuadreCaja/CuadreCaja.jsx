@@ -111,7 +111,7 @@ const CuadreCaja = () => {
         monto: pay.total,
         decripcion: `Orden N° ${pay.orden} de ${pay.nombre}, (${pay.Modalidad})`,
         tipo: "ingreso",
-        hora: pay.date.hora,
+        hora: pay.date?.hora,
       });
     });
 
@@ -122,7 +122,7 @@ const CuadreCaja = () => {
         monto: spend.monto,
         decripcion: `Motivo : ${spend.motivo}`,
         tipo: "gasto",
-        hora: spend.date.hora,
+        hora: spend.date?.hora,
       });
     });
 
