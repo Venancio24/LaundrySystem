@@ -118,7 +118,7 @@ const EndProcess = ({ IdCliente, onClose }) => {
   };
 
   // Pago
-  const handleEditPago = async (values) => {
+  const handleEditPago = (values) => {
     const newPago = {
       ...values,
       idOrden: IdCliente,
@@ -130,8 +130,7 @@ const EndProcess = ({ IdCliente, onClose }) => {
       idUser: InfoUsuario._id,
     };
 
-    await dispatch(AddPago(newPago));
-    onClose();
+    dispatch(AddPago(newPago));
   };
 
   // Entregado
@@ -330,12 +329,14 @@ const EndProcess = ({ IdCliente, onClose }) => {
               estadoPago.estado !== "Completo" ? vInitialPago : vInitialEntrega
             }
             validationSchema={validationSchema}
-            onSubmit={(values) => {
+            onSubmit={(values, actions) => {
               if (estadoPago.estado !== "Completo") {
                 openModalPagar(values);
               } else {
                 openModalEntregar(values);
               }
+              actions.resetForm();
+              onClose();
             }}
           >
             {({ handleSubmit, setFieldValue, values, errors, touched }) => (

@@ -399,10 +399,7 @@ const Ticket = React.forwardRef((props, ref) => {
                         <td colSpan="3">Subtotal :</td>
                         <td>
                           {formatThousandsSeparator(
-                            infoOrden.Items.reduce(
-                              (total, p) => total + parseFloat(p.total),
-                              0
-                            ) -
+                            infoOrden.subTotal -
                               (infoOrden?.Modalidad === "Delivery"
                                 ? montoDelivery()
                                 : 0)
@@ -455,7 +452,7 @@ const Ticket = React.forwardRef((props, ref) => {
                 {infoOrden?.descuento > 0 && !tipoTicket ? (
                   <div className="space-ahorro">
                     <h2 className="title">
-                      ! Felicidades Ahorraste
+                      ! Felicidades Ahorraste&nbsp;
                       {formatThousandsSeparator(infoOrden?.descuento, true)} ¡
                     </h2>
                     {infoOrden?.modoDescuento === "Promocion" ? (

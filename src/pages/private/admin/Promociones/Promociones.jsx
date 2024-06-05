@@ -1,7 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { Box, Button, Modal, MultiSelect, Textarea } from "@mantine/core";
+import {
+  Box,
+  Button,
+  Modal,
+  MultiSelect,
+  NumberInput,
+  Textarea,
+} from "@mantine/core";
 import { Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import React, { useEffect, useState, useRef } from "react";
@@ -9,41 +16,41 @@ import { useDisclosure } from "@mantine/hooks";
 import { ScrollArea } from "@mantine/core";
 import "./promocion.scss";
 import { useDispatch, useSelector } from "react-redux";
-import { DeletePromocion } from "../../../../redux/actions/aPromociones";
-import { codigoPhonePais, simboloMoneda } from "../../../../services/global";
 import {
-  WSendMessage,
-  handleRegisterCupon,
-} from "../../../../services/default.services";
+  DeletePromocion,
+  updatePromocion,
+} from "../../../../redux/actions/aPromociones";
+import { simboloMoneda } from "../../../../services/global";
 import { Notify } from "../../../../utils/notify/Notify";
-import whatsappApp from "./whatsappApp.png";
-import Cupon from "../../../../components/PRIVATE/Cupon/Cupon";
 import axios from "axios";
 import { useMemo } from "react";
 import { MantineReactTable } from "mantine-react-table";
-import Portal from "../../../../components/PRIVATE/Portal/Portal";
+import Pet from "../../../../utils/img/Promocion/pet.jpg";
 import Maintenance from "./Accion/Maintenance";
 import { calcularFechaFutura } from "../../../../utils/functions";
+import SwtichDimension from "../../../../components/SwitchDimension/SwitchDimension";
+import LoaderSpiner from "../../../../components/LoaderSpinner/LoaderSpiner";
 
 const Promociones = () => {
-  const [opened, { open, close }] = useDisclosure(false);
-  const dispatch = useDispatch();
-  const [promoSelected, setPromoSelected] = useState();
-  const [phoneA, setPhoneA] = useState("");
-  const [sCuponSaved, setSCuponSaved] = useState(false);
+  const [mCupones, { open: openModalCupones, close: closeModalCupones }] =
+    useDisclosure(false);
 
-  const inputRef = useRef();
+  const [mAccionPromo, { open: openAccionPromo, close: closeAccionPromo }] =
+    useDisclosure(false);
+
+  const dispatch = useDispatch();
+
+  const [onLoading, setOnLoading] = useState(false);
 
   const [listPromociones, setListPromociones] = useState([]);
 
   const [rowPick, setRowPick] = useState(null);
-  const [PActions, setPActions] = useState(false);
   const [action, setAction] = useState("");
+  const [nCupon, setNCupones] = useState("");
 
   const InfoServicios = useSelector((state) => state.servicios.listServicios);
 
   const infoPromocion = useSelector((state) => state.promocion.infoPromocion);
-  const InfoNegocio = useSelector((state) => state.negocio.infoNegocio);
 
   const columns = useMemo(
     () => [
@@ -158,55 +165,52 @@ const Promociones = () => {
     });
   };
 
-  const handleAddPromocion = async (promo) => {
+  const handleGenerarCupones = async (codigoPromocion, cantCupones) => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/generate-codigo-cupon`
+      const response = await axios.post(
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/lava-ya/generate-multiples-cupones`,
+        {
+          codigoPromocion,
+          cantCupones,
+        }
       );
 
-      if (response.data) {
-        const codigoCupon = response.data;
-        setPromoSelected({ codigoCupon, ...promo });
-        open();
-        setTimeout(() => {
-          inputRef.current.focus();
-        }, 1000);
-      } else {
-        alert("No se pudo generar promocion");
-      }
+      const codigosGenerados = response.data;
+
+      // Generar el texto con el título y los códigos numerados
+      let texto = `LISTA DE CUPONES : ${rowPick.descripcion} \n\n`;
+      codigosGenerados.forEach((codigo, index) => {
+        texto += `${index + 1}. ${codigo}\n`;
+      });
+
+      // Crear el archivo Blob y descargarlo
+      const archivo = new Blob([texto], { type: "text/plain" });
+      const url = URL.createObjectURL(archivo);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = `${cantCupones} - CODIGO DE CUPONES.txt`;
+      document.body.appendChild(enlace);
+      enlace.click();
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        document.body.removeChild(enlace);
+      }, 0);
+      Notify("Cupones Generados Exitosamente", "", "success");
     } catch (error) {
-      console.error("Error al realizar la solicitud:", error);
+      Notify("Error al Generar Cupones", "", "fail");
+      console.error("Error al generar los cupones:", error);
+    } finally {
+      // Esta parte siempre se ejecutará, independientemente de si hubo un error o no
+      setOnLoading(false);
+      closeModalCupones();
+      setNCupones("");
     }
   };
 
-  const handleSavedSendCup = async () => {
-    const promociones = [
-      {
-        codigoPromocion: promoSelected.codigo,
-        codigoCupon: promoSelected.codigoCupon,
-      },
-    ];
-    await handleRegisterCupon(promociones).then((responses) => {
-      const res = responses[0];
-      if (res.status === 201) {
-        Notify("Cupon Creado Existosamente", res.data.mensaje, "success");
-        handleSendMessage();
-      }
-    });
-  };
-
-  const handleSendMessage = () => {
-    const number = phoneA;
-    const mensaje = `¡Hola le saluda la *Lavanderia ${
-      InfoNegocio.name
-    }*, enviandole esta *promocion* de *regalo* : *${
-      promoSelected.descripcion
-    }*, puede cangearlo con el siguiente codigo: *${
-      promoSelected.codigoCupon
-    }* hasta el día ${calcularFechaFutura(promoSelected.vigencia)}`;
-    for (let index = 0; index < 2; index++) {
-      WSendMessage(mensaje, number);
-    }
+  const handleUpdateEstado = async (infoPromo, id) => {
+    dispatch(updatePromocion({ infoPromo, id }));
   };
 
   const handleGetValuesServices = (ids) => {
@@ -225,9 +229,11 @@ const Promociones = () => {
   };
 
   const handleCloseAction = () => {
-    setRowPick(null);
-    setPActions(false);
-    setAction("");
+    closeAccionPromo();
+    setTimeout(() => {
+      setRowPick(null);
+      setAction("");
+    }, 500);
   };
 
   useEffect(() => {
@@ -294,7 +300,7 @@ const Promociones = () => {
         <Button
           type="button"
           onClick={() => {
-            setPActions(true);
+            openAccionPromo();
             setAction("Add");
           }}
         >
@@ -332,114 +338,162 @@ const Promociones = () => {
                 ? handleGetValuesServices(iPromo.prenda)
                 : ["Todos"];
             setRowPick({ ...iPromo, prenda: newAtrr });
-            setPActions(true);
+            openAccionPromo();
           },
         })}
       />
       <Modal
-        opened={opened}
-        closeOnClickOutside={false}
+        opened={mAccionPromo}
+        // closeOnClickOutside={false}
+        // closeOnEscape={false}
+        // withCloseButton={false}
+        onClose={() => handleCloseAction()}
+        size="auto"
+        title={action === "" ? `codigo : ${rowPick?.codigo}` : null}
+        scrollAreaComponent={ScrollArea.Autosize}
+        centered
+      >
+        {action === "Add" ? (
+          <Maintenance onClose={handleCloseAction} />
+        ) : (
+          // : action === "Edit" ? (
+          //<Maintenance info={rowPick} onClose={handleCloseAction} />
+          //)
+          <div className="portal-action-promocion">
+            <div className="action">
+              <div className="swtich-state">
+                <SwtichDimension
+                  onSwitch="ACTIVADO"
+                  offSwitch="DESACTIVADO"
+                  name="swtich-state"
+                  defaultValue={rowPick?.state === "activo" ? true : false}
+                  handleChange={(value) => {
+                    modals.openConfirmModal({
+                      title: "Registro de Promocion",
+                      centered: true,
+                      children: (
+                        <Text size="sm">
+                          ¿ Estas seguro de Actualizar el Estado de esta
+                          Promocion ?
+                        </Text>
+                      ),
+                      labels: { confirm: "Si", cancel: "No" },
+                      confirmProps: { color: "blue" },
+                      //onCancel: () => console.log("Cancelado"),
+                      onConfirm: () => {
+                        const infoPromo = {
+                          state: value === "ACTIVADO" ? "activo" : "inactivo",
+                        };
+                        handleUpdateEstado(infoPromo, rowPick?._id);
+                        handleCloseAction();
+                      },
+                    });
+                  }}
+                  colorOn="#339af0"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                style={{ background: "#1ec885" }}
+                onClick={() => {
+                  openModalCupones();
+                  closeAccionPromo();
+                }}
+              >
+                Generar Cupon
+              </Button>
+
+              <Button
+                type="submit"
+                style={{ background: "#e76565" }}
+                onClick={() => validDeletePromocion(rowPick._id)}
+              >
+                Eliminar Promocion
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+      <Modal
+        opened={mCupones}
+        // closeOnClickOutside={false}
         // closeOnEscape={false}
         // withCloseButton={false}
         onClose={() => {
-          close();
+          closeModalCupones();
           handleCloseAction();
         }}
         size={450}
-        title={"Cupon de Promociones Manual"}
+        title={"Generar Multiples Cupones de Promociones"}
         scrollAreaComponent={ScrollArea.Autosize}
         centered
       >
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (sCuponSaved === false) {
-              setSCuponSaved(true);
-              handleSavedSendCup();
-            } else {
-              handleSendMessage();
-            }
+            setOnLoading(true);
+            handleGenerarCupones(rowPick.codigo, nCupon);
           }}
           className="content-generate-cupon"
         >
-          <div className="cup-space">
-            <Cupon infoPromo={promoSelected} />
-          </div>
-          <div className="send-whatsapp">
-            <button type="button" className="btn-send-whatsapp app">
-              <img src={whatsappApp} alt="" />
-            </button>
-            <div className="info-cel">
-              <label htmlFor="">Numero Celular :</label>
-              <input
-                type="number"
-                required
-                ref={inputRef}
-                onDragStart={(e) => e.preventDefault()}
-                defaultValue={`${codigoPhonePais}${phoneA}`}
-                onChange={(e) => {
-                  const inputValue = e.target.value;
-                  const validInput = inputValue
-                    ? inputValue.replace(/[^0-9.]/g, "")
-                    : "";
-                  setPhoneA(validInput);
-                }}
-              />
+          {onLoading ? (
+            <div className="loading-cupon">
+              <LoaderSpiner />
             </div>
-          </div>
-          <Button
-            type="submit"
-            disabled={phoneA.length <= 8}
-            className="btn-save"
-            variant="gradient"
-            gradient={{ from: "indigo", to: "cyan" }}
+          ) : null}
+          <div
+            className="body-cupon"
+            style={{ visibility: onLoading ? "hidden" : "visible" }}
           >
-            {sCuponSaved === false ? "Guardar y Enviar" : "Reenviar"}
-          </Button>
-        </form>
-      </Modal>
-      {PActions && (
-        <Portal onClose={handleCloseAction}>
-          {action === "Add" ? (
-            <Maintenance onClose={handleCloseAction} />
-          ) : action === "Edit" ? (
-            <Maintenance info={rowPick} onClose={handleCloseAction} />
-          ) : (
-            <div className="portal-action-promocion">
-              <span>codigo : {rowPick.codigo}</span>
-              <div className="action">
-                <Button
-                  type="submit"
-                  style={{ background: "#339af0" }}
-                  onClick={() => {
-                    setAction("Edit");
-                  }}
+            <div className="cup-space">
+              <div className="cupon-card">
+                <div className="info-promo">
+                  <div>
+                    <h1>PROMOCION:</h1>
+                    <h2 style={{ fontSize: "0.8em", textAlign: "justify" }}>
+                      {rowPick?.descripcion}
+                    </h2>
+                  </div>
+                  <div>
+                    <img src={Pet} alt="" />
+                  </div>
+                </div>
+                <h2
+                  className="vigencia"
+                  style={{ float: "right", fontSize: "0.9em" }}
                 >
-                  Actualizar Promocion
-                </Button>
-
-                <Button
-                  type="submit"
-                  style={{ background: "#1ec885" }}
-                  onClick={() => {
-                    handleAddPromocion(rowPick);
-                  }}
-                >
-                  Generar Cupon
-                </Button>
-
-                <Button
-                  type="submit"
-                  style={{ background: "#e76565" }}
-                  onClick={() => validDeletePromocion(rowPick._id)}
-                >
-                  Eliminar Promocion
-                </Button>
+                  Vencimiento : {calcularFechaFutura(rowPick?.vigencia)}
+                </h2>
               </div>
             </div>
-          )}
-        </Portal>
-      )}
+            <NumberInput
+              label="Cantidad de CUPONES"
+              radius="md"
+              value={nCupon}
+              precision={0}
+              step={1}
+              min={1}
+              max={100}
+              hideControls={true}
+              autoComplete="off"
+              required
+              onChange={(value) => {
+                setNCupones(value);
+              }}
+            />
+            <Button
+              type="submit"
+              className="btn-save"
+              variant="gradient"
+              gradient={{ from: "indigo", to: "cyan" }}
+            >
+              Generar Cupones
+            </Button>
+            <div />
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

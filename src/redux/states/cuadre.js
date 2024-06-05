@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { GetCuadre, GetLastCuadre } from "../actions/aCuadre";
+import { GetCuadre } from "../actions/aCuadre";
 import { MONTOS_BASE } from "../../services/global";
 
 // Función auxiliar para actualizar un registro en un array
@@ -100,49 +100,6 @@ const cuadre = createSlice({
         }
       })
       .addCase(GetCuadre.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message;
-      })
-      // // Add Cuadre
-      // .addCase(SaveCuadre.pending, (state) => {
-      //   state.isLoading = true;
-      //   state.infoCuadre = false;
-      //   state.error = null;
-      // })
-      // .addCase(SaveCuadre.fulfilled, (state, action) => {
-      //   state.isLoading = false;
-      //   state.infoCuadre = action.payload;
-      // })
-      // .addCase(SaveCuadre.rejected, (state, action) => {
-      //   state.isLoading = false;
-      //   state.infoCuadre = false;
-      //   state.error = action.error.message;
-      // })
-      // // Update Cuadre
-      // .addCase(UpdateCuadre.pending, (state) => {
-      //   state.isLoading = true;
-      //   state.infoCuadre = false;
-      //   state.error = null;
-      // })
-      // .addCase(UpdateCuadre.fulfilled, (state, action) => {
-      //   state.isLoading = false;
-      //   state.infoCuadre = action.payload;
-      // })
-      // .addCase(UpdateCuadre.rejected, (state, action) => {
-      //   state.isLoading = false;
-      //   state.infoCuadre = false;
-      //   state.error = action.error.message;
-      // })
-      // Get Last Cuadre
-      .addCase(GetLastCuadre.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(GetLastCuadre.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.lastCuadre = action.payload;
-      })
-      .addCase(GetLastCuadre.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message;
       });

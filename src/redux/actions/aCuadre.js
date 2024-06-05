@@ -21,21 +21,6 @@ export const GetCuadre = createAsyncThunk(
   }
 );
 
-export const GetLastCuadre = createAsyncThunk(
-  "cuadreDiario/GetCajaInicial",
-  async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/get-cuadre/last`
-      );
-      return response.data;
-    } catch (error) {
-      // Puedes manejar los errores aquí
-      throw new Error("No se pudieron obtener los datos");
-    }
-  }
-);
-
 export const SaveCuadre = createAsyncThunk(
   "cuadreDiario/SaveCuadre",
   async (infoCuadreDiario) => {

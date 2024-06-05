@@ -377,15 +377,18 @@ const Items = () => {
             colors="#d38d8d"
             borderColor={{ from: "color", modifiers: [["darker", 1.6]] }}
             label={(d) => {
-              if (d.value === 0) {
-                return <tspan x="-15">{d.value}</tspan>;
-              } else {
-                return valorizarX === "montoGenerado"
-                  ? `${formatThousandsSeparator(d.value, true)}`
-                  : `${formatThousandsSeparator(d.value)} ${
-                      d.data.simboloMedida
-                    }`;
-              }
+              return d.value === 0 ? (
+                <tspan x="-15">{d.value}</tspan>
+              ) : (
+                <tspan x="">
+                  {valorizarX === "montoGenerado"
+                    ? `${formatThousandsSeparator(d.value, true)}`
+                    : `${formatThousandsSeparator(d.value)} ${
+                        d.data.simboloMedida
+                      }`}
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                </tspan>
+              );
             }}
             axisTop={null}
             axisLeft={null}
@@ -397,7 +400,7 @@ const Items = () => {
               legendOffset: 40,
             }}
             axisBottom={{
-              tickValues: 5,
+              tickValues: 3,
               tickSize: 5,
               tickPadding: 5,
               tickRotation: 0,

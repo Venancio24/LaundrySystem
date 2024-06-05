@@ -50,9 +50,6 @@ const CuadreCaja = () => {
     registroNoCuadrados,
   } = useSelector((state) => state.cuadre);
 
-  // const infoPagosByDate = useSelector((state) => state.pago.listPagoByDate);
-  // const infoGastosByDate = useSelector((state) => state.gasto.listGastoByDate);
-
   const infoRegistroNC = useSelector(
     (state) => state.cuadre.registroNoCuadrados
   );
@@ -62,7 +59,7 @@ const CuadreCaja = () => {
     hora: DateCurrent().format3,
   });
 
-  const [onLoading, setOnLoading] = useState(false);
+  const [onLoading, setOnLoading] = useState(true);
 
   const [iState, setIState] = useState();
   const [totalCaja, setTotalCaja] = useState(0);
@@ -350,18 +347,16 @@ const CuadreCaja = () => {
   };
 
   const chageInfo = (info) => {
-    // setOnLoading(true);
     setIState(info);
-    setTimeout(() => {
-      setOnLoading(false);
-    }, 2500);
   };
 
   useEffect(() => {
     const handleGetInfoCuadre = async () => {
+      setOnLoading(true);
       await dispatch(
         GetCuadre({ date: datePrincipal.fecha, id: InfoUsuario._id })
       );
+      setOnLoading(false);
     };
     handleGetInfoCuadre();
   }, [datePrincipal]);
@@ -482,7 +477,6 @@ const CuadreCaja = () => {
   }, [posCuadre, infoCuadre]);
 
   useEffect(() => {
-    setOnLoading(true);
     const cuadreLS = JSON.parse(localStorage.getItem("cuadreCaja"));
     if (
       cuadreLS?.date.fecha === datePrincipal.fecha &&
