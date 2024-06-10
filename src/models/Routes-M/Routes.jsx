@@ -9,6 +9,7 @@ export const PrivateRoutes = {
   PRIVATE: "private",
   // ADMIN
   PROMOCIONES: "promociones",
+  CLIENTES: "clientes",
   GRAFICOS: "graficos",
   REGISTER_OLDS: "add-orden-service/old",
   // ---

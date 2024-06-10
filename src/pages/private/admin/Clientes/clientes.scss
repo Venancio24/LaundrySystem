@@ -1,46 +1,39 @@
-.container-productos {
-  width: 100%;
-  max-width: 1000px;
-  min-width: 1000px;
-  height: 100%;
+.content-clientes {
   display: grid;
-  grid-template-rows: max-content auto;
-  gap: 10px;
   margin: auto;
-  .header-p {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    h1 {
-      text-align: center;
-    }
-  }
-  .body-p {
-    margin: auto;
-    height: 100%;
-    display: grid;
+  max-width: 1000px;
+  width: 100%;
+  padding: 0 20px;
+  place-items: center;
+  gap: 20px;
+  .header-cli {
     width: 100%;
-    grid-template-columns: 25% 50% 25%;
-
-    .graf-prod {
-      height: 100%;
-      max-height: 400px;
-      display: grid;
-      grid-template-rows: 20px calc(100% - 20px);
-      h1 {
-        text-align: center;
-        font-size: 17px;
-      }
+    display: flex;
+    justify-content: space-between;
+  }
+  .body-clientes {
+    width: 100%;
+    display: flex;
+    gap: 25px;
+    place-content: center;
+    justify-content: space-between;
+    .list-clientes {
+      width: max-content;
     }
-    .list-products {
-      width: 100%;
-      max-height: 500px;
-      overflow: hidden;
+    .detail-cliente {
       display: grid;
+      grid-template-rows: 35px max-content;
       gap: 10px;
 
+      $wTabla: 300px;
       $hTabla: 320px;
       $hHeader: 34px;
+      .title-detail {
+        font-size: 23px;
+        font-weight: 600;
+        color: #5a5a5a;
+        margin: auto;
+      }
       .table-wrapper {
         width: max-content;
         height: $hTabla;
@@ -56,7 +49,7 @@
         border-collapse: collapse;
         border: 1px solid silver;
         table {
-          width: 300px;
+          width: $wTabla;
         }
 
         table,
@@ -67,7 +60,7 @@
 
         thead {
           display: table;
-          width: 450px;
+          width: $wTabla;
           height: $hHeader;
           tr {
             th {
@@ -115,6 +108,26 @@
           width: 100%;
         }
       }
+    }
+  }
+}
+.form-cliente {
+  display: grid;
+  gap: 10px;
+  place-items: center;
+  width: 300px;
+  .mantine-InputWrapper-root {
+    width: 230px;
+  }
+  .info-puntaje {
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #6cb199;
+    color: #fff;
+    span {
+      font-size: 18px;
+      font-weight: 600;
     }
   }
 }

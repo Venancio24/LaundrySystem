@@ -164,24 +164,27 @@ const HeaderUser = () => {
                   Cuadre de Caja
                 </Link>
               </li>
-              {/* <li>
-                <Link to={`./${PrivateRoutes.REGISTER_PENDIENTE}`}>Pendientes</Link>
-              </li> */}
             </>
           ) : null}
 
           {(userState.rol === Roles.ADMIN || userState.rol === Roles.GERENTE) &&
           isSmallScreen ? (
             <>
+              {/* <li>
+                <Link to={`./${PrivateRoutes.PERSONAL}`} className="active">
+                  ASISTENCIA
+                </Link>
+              </li> */}
+              <li>
+                <Link to={`./${PrivateRoutes.CLIENTES}`}>Clientes</Link>
+              </li>
+
               <li>
                 <Link to={`./${PrivateRoutes.PROMOCIONES}`}>Promociones</Link>
               </li>
               <li>
                 <Link to={`./${PrivateRoutes.REPORTES}`}>Reportes</Link>
               </li>
-              {/* <li>
-                <Link to={`./${PrivateRoutes.GRAFICOS}`}>Graficos</Link>
-              </li> */}
               <li className="pages-admin">
                 <Link to={`./${PrivateRoutes.SETTING}`}>Ajustes</Link>
               </li>
