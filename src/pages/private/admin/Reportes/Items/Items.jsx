@@ -4,13 +4,13 @@ import { ResponsiveBar } from "@nivo/bar";
 import axios from "axios";
 import ExcelJS from "exceljs";
 import "./items.scss";
-import { simboloMoneda } from "../../../../../services/global";
 import SwitchModel from "../../../../../components/SwitchModel/SwitchModel";
 import { MonthPickerInput } from "@mantine/dates";
 import moment from "moment";
 import { Roles } from "../../../../../models";
 import { useSelector } from "react-redux";
 import { formatThousandsSeparator } from "../../../../../utils/functions";
+import BotonExport from "../../../../../components/PRIVATE/BotonExport/BotonExport";
 
 const Items = () => {
   const [data, setData] = useState([]);
@@ -18,7 +18,6 @@ const Items = () => {
   const [tipoFiltro, setTipoFiltro] = useState("servicios");
   const [infoProductos, setInfoProductos] = useState([]);
   const [infoServicios, setInfoServicios] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   const [datePrincipal, setDatePrincipal] = useState(new Date());
 
@@ -159,16 +158,6 @@ const Items = () => {
     a.click();
 
     URL.revokeObjectURL(url);
-  };
-
-  const handleExport = () => {
-    if (!loading) {
-      setLoading(true);
-      setTimeout(() => {
-        setLoading(false);
-        exportToExcel();
-      }, 2400);
-    }
   };
 
   return (
@@ -334,26 +323,7 @@ const Items = () => {
           </div>
           <div className="action-t">
             {InfoUsuario.rol === Roles.ADMIN ? (
-              <button
-                className={`button_wrapper ${loading ? "loading" : ""}`}
-                onClick={handleExport}
-              >
-                <div className="icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.75"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75"
-                    />
-                  </svg>
-                </div>
-              </button>
+              <BotonExport onExport={exportToExcel} />
             ) : null}
           </div>
         </div>

@@ -4,7 +4,7 @@
 /* eslint-disable react/prop-types */
 import { Autocomplete, NumberInput, TextInput } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -68,7 +68,9 @@ const AddOld = () => {
   // Impuesto
   const [impuesto, setImpuesto] = useState(null);
 
-  const [iPago, setIPago] = useState();
+  const [estadoPago, setEstadoPago] = useState();
+
+  const [currentPago, setCurrentPago] = useState();
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -79,15 +81,7 @@ const AddOld = () => {
   );
   const InfoNegocio = useSelector((state) => state.negocio.infoNegocio);
 
-  const getInfoDelivery = () => {
-    const ICategory = InfoCategorias.find((cat) => cat.nivel === "primario");
-    const IService = InfoServicios.find(
-      (service) =>
-        service.idCategoria === ICategory._id && service.nombre === "Delivery"
-    );
-
-    return IService;
-  };
+  const iDelivery = useSelector((state) => state.servicios.serviceDelivery);
 
   const validationSchema = Yup.object().shape({
     codigo: Yup.string().required("Campo Numerico obligatorio (1 - 1000)"),
@@ -100,9 +94,7 @@ const AddOld = () => {
         "categoria",
         "Debe haber al menos un item - Delivery no cuenta",
         function (value) {
-          return value.some(
-            (item) => item.identificador !== getInfoDelivery()._id
-          );
+          return value.some((item) => item.identificador !== iDelivery._id);
         }
       )
       .of(
@@ -116,36 +108,30 @@ const AddOld = () => {
 
   const formik = useFormik({
     initialValues: {
-      codigo: "",
+      dni: "",
       name: "",
-      phone: "",
+      swModalidad: "Tienda",
       direccion: "",
+      codigo: "",
+      phone: "",
       dateRecojo: "",
       datePrevista: "",
-      listPago: [],
-      pago: "Pendiente",
       items: [],
-      descuento: "",
-      swModalidad: "Tienda",
-      dni: "",
+      descuento: {
+        estado: false,
+        modoDescuento: "Ninguno",
+        info: null,
+        monto: 0,
+      },
       subTotal: "",
-      totalNeto: "",
       cargosExtras: {
-        beneficios: {
-          puntos: 0,
-          promociones: [],
-        },
-        descuentos: {
-          redondeo: 0,
-          puntos: 0,
-          promocion: 0,
-        },
-        igv: {
+        impuesto: {
+          estado: false,
           valor: impuesto,
           importe: 0,
         },
       },
-      factura: false,
+      totalNeto: "",
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
@@ -196,6 +182,9 @@ const AddOld = () => {
 
     const newRow = {
       cantidad: 1,
+      identificador: IService._id,
+      simboloMedida: IService.simboloMedida,
+      tipo: "servicio",
       item:
         IService.nombre === "Otros" && ICategory.name === "Unico"
           ? ""
@@ -203,14 +192,15 @@ const AddOld = () => {
       descripcion: "",
       expanded: false,
       price: IService.precioVenta,
+      monto: IService.precioVenta,
+      descuentoManual: 0,
       total: IService.precioVenta,
-      tipo: "servicio",
-      identificador: IService._id,
-      simboloMedida: IService.simboloMedida,
       disable: {
         cantidad: isDelivery ? true : false,
         item: isDelivery ? true : isOtros ? false : true,
         descripcion: isDelivery,
+        monto: false,
+        descuentoManual: false,
         total: false,
         action: isDelivery,
       },
@@ -241,35 +231,6 @@ const AddOld = () => {
     }
   }
 
-  const handlePago = (value) => {
-    let newListPago = [];
-    let newStatePago;
-    if (value) {
-      newListPago.push(value);
-      newStatePago = handleGetInfoPago(newListPago, formik.values.totalNeto);
-      formik.setFieldValue("listPago", [value]);
-      formik.setFieldValue("pago", newStatePago.estado);
-    } else {
-      newListPago = [value];
-      const newStatePago = handleGetInfoPago(
-        newListPago,
-        formik.values.totalNeto
-      );
-      formik.setFieldValue("pago", newStatePago.estado);
-    }
-    setIPago(value);
-  };
-
-  const handleNoPagar = () => {
-    let newListPago = [];
-    const newStatePago = handleGetInfoPago(
-      newListPago,
-      formik.values.totalNeto
-    );
-    formik.setFieldValue("pago", newStatePago.estado);
-    setIPago();
-  };
-
   const handleGetInfo = (info) => {
     const infoIntem = info.items.map((p) => ({
       identificador: p.identificador,
@@ -279,21 +240,36 @@ const AddOld = () => {
       simboloMedida: p.simboloMedida,
       descripcion: p.descripcion,
       precio: p.price,
+      monto: p.monto,
+      descuentoManual: p.descuentoManual,
       total: p.total,
     }));
 
-    const lPago = info.listPago.map((p) => {
-      return {
-        ...p,
-        date: {
-          fecha: tFecha(formik.values.dateRecojo),
-          hora: DateCurrent().format3,
+    let cargosExtrasUpdated;
+    if (!info.cargosExtras.impuesto.estado) {
+      cargosExtrasUpdated = {
+        impuesto: {
+          estado: false,
+          valor: 0,
+          importe: 0,
         },
-        isCounted: false,
-        idUser: InfoUsuario._id,
       };
-    });
-    2;
+    } else {
+      cargosExtrasUpdated = info.cargosExtras;
+    }
+
+    const infoPago = currentPago
+      ? {
+          ...currentPago,
+          date: {
+            fecha: DateCurrent().format4,
+            hora: DateCurrent().format3,
+          },
+          isCounted: false,
+          idUser: InfoUsuario._id,
+        }
+      : null;
+
     const infoOrden = {
       codRecibo: info.codigo,
       dateRecepcion: {
@@ -301,6 +277,7 @@ const AddOld = () => {
         hora: tHora(infoNegocio.funcionamiento?.horas?.inicio, 1, "despues"),
       },
       Modalidad: info.swModalidad,
+      idCliente: "",
       Nombre: info.name,
       Items: infoIntem,
       celular: info.phone,
@@ -313,51 +290,36 @@ const AddOld = () => {
         fecha: "",
         hora: "",
       },
-      descuento: info.descuento,
-      estadoPrenda: "pendiente",
       estado: "registrado",
+      descuento: info.descuento,
       dni: info.dni,
-      factura: info.factura,
       subTotal: info.subTotal,
-      cargosExtras: info.cargosExtras,
+      cargosExtras: cargosExtrasUpdated,
       totalNeto: info.totalNeto,
       modeRegistro: "antiguo",
-      modoDescuento: "Puntos",
-      notas: [],
       gift_promo: [],
       attendedBy: {
         name: InfoUsuario.name,
         rol: InfoUsuario.rol,
       },
-      lastEdit: [],
       typeRegistro: "normal",
     };
 
     dispatch(
       AddOrdenServices({
         infoOrden,
-        infoPago: lPago,
+        infoPago,
         rol: InfoUsuario.rol,
+        infoUser: {
+          _id: InfoUsuario._id,
+          name: InfoUsuario.name,
+          usuario: InfoUsuario.usuario,
+          rol: InfoUsuario.rol,
+        },
       })
-    ).then((res) => {
-      if (res.payload) {
-        navigate(
-          `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.LIST_ORDER_SERVICE}`
-        );
-      }
-    });
-  };
+    );
 
-  const handleGetClientes = async (dni) => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/get-clientes/${dni}`
-      );
-      const data = response.data;
-      setInfoClientes(data);
-    } catch (error) {
-      console.error("Error al obtener los datos:", error.message);
-    }
+    navigate(`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.LIST_ORDER_SERVICE}`);
   };
 
   const validIco = (mensaje) => {
@@ -389,7 +351,7 @@ const AddOld = () => {
   useEffect(() => {
     setVScore(InfoPuntos);
 
-    formik.setFieldValue("cargosExtras.igv.valor", InfoImpuesto.IGV);
+    formik.setFieldValue("cargosExtras.impuesto.valor", InfoImpuesto.IGV);
     setImpuesto(InfoImpuesto.IGV);
   }, [InfoPuntos, InfoImpuesto]);
 
@@ -402,26 +364,30 @@ const AddOld = () => {
   useEffect(() => {
     const subTotal = formik.values.subTotal;
     let montoImpuesto = 0;
-    if (formik.values.factura === true) {
+    if (formik.values.cargosExtras.impuesto.estado === true) {
       montoImpuesto = +(subTotal * impuesto).toFixed(2);
     }
-    formik.setFieldValue("cargosExtras.igv.importe", montoImpuesto);
+    formik.setFieldValue("cargosExtras.impuesto.importe", montoImpuesto);
     const total = subTotal + montoImpuesto;
-    const descuento = formik.values.cargosExtras.descuentos.puntos;
-    formik.setFieldValue("descuento", descuento);
+    const descuento = 0;
     const totalNeto = total - descuento;
     formik.setFieldValue("totalNeto", +formatRoundedNumber(totalNeto));
   }, [
-    formik.values.cargosExtras.igv,
+    formik.values.cargosExtras.impuesto.estado,
+    formik.values.cargosExtras.impuesto.valor,
     formik.values.items,
-    formik.values.cargosExtras.descuentos,
-    formik.values.factura,
     formik.values.subTotal,
   ]);
 
   useEffect(() => {
-    handleNoPagar();
+    setCurrentPago();
   }, [formik.values.totalNeto]);
+
+  useEffect(() => {
+    const listPago = currentPago ? [currentPago] : [];
+    const iPago = handleGetInfoPago(listPago, formik.values.totalNeto);
+    setEstadoPago(iPago);
+  }, [currentPago]);
 
   return (
     <div className="space-ra">
@@ -434,35 +400,20 @@ const AddOld = () => {
           <>
             <div className="space-paralelos">
               <div style={{ width: "300px", margin: "10px 20px" }}>
-                <Autocomplete
-                  name="dni"
-                  onChange={(dni) => {
-                    handleGetClientes(dni);
-                    formik.setFieldValue("dni", dni);
-                    setDataScore();
-                    // formik.setFieldValue('name', '');
-                    // formik.setFieldValue('phone', '');
-                    formik.setFieldValue("cargosExtras.descuentos.puntos", 0);
-                    formik.setFieldValue("cargosExtras.beneficios.puntos", 0);
-                  }}
-                  label={`${documento} :`}
-                  placeholder={`Ingrese ${documento}`}
-                  defaultValue={formik.values.dni}
-                  onItemSubmit={(selected) => {
-                    const cliente = infoClientes.find(
-                      (obj) => obj.dni === selected.value
-                    );
-                    formik.setFieldValue("name", cliente.nombre);
-                    formik.setFieldValue("phone", cliente.phone);
-
-                    setDataScore(cliente);
-                  }}
-                  data={
-                    infoClientes.length > 0
-                      ? infoClientes.map((obj) => obj.dni)
-                      : []
-                  }
-                />
+                <div className="space-info">
+                  <TextInput
+                    name="dni"
+                    label={`${documento} :`}
+                    placeholder={`Ingrese ${documento}`}
+                    radius="md"
+                    value={formik.values.dni}
+                    onChange={formik.handleChange}
+                    autoComplete="off"
+                  />
+                  {formik.errors.name &&
+                    formik.touched.name &&
+                    validIco(formik.errors.name)}
+                </div>
                 <div className="space-info">
                   <NumberInput
                     name="codigo"
@@ -599,7 +550,7 @@ const AddOld = () => {
                     if (value === true) {
                       formik.setFieldValue("swModalidad", "Tienda");
                       const updatedItems = formik.values.items.filter(
-                        (item) => item.identificador !== getInfoDelivery()._id
+                        (item) => item.identificador !== iDelivery._id
                       );
                       formik.setFieldValue("items", updatedItems);
                     } else {
@@ -607,14 +558,16 @@ const AddOld = () => {
                       formik.setFieldValue("items", [
                         ...formik.values.items,
                         {
-                          identificador: getInfoDelivery()._id,
+                          identificador: iDelivery._id,
                           tipo: "servicio",
                           cantidad: 1,
-                          item: "Delivery",
-                          simboloMedida: "vj",
-                          descripcion: "Recojo y Entrega",
-                          price: getInfoDelivery().precioVenta,
-                          total: getInfoDelivery().precioVenta,
+                          item: iDelivery.nombre,
+                          simboloMedida: iDelivery.simboloMedida,
+                          descripcion: "Transporte",
+                          price: iDelivery.precioVenta,
+                          monto: iDelivery.precioVenta,
+                          descuentoManual: 0,
+                          total: iDelivery.precioVenta,
                           disable: {
                             cantidad: true,
                             item: true,
@@ -636,7 +589,7 @@ const AddOld = () => {
                   colorBackground="#F9777F" // COLOR FONDO
                   onChange={(value) => {
                     // value = (TRUE O FALSE)
-                    formik.setFieldValue("factura", value);
+                    formik.setFieldValue("cargosExtras.impuesto.estado", value);
                   }}
                 />
               </div>
@@ -876,7 +829,7 @@ const AddOld = () => {
                         onClick={() => {
                           if (
                             formik.values.items[index].identificador !==
-                            getInfoDelivery()._id
+                            iDelivery._id
                           ) {
                             const updatedItems = [...formik.values.items];
                             updatedItems.splice(index, 1);
@@ -902,14 +855,14 @@ const AddOld = () => {
                   </tr>
                   <tr>
                     <td></td>
-                    {formik.values.factura ? (
+                    {formik.values.cargosExtras.impuesto.estado ? (
                       <>
                         <td>
                           {nameImpuesto} ({(impuesto * 100).toFixed(0)} %) :
                         </td>
                         <td>
                           {formatThousandsSeparator(
-                            formik.values.cargosExtras.igv.importe,
+                            formik.values.cargosExtras.impuesto.importe,
                             true
                           )}
                         </td>
@@ -950,23 +903,23 @@ const AddOld = () => {
                       type="button"
                       onClick={() => setIsPortal(!isPortal)}
                     >
-                      <ButtonSwitch pago={formik.values.pago} />
+                      <ButtonSwitch pago={estadoPago?.estado} />
                     </button>
                   </div>
-                  {iPago ? (
+                  {currentPago ? (
                     <img
                       tabIndex="-1"
                       className={
-                        iPago.metodoPago === "Efectivo"
+                        currentPago.metodoPago === "Efectivo"
                           ? "ico-efect"
-                          : iPago.metodoPago === ingresoDigital
+                          : ingresoDigital.includes(currentPago?.metodoPago)
                           ? "ico-tranf"
                           : "ico-card"
                       }
                       src={
-                        iPago.metodoPago === "Efectivo"
+                        currentPago.metodoPago === "Efectivo"
                           ? Efectivo
-                          : iPago?.metodoPago === ingresoDigital
+                          : ingresoDigital.includes(currentPago?.metodoPago)
                           ? Tranferencia
                           : Tarjeta
                       }
@@ -974,8 +927,8 @@ const AddOld = () => {
                     />
                   ) : null}
                 </div>
-                {iPago ? (
-                  <div className="info-pago">{`${iPago.metodoPago} ${simboloMoneda}${iPago.total} : ${formik.values.pago}`}</div>
+                {currentPago ? (
+                  <div className="estado-pago">{`${currentPago.metodoPago} ${simboloMoneda}${currentPago.total} : ${estadoPago?.estado}`}</div>
                 ) : null}
               </div>
             </div>
@@ -986,12 +939,17 @@ const AddOld = () => {
                 }}
               >
                 <MetodoPago
-                  handlePago={handlePago}
-                  infoPago={iPago}
+                  // handlePago={handlePago}
+                  // infoPago={iPago}
+                  // totalToPay={formik.values.totalNeto}
+                  // handleNoPagar={handleNoPagar}
+                  // onClose={setIsPortal}
+                  // modeUse={"New"}
+                  currentPago={currentPago}
+                  onConfirm={(value) => setCurrentPago(value)}
+                  onCancel={() => setCurrentPago()}
+                  onClose={() => setIsPortal(false)}
                   totalToPay={formik.values.totalNeto}
-                  handleNoPagar={handleNoPagar}
-                  onClose={setIsPortal}
-                  modeUse={"New"}
                 />
               </Portal>
             )}

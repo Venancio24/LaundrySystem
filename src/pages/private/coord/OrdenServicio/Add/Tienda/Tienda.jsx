@@ -20,13 +20,38 @@ const Tienda = () => {
   const navigate = useNavigate();
 
   const { lastRegister } = useSelector((state) => state.orden);
+  const InfoUsuario = useSelector((state) => state.user.infoUsuario);
 
-  const handleRegistrar = async (infoOrden) => {
-    dispatch(AddOrdenServices(infoOrden)).then((res) => {
-      if ("error" in res) {
-        setRedirect(false);
-      } else {
-        setRedirect(true);
+  const handleRegistrar = async (data) => {
+    const { infoOrden, infoPago, rol } = data;
+
+    // Crear la nueva orden con los datos necesarios
+    const nuevaOrden = {
+      infoOrden: {
+        ...infoOrden,
+        estado: "registrado",
+        typeRegistro: "normal",
+      },
+      infoPago,
+      rol,
+      infoUser: {
+        _id: InfoUsuario._id,
+        name: InfoUsuario.name,
+        usuario: InfoUsuario.usuario,
+        rol: InfoUsuario.rol,
+      },
+    };
+    setRedirect(true);
+
+    await dispatch(AddOrdenServices(nuevaOrden)).then((res) => {
+      if (res.error) {
+        console.error(
+          "Error en el servicio al agregar la orden:",
+          res.error.message
+        );
+        navigate(
+          `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.LIST_ORDER_SERVICE}`
+        );
       }
     });
   };
@@ -47,9 +72,9 @@ const Tienda = () => {
         <div className="content-tienda">
           <OrdenServicio
             titleMode="REGISTRAR"
-            mode={"Tienda"}
-            action={"Guardar"}
+            mode={"NEW"}
             onAction={handleRegistrar}
+            infoDefault={null}
           />
         </div>
       ) : (

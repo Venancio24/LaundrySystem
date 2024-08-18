@@ -1,14 +1,40 @@
 // Zona Horaria
 export const timeZone = "America/Lima";
+// Default Hora Prevista
+export const defaultHoraPrevista = "18:00";
+// Default Hora Recojo
+export const defaultHoraRecojo = "11:00";
+// Roles validaos
+export const allowedRoles = [
+  {
+    value: "admin",
+    label: "Administrador",
+  },
+  // {
+  //   value: "gerente",
+  //   label: "Gerente",
+  // },
+  {
+    value: "coord",
+    label: "Coordinador",
+  },
+  // {
+  //   value: "pers",
+  //   label: "Personal",
+  // },
+];
+
 // Factura
 export const showFactura = false;
+// Mostrar Cuantos Puntos tiene el Cliente
+export const showPuntosOnTicket = false;
 // Tipo de Moneda
 export const tipoMoneda = "PEN";
 // Formato de la moneda (separacion de miles - decimales) segun la configuracion regional
 export const confMoneda = "es-PE";
 export const simboloMoneda = "S/";
 export const nameMoneda = "Soles";
-export const ingresoDigital = "YAPE";
+export const ingresoDigital = ["Transferencia Movil"];
 
 export const politicaAbandono = {
   mResaltado: "El plazo máximo para retirar las prendas es de 90 días ",

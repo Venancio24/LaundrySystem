@@ -1,29 +1,30 @@
 .content-clientes {
-  display: grid;
   margin: auto;
-  max-width: 1000px;
-  width: 100%;
   padding: 0 20px;
-  place-items: center;
   gap: 20px;
-  .header-cli {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-  }
+
   .body-clientes {
-    width: 100%;
-    display: flex;
-    gap: 25px;
+    margin: 0 auto;
+    gap: 15px;
+    display: grid;
     place-content: center;
-    justify-content: space-between;
+    grid-template-columns: clamp(300px, calc(100% - 320px), 810px) 305px;
     .list-clientes {
-      width: max-content;
+      display: grid;
+
+      width: 100%;
+      gap: 20px;
+      .header-cli {
+        display: flex;
+        justify-content: space-between;
+      }
     }
     .detail-cliente {
       display: grid;
       grid-template-rows: 35px max-content;
       gap: 10px;
+      width: min-content;
+      margin: auto;
 
       $wTabla: 300px;
       $hTabla: 320px;
@@ -70,7 +71,7 @@
               text-align: center;
               position: sticky;
               top: 0;
-              z-index: 10;
+              z-index: 1;
             }
           }
         }
@@ -111,6 +112,7 @@
     }
   }
 }
+
 .form-cliente {
   display: grid;
   gap: 10px;
@@ -128,6 +130,15 @@
     span {
       font-size: 18px;
       font-weight: 600;
+    }
+  }
+}
+
+@media (max-width: 750px) {
+  .content-clientes {
+    .body-clientes {
+      grid-template-columns: none;
+      gap: 20px;
     }
   }
 }

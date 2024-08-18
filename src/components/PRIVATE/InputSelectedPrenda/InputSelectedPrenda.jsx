@@ -22,6 +22,8 @@ const InputSelectedPrenda = ({ listenClick, tabI, disabled }) => {
   const iServicios = useSelector((state) => state.servicios.listServicios);
   const iCategorias = useSelector((state) => state.categorias.listCategorias);
 
+  const iDelivery = useSelector((state) => state.servicios.serviceDelivery);
+
   const [data, setData] = useState([]);
   const [defaultValue, setDefaultValue] = useState(null);
 
@@ -35,8 +37,10 @@ const InputSelectedPrenda = ({ listenClick, tabI, disabled }) => {
       const categoria = mapeoCategorias[servicio.idCategoria];
       // Excluir si el servicio es "Delivery" y su categoría es de nivel "primario" o si el estado es false
       return (
-        !(servicio.nombre === "Delivery" && categoria?.nivel === "primario") &&
-        servicio.estado
+        !(
+          servicio.nombre === iDelivery.nombre &&
+          categoria?.nivel === "primario"
+        ) && servicio.estado
       );
     });
   };

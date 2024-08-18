@@ -58,14 +58,14 @@ function calculateTimeDifference(startDate, endDate) {
   }
 }
 
-export function handleOnWaiting(dateEntrada, estadoPrenda, dateEndProcess) {
+export function handleOnWaiting(dateEntrada, stateOrden, dateEndProcess) {
   const entradaMoment = moment(dateEntrada);
   const actualMoment = moment();
 
   let fechaFinal;
   let totalDias;
 
-  if (estadoPrenda === "entregado" || estadoPrenda === "donado") {
+  if (stateOrden === "entregado") {
     const fechaInicio = moment(dateEntrada);
     const fechaFin = moment(dateEndProcess);
     const duracion = moment.duration(fechaFin.diff(fechaInicio));
@@ -90,9 +90,8 @@ export function handleOnWaiting(dateEntrada, estadoPrenda, dateEndProcess) {
   );
 
   const respuesta = {
-    stado: estadoPrenda === "anulado" ? false : true,
-    stadoEntrega:
-      estadoPrenda === "entregado" || estadoPrenda === "donado" ? true : false,
+    stado: stateOrden === "anulado" || stateOrden === "donado" ? false : true,
+    stadoEntrega: stateOrden === "entregado" ? true : false,
     showText: mensaje,
     nDias: Math.floor(totalDias), // Redondear hacia abajo el número de días
   };

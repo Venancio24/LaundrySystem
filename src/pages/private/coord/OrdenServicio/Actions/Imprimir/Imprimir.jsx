@@ -99,6 +99,7 @@ const index = () => {
           </div>
         ) : null}
       </div>
+
       <div className="actions">
         <SwtichModel
           title="Tipo Ticket :"

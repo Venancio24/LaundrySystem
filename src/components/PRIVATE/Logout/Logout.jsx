@@ -1,16 +1,19 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Text } from "@mantine/core";
+import { Text, Popover, Button } from "@mantine/core";
 import { modals } from "@mantine/modals";
 
 import { PublicRoutes } from "../../../models/Routes-M/Routes";
 import "./logout.scss";
 // import { LogoutUser } from '../../../services/default.services';
 import IcoClose from "./logout.png";
+import IcoUsuario from "./usuario.png";
+import { useSelector } from "react-redux";
 
 const Logout = () => {
   const navigate = useNavigate();
+  const InfoUsuario = useSelector((store) => store.user.infoUsuario);
 
   const openModal = () =>
     modals.openConfirmModal({
@@ -38,11 +41,47 @@ const Logout = () => {
   };
 
   return (
-    <div onClick={openModal} className="content-logout">
-      <button className="btn-logout" type="button">
-        <img src={IcoClose} alt="cerrar_session" />
-      </button>
-    </div>
+    <Popover
+      width={"auto"}
+      arrowPosition="center"
+      position="top"
+      offset={8}
+      withArrow
+      shadow="md"
+    >
+      <Popover.Target>
+        <div className="content-account">
+          <div className="btn-account">
+            <img
+              className="ico-account"
+              src={IcoUsuario}
+              alt="cerrar_session"
+            />
+          </div>
+        </div>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <div className="space-data">
+          <div className="menu-login">
+            <div className="avatar-space">
+              <img
+                className="ico-avatar"
+                src={IcoUsuario}
+                alt="cerrar_session"
+              />
+            </div>
+            <div className="info-user">
+              <span className="d-primary">{InfoUsuario.name}</span>
+              <span className="d-extra">{InfoUsuario.rol}</span>
+              <span className="d-secundary">{InfoUsuario.email}</span>
+            </div>
+          </div>
+          <Button className="btn-logout" color="red" onClick={openModal}>
+            Cerrar Session
+          </Button>
+        </div>
+      </Popover.Dropdown>
+    </Popover>
   );
 };
 

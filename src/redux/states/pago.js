@@ -45,9 +45,9 @@ const pago = createSlice({
       // DeletePago
       .addCase(DeletePago.fulfilled, (state, action) => {
         state.isLoading = false;
-        const deletedPago = action.payload;
+        const idPagoToDelete = action.payload;
         state.listPagoByDate = state.listPagoByDate.filter(
-          (pago) => pago?._id !== deletedPago?._id
+          (pago) => pago?._id !== idPagoToDelete
         );
       })
       .addCase(DeletePago.rejected, (state, action) => {

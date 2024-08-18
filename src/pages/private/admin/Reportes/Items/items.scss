@@ -37,6 +37,7 @@
       max-height: 500px;
       overflow: hidden;
       display: grid;
+      grid-template-rows: min-content 50px;
       gap: 10px;
 
       $hTabla: 320px;
@@ -114,6 +115,12 @@
           display: table; /* display purpose; th's border */
           width: 100%;
         }
+      }
+      .action-t {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
     }
   }

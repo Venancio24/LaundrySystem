@@ -78,7 +78,6 @@ const Maintenance = ({ info, cancelarEdit }) => {
           dispatch(
             updateCategoria({ idCategoria: info._id, categoriaData: data })
           );
-          Notify("Categoria Actualizado Exitosamente", "", "success");
           formik.resetForm();
           cancelarEdit();
         }

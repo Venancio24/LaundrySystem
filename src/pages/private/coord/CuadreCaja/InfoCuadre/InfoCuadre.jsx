@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { TextInput } from "@mantine/core";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { ingresoDigital } from "../../../../../services/global";
 import { formatThousandsSeparator } from "../../../../../utils/functions";
@@ -72,6 +72,7 @@ const InfoCuadre = ({
   pedidosPagadosEfectivo,
   pedidosPagadosTransferencia,
   pedidosPagadosTarjeta,
+  pagosByTipoTransferencia,
   montoPrevisto,
   stateCuadre,
 }) => {
@@ -131,12 +132,18 @@ const InfoCuadre = ({
             </div>
           </div>
         </div>
-        <TextInput
-          label={`Pedidos Pagados (${ingresoDigital}) :`}
-          radius="md"
-          value={formatThousandsSeparator(pedidosPagadosTransferencia)}
-          readOnly
-        />
+        {Object.keys(pagosByTipoTransferencia).map(
+          (tipoTransferencia) =>
+            pagosByTipoTransferencia[tipoTransferencia] !== "0.00" && (
+              <TextInput
+                key={tipoTransferencia}
+                label={`Pedidos Pagados (${tipoTransferencia.toLocaleUpperCase()}):`}
+                radius="md"
+                value={pagosByTipoTransferencia[tipoTransferencia]}
+                readOnly
+              />
+            )
+        )}
         <TextInput
           label={`Pedidos Pagados (TARJETA) :`}
           radius="md"

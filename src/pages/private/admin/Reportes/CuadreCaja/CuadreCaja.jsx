@@ -389,7 +389,8 @@ const CuadreCaja = () => {
                     }}
                   >
                     Ingresos
-                    <br />({ingresoDigital})
+                    <br />
+                    (TRANSFERENCIA MOVIL)
                   </th>
                   <th
                     style={{

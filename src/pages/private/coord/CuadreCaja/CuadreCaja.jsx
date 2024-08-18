@@ -69,6 +69,9 @@ const CuadreCaja = () => {
   const [pedidosPagadosTransferencia, setPedidosPagadosTransferencia] =
     useState(0);
   const [pedidosPagadosTarjeta, setPedidosPedidosPagadosTarjeta] = useState(0);
+  // --------------------------------------------------------- //
+  const [pagosByTipoTransferencia, setPagosByTipoTransferencia] = useState();
+  // --------------------------------------------------------- //
 
   const [iClienteEfectivo, setIClienteEfectivo] = useState();
   const [iClienteTransferencia, setIClienteTransferencia] = useState();
@@ -106,7 +109,7 @@ const CuadreCaja = () => {
         _id: pay._id,
         user: pay.infoUser?.name,
         monto: pay.total,
-        decripcion: `Orden N° ${pay.orden} de ${pay.nombre}, (${pay.Modalidad})`,
+        decripcion: `Orden N° ${pay.codRecibo} de ${pay.Nombre}, (${pay.Modalidad})`,
         tipo: "ingreso",
         hora: pay.date?.hora,
       });
@@ -420,16 +423,38 @@ const CuadreCaja = () => {
 
       const cEfectivo = ListPagos?.filter((d) => d.metodoPago === "Efectivo");
       const cTransferencia = ListPagos?.filter(
-        (d) => d.metodoPago === ingresoDigital
+        (d) => !["Efectivo", "Tarjeta"].includes(d.metodoPago)
       );
       const cTarjeta = ListPagos?.filter((d) => d.metodoPago === "Tarjeta");
 
       setPedidosPagadosEfectivo(sumaMontos(cEfectivo));
       setPedidosPagadosTransferencia(sumaMontos(cTransferencia));
       setPedidosPedidosPagadosTarjeta(sumaMontos(cTarjeta));
+      // -------------------------------------------------------------- //
+
+      const transferenciasByTipo = cTransferencia?.reduce((acc, curr) => {
+        const { metodoPago } = curr;
+        if (!acc[metodoPago]) {
+          acc[metodoPago] = [];
+        }
+        acc[metodoPago].push(curr);
+        return acc;
+      }, {});
+
+      const sumaByTipoTransferencia = Object.keys(transferenciasByTipo).reduce(
+        (result, metodo) => {
+          const clientes = transferenciasByTipo[metodo] || [];
+          result[metodo] = parseFloat(sumaMontos(clientes));
+          return result;
+        },
+        {}
+      );
+
+      setPagosByTipoTransferencia(sumaByTipoTransferencia);
+      // -------------------------------------------------------------- //
 
       setIClienteEfectivo(cEfectivo);
-      setIClienteTransferencia(cTransferencia);
+      setIClienteTransferencia(transferenciasByTipo);
       setIClienteTarjeta(cTarjeta);
 
       setFilteredGastos(ListGastos.map((g) => g._id));
@@ -638,6 +663,7 @@ const CuadreCaja = () => {
                     pedidosPagadosTarjeta={pedidosPagadosTarjeta}
                     montoPrevisto={montoPrevisto}
                     stateCuadre={stateCuadre}
+                    pagosByTipoTransferencia={pagosByTipoTransferencia}
                   />
                   <FinalBalance
                     totalCaja={totalCaja}

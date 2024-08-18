@@ -3,7 +3,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import "./clock.scss";
-import moment from "moment";
 import Digital from "./Digital/Digital";
 
 const Clock = ({ getTime }) => {

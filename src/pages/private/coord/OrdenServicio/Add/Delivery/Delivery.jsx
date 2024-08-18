@@ -8,7 +8,6 @@ import { NumberInput, TextInput } from "@mantine/core";
 import { Field, Form, Formik } from "formik";
 import * as Yup from "yup";
 
-// import Factura from "../../../../../Data/ReusableComponent/Factura/Factura";
 import OrdenServicio from "../../../../../../components/PRIVATE/OrdenServicio/OrdenServicio";
 import LoaderSpiner from "../../../../../../components/LoaderSpinner/LoaderSpiner";
 import { DateCurrent } from "../../../../../../utils/functions";
@@ -24,7 +23,10 @@ import { AddOrdenServices } from "../../../../../../redux/actions/aOrdenServices
 
 import { setLastRegister } from "../../../../../../redux/states/service_order";
 import { PrivateRoutes } from "../../../../../../models";
-import { simboloMoneda } from "../../../../../../services/global";
+import {
+  defaultHoraPrevista,
+  simboloMoneda,
+} from "../../../../../../services/global";
 import ValidIco from "../../../../../../components/ValidIco/ValidIco";
 
 const Delivery = () => {
@@ -37,6 +39,10 @@ const Delivery = () => {
   const { InfoImpuesto } = useSelector((state) => state.modificadores);
 
   const InfoUsuario = useSelector((state) => state.user.infoUsuario);
+  const iDelivery = useSelector((state) => state.servicios.serviceDelivery);
+  const { InfoImpuesto: iImpuesto } = useSelector(
+    (state) => state.modificadores
+  );
 
   const [shouldFocusInput, setShouldFocusInput] = useState(false);
   const [registrar, setRegistrar] = useState(false);
@@ -44,18 +50,14 @@ const Delivery = () => {
   const [redirect, setRedirect] = useState(false);
 
   const [infoGastoByDelivery, setInfoGastoByDelivery] = useState();
-  const [nameDefault, setNameDefault] = useState();
-
-  const infoServiceDelivery = useSelector(
-    (state) => state.servicios.serviceDelivery
-  );
+  const [infoDefault, setInfoDefault] = useState();
 
   const infoTipoGastoDeliveryRecojo = useSelector(
     (state) => state.tipoGasto.iDeliveryRecojo
   );
 
   // Reservar
-  const handleReservar = (values) => {
+  const handleReservar = async (values) => {
     const infoGastoByDelivery = {
       idTipoGasto: infoTipoGastoDeliveryRecojo._id,
       tipo: infoTipoGastoDeliveryRecojo.name,
@@ -79,60 +81,65 @@ const Delivery = () => {
         fecha: DateCurrent().format4,
         hora: DateCurrent().format3,
       },
+      dateRecojo: {
+        fecha: "",
+        hora: "",
+      },
       Modalidad: "Delivery",
       Nombre: values.name,
       idCliente: "",
       Items: [
         {
-          identificador: infoServiceDelivery._id,
+          identificador: iDelivery._id,
           tipo: "servicio",
           cantidad: 1,
-          item: infoServiceDelivery.nombre,
-          simboloMedida: infoServiceDelivery.simboloMedida,
-          descripcion: "Recojo y Entrega",
-          price: infoServiceDelivery.precioVenta,
-          total: infoServiceDelivery.precioVenta,
+          item: iDelivery.nombre,
+          simboloMedida: iDelivery.simboloMedida,
+          descripcion: "Transporte",
+          precio: iDelivery.precioVenta,
+          monto: iDelivery.precioVenta,
+          descuentoManual: 0,
+          total: iDelivery.precioVenta,
           disable: {
             cantidad: true,
             item: true,
             descripcion: true,
+            monto: false,
             total: false,
+            descuentoManual: false,
             action: true,
           },
         },
       ],
       celular: "",
+      direccion: "",
       datePrevista: {
-        fecha: "",
-        hora: "",
+        fecha: DateCurrent().format4,
+        hora: defaultHoraPrevista,
       },
       dateEntrega: {
         fecha: "",
         hora: "",
       },
-      descuento: 0,
+      descuento: {
+        estado: true,
+        modoDescuento: "Manual", // Puntos | Promocion | Manual | Ninguno
+        info: null,
+        monto: 0,
+      },
       estadoPrenda: "pendiente",
       estado: "reservado",
       dni: "",
-      factura: false,
       subTotal: 0,
       cargosExtras: {
-        beneficios: {
-          puntos: 0,
-          promociones: [],
-        },
-        descuentos: {
-          puntos: 0,
-          promocion: 0,
-        },
-        igv: {
-          valor: InfoImpuesto.IGV,
+        impuesto: {
+          estado: false,
+          valor: iImpuesto.IGV,
           importe: 0,
         },
       },
       totalNeto: 0,
       modeRegistro: "nuevo",
-      modoDescuento: "Puntos",
       gift_promo: [],
       attendedBy: {
         name: InfoUsuario.name,
@@ -141,38 +148,54 @@ const Delivery = () => {
       typeRegistro: "normal",
     };
 
-    dispatch(
+    await dispatch(
       AddOrdenServices({
         infoOrden,
         rol: InfoUsuario.rol,
-        infoPago: [],
+        infoPago: null,
         infoGastoByDelivery,
+        infoUser: {
+          _id: InfoUsuario._id,
+          name: InfoUsuario.name,
+          usuario: InfoUsuario.usuario,
+          rol: InfoUsuario.rol,
+        },
       })
-    ).then((res) => {
-      if (res.payload) {
-        navigate(
-          `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.LIST_ORDER_SERVICE}`
-        );
-      }
-    });
+    );
+    navigate(`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.LIST_ORDER_SERVICE}`);
   };
 
   // Registrar
-  const handleRegistrar = (info) => {
+  const handleRegistrar = async (info) => {
     const { infoOrden, infoPago, rol } = info;
     if (infoGastoByDelivery) {
-      dispatch(
+      setRedirect(true);
+      await dispatch(
         AddOrdenServices({
-          infoOrden,
+          infoOrden: {
+            ...infoOrden,
+            estado: "registrado",
+            typeRegistro: "normal",
+          },
           infoPago,
           rol,
           infoGastoByDelivery,
+          infoUser: {
+            _id: InfoUsuario._id,
+            name: InfoUsuario.name,
+            usuario: InfoUsuario.usuario,
+            rol: InfoUsuario.rol,
+          },
         })
       ).then((res) => {
-        if ("error" in res) {
-          setRedirect(false);
-        } else {
-          setRedirect(true);
+        if (res.error) {
+          console.error(
+            "Error en el servicio al agregar la orden:",
+            res.error.message
+          );
+          navigate(
+            `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.LIST_ORDER_SERVICE}`
+          );
         }
       });
     }
@@ -196,7 +219,62 @@ const Delivery = () => {
       idUser: InfoUsuario._id,
     };
 
-    setNameDefault(values.name);
+    setInfoDefault({
+      codRecibo: infoCodigo.codActual,
+      dni: "",
+      Nombre: values.name,
+      Modalidad: "Delivery",
+      direccion: "",
+      celular: "",
+      dateRecepcion: {
+        fecha: DateCurrent().format4,
+        hora: DateCurrent().format3,
+      },
+      datePrevista: {
+        fecha: DateCurrent().format4,
+        hora: defaultHoraPrevista,
+      },
+      Items: [
+        {
+          identificador: iDelivery?._id,
+          tipo: "servicio",
+          cantidad: 1,
+          item: iDelivery?.nombre,
+          simboloMedida: iDelivery?.simboloMedida,
+          descripcion: "Transporte",
+          precio: iDelivery?.precioVenta,
+          monto: iDelivery?.precioVenta,
+          descuentoManual: 0,
+          total: iDelivery?.precioVenta,
+          disable: {
+            cantidad: true,
+            item: true,
+            descripcion: true,
+            monto: false,
+            total: false,
+            descuentoManual: false,
+            action: true,
+          },
+        },
+      ],
+      descuento: {
+        estado: true,
+        modoDescuento: "Manual", // Puntos | Promocion | Manual | Ninguno
+        info: null,
+        monto: 0,
+      },
+      subTotal: 0,
+      cargosExtras: {
+        impuesto: {
+          estado: false,
+          valor: iImpuesto.IGV,
+          importe: 0,
+        },
+      },
+      totalNeto: 0,
+      gift_promo: [],
+      ListPago: [],
+    });
     setInfoGastoByDelivery(infoGastoByDeliveryRecojo);
 
     setRegistrar(true);
@@ -433,11 +511,9 @@ const Delivery = () => {
           ) : (
             <OrdenServicio
               titleMode="REGISTRAR"
-              mode={"Delivery"}
-              action={"Guardar"}
+              mode={"NEW"}
               onAction={handleRegistrar}
-              onReturn={setRegistrar}
-              nameDefault={nameDefault}
+              infoDefault={infoDefault}
             />
           )}
         </div>

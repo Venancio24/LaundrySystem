@@ -22,7 +22,7 @@ import Detalle from "../Detalle/Detalle";
 import { Notify } from "../../../../../utils/notify/Notify";
 import { socket } from "../../../../../utils/socket/connect";
 import { useDispatch, useSelector } from "react-redux";
-import { LS_updateListOrder } from "../../../../../redux/states/service_order";
+import { updateLocationOrden } from "../../../../../redux/states/service_order";
 
 const Pendientes = () => {
   const [rowSelection, setRowSelection] = useState([]);
@@ -65,8 +65,21 @@ const Pendientes = () => {
       );
 
       const res = response.data;
-      dispatch(LS_updateListOrder(res));
-      socket.emit("client:updateListOrder", res);
+
+      const ordersToChangeLocation = res.map(
+        ({ _id, location, estadoPrenda }) => ({
+          _id,
+          location,
+          estadoPrenda,
+        })
+      );
+
+      const ordersToRemoveReportP = res.map(({ _id }) => _id);
+
+      dispatch(updateLocationOrden(ordersToChangeLocation));
+      socket.emit("client:updateOrder(LOCATION)", ordersToChangeLocation);
+      socket.emit("client:onAddOrderAlmacen", res);
+      socket.emit("client:onRemoveOrderReportP", ordersToRemoveReportP);
 
       return res;
     } catch (error) {
@@ -81,7 +94,7 @@ const Pendientes = () => {
 
       await handleAlmacenarPendientes(updatedIds)
         .then((res) => {
-          // Notify('Almacenamiento Exitoso', '', 'success');
+          Notify("Almacenamiento Exitoso", "", "success");
 
           const updatedInfoPendientes = infoPendientes.filter(
             (p) => !res.find((r) => r._id === p._id)
@@ -128,7 +141,6 @@ const Pendientes = () => {
         FechaPago: d.datePago,
         FechaIngreso: d.dateRecepcion,
         FechaPrevista: d.datePrevista,
-        Factura: d.factura,
         CargosExtras: d.cargosExtras,
         Descuento: d.descuento,
         onWaiting: handleOnWaiting(
@@ -445,36 +457,29 @@ const Pendientes = () => {
   }, []);
 
   useEffect(() => {
-    const filterById = (array, data) =>
-      array.filter((item) => data._id !== item._id);
+    socket.on("server:onRemoveOrderReporteAE", (idOrden) => {
+      const updatedInfoPendientes = infoPendientes.filter(
+        (pendiente) => pendiente._id !== idOrden
+      );
 
-    const handleUpdate = (data) => {
-      if (
-        data.estadoPrenda === "anulado" ||
-        data.location !== 1 ||
-        (data.location === 1 && data.estadoPrenda === "entregado")
-      ) {
-        const updatedInfoPendientes = filterById(infoPendientes, data);
-        const updatedRowSelection = filterById(rowSelection, data);
-        const updatedOrderSelection = filterById(orderSelection, data);
-
-        setInfoPendientes(updatedInfoPendientes);
-        setRowSelection(updatedRowSelection);
-        setOrderSelection(updatedOrderSelection);
-      }
-    };
-
-    socket.on("server:orderUpdated:child", (data) => handleUpdate(data));
-
-    socket.on("server:updateListOrder:child", (data) => {
-      data.forEach((orden) => {
-        handleUpdate(orden);
-      });
+      setInfoPendientes(updatedInfoPendientes);
+      setRowSelection([]);
+      setOrderSelection([]);
     });
+
+    socket.on("server:onRemoveOrderReportP", (data) => {
+      const newInfoPendientes = infoPendientes.filter(
+        (pendientes) => !data.includes(pendientes._id)
+      );
+
+      setInfoPendientes(newInfoPendientes);
+      setRowSelection([]);
+      setOrderSelection([]);
+    });
+
     return () => {
-      // Remove the event listener when the component unmounts
-      socket.off("server:orderUpdated:child");
-      socket.off("server:updateListOrder:child");
+      socket.off("server:onRemoveOrderReporteAE");
+      socket.off("server:onRemoveOrderReportP");
     };
   }, [infoPendientes]);
 

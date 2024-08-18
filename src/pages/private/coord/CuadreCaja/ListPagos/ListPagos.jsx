@@ -231,6 +231,7 @@ const ListPagos = ({
 }) => {
   const dispatch = useDispatch();
   const InfoUsuario = useSelector((state) => state.user.infoUsuario);
+  const spendCuadrados = useSelector((state) => state.cuadre.spendToDay);
   const [showDelete, setShowDelete] = useState("n");
 
   const handleEliminarGasto = (id) => {
@@ -268,12 +269,12 @@ const ListPagos = ({
               </thead>
               <tbody>
                 {iClienteEfectivo
-                  .sort((a, b) => parseInt(a.orden) - parseInt(b.orden))
+                  .sort((a, b) => parseInt(a.codRecibo) - parseInt(b.codRecibo))
                   .map((cliente, index) => (
                     <tr key={index}>
-                      <td>{cliente.orden}</td>
+                      <td>{cliente.codRecibo}</td>
                       <td>{cliente.Modalidad}</td>
-                      <td>{cliente.nombre}</td>
+                      <td>{cliente.Nombre}</td>
                       <td>{formatThousandsSeparator(cliente.total)}</td>
                     </tr>
                   ))}
@@ -307,7 +308,9 @@ const ListPagos = ({
                       <td>{DateFormat24h(gasto.date.hora)}</td>
                       <td>{formatThousandsSeparator(gasto.monto)}</td>
 
-                      {savedActivated === false && type !== "view" ? (
+                      {savedActivated === false &&
+                      type !== "view" &&
+                      !spendCuadrados.includes(gasto._id) ? (
                         <td
                           className="delete-row"
                           onClick={() => {
@@ -324,35 +327,43 @@ const ListPagos = ({
             </div>
           </div>
         ) : null}
-        {iClienteTransferencia.length > 0 ? (
-          <div className="transferencia tb-info">
-            <span>{ingresoDigital}</span>
-
-            <div className="paid-orders-tranf">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Codigo</th>
-                    <th>Modalidad</th>
-                    <th>Nombre</th>
-                    <th>Monto</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {iClienteTransferencia
-                    .sort((a, b) => parseInt(a.orden) - parseInt(b.orden))
-                    .map((cliente, index) => (
-                      <tr key={index}>
-                        <td>{cliente.orden}</td>
-                        <td>{cliente.Modalidad}</td>
-                        <td>{cliente.nombre}</td>
-                        <td>{formatThousandsSeparator(cliente.total)}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        {iClienteTransferencia ? (
+          <>
+            {Object.keys(iClienteTransferencia).map(
+              (tipoTransferencia, index) =>
+                iClienteTransferencia[tipoTransferencia].length > 0 ? (
+                  <div className="transferencia tb-info" key={index}>
+                    <span>{tipoTransferencia.toLocaleUpperCase()}</span>
+                    <div className="paid-orders-tranf">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Código</th>
+                            <th>Modalidad</th>
+                            <th>Nombre</th>
+                            <th>Monto</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {iClienteTransferencia[tipoTransferencia].map(
+                            (cliente, idx) => (
+                              <tr key={idx}>
+                                <td>{cliente.codRecibo}</td>
+                                <td>{cliente.Modalidad}</td>
+                                <td>{cliente.Nombre}</td>
+                                <td>
+                                  {formatThousandsSeparator(cliente.total)}
+                                </td>
+                              </tr>
+                            )
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : null
+            )}
+          </>
         ) : null}
         {iClienteTarjeta.length > 0 ? (
           <div className="tarjeta tb-info">
@@ -370,7 +381,9 @@ const ListPagos = ({
                 </thead>
                 <tbody>
                   {iClienteTarjeta
-                    .sort((a, b) => parseInt(a.orden) - parseInt(b.orden))
+                    .sort(
+                      (a, b) => parseInt(a.codRecibo) - parseInt(b.codRecibo)
+                    )
                     .map((cliente, index) => (
                       <tr
                         key={index}
@@ -380,9 +393,9 @@ const ListPagos = ({
                             : null
                         }`}
                       >
-                        <td>{cliente.orden}</td>
+                        <td>{cliente.codRecibo}</td>
                         <td>{cliente.Modalidad}</td>
-                        <td>{cliente.nombre}</td>
+                        <td>{cliente.Nombre}</td>
                         <td>{formatThousandsSeparator(cliente.total)}</td>
                       </tr>
                     ))}

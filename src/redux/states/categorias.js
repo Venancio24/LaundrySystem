@@ -1,14 +1,64 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { getListCategorias, addCategoria, updateCategoria, deleteCategoria } from '../actions/aCategorias';
+import { createSlice } from "@reduxjs/toolkit";
+import {
+  getListCategorias,
+  addCategoria,
+  updateCategoria,
+  deleteCategoria,
+} from "../actions/aCategorias";
 
 const categorias = createSlice({
-  name: 'categorias',
+  name: "categorias",
   initialState: {
     listCategorias: [],
     isLoading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    LS_changeCategoria: (state, action) => {
+      const { tipoAction, data } = action.payload;
+
+      let indexCategoria;
+      if (tipoAction !== "added") {
+        // Buscar el servicio dentro de listCategorias por su _id
+        indexCategoria = state.listCategorias.findIndex(
+          (categoria) => categoria._id === data._id
+        );
+
+        // Verificar si se encontró el servicio
+        if (indexCategoria === -1) {
+          console.error("Servicio no encontrado");
+          return;
+        }
+      }
+
+      // Realizar la acción según el tipoAction
+      switch (tipoAction) {
+        case "deleted":
+          // Eliminar el servicio del array listCategorias
+          state.listCategorias = state.listCategorias.filter(
+            (categoria) => categoria._id !== data._id
+          );
+          break;
+        case "updated":
+          // Actualizar el servicio con la nueva información
+          state.listCategorias[indexCategoria] = data;
+          break;
+        case "added":
+          // Verificar si el servicio ya existe en listCategorias
+          if (
+            !state.listCategorias.some(
+              (categoria) => categoria._id === data._id
+            )
+          ) {
+            // Agregar el nuevo servicio a listCategorias solo si no existe
+            state.listCategorias.push(data);
+          }
+          break;
+        default:
+          console.error("Tipo de acción desconocido");
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
       // Agregar una categoría
@@ -61,7 +111,9 @@ const categorias = createSlice({
         state.error = null;
       })
       .addCase(deleteCategoria.fulfilled, (state, action) => {
-        state.listCategorias = state.listCategorias.filter((categoria) => categoria._id !== action.payload.idCategoria);
+        state.listCategorias = state.listCategorias.filter(
+          (categoria) => categoria._id !== action.payload._id
+        );
         state.isLoading = false;
       })
       .addCase(deleteCategoria.rejected, (state, action) => {
@@ -71,4 +123,5 @@ const categorias = createSlice({
   },
 });
 
+export const { LS_changeCategoria } = categorias.actions;
 export default categorias.reducer;

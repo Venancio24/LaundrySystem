@@ -1,125 +1,104 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import { Button, Select, Table, TextInput } from "@mantine/core";
-import * as Yup from "yup";
+import { Button, Modal, ScrollArea } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { useMemo } from "react";
+
+import { MantineReactTable } from "mantine-react-table";
 import { Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import React, { useEffect, useState } from "react";
-import { useFormik } from "formik";
 import "./usuarios.scss";
-import { ReactComponent as Eliminar } from "../../../../../utils/img/OrdenServicio/eliminar.svg";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  DeleteUser,
-  EditUser,
-  GetListUser,
-  RegisterUser,
-} from "../../../../../redux/actions/aUser";
-import {
-  clearDuplicated,
-  LS_AddUser,
-  LS_DeleteUser,
-  LS_UpdateUser,
-  resetUser,
-} from "../../../../../redux/states/user";
-import LoaderSpiner from "../../../../../components/LoaderSpinner/LoaderSpiner";
+import { resetUser } from "../../../../../redux/states/user";
 import { socket } from "../../../../../utils/socket/connect";
-import { Roles } from "../../../../../models";
-
-const baseState = {
-  _id: "",
-  name: "",
-  phone: "",
-  email: "",
-  rol: "",
-  usuario: "",
-  password: "",
-};
+import axios from "axios";
+import { Notify } from "../../../../../utils/notify/Notify";
+import Maintenance from "./Accion/Maintenance";
 
 const Usuarios = () => {
+  const [
+    mAccionUsuario,
+    { open: openAccionUsuario, close: closeAccionUsuario },
+  ] = useDisclosure(false);
+
   const dispatch = useDispatch();
-  const ListUsuarios = useSelector((state) => state.user.listUsuario);
   const InfoUsuario = useSelector((store) => store.user.infoUsuario);
-  const { warningDuplicated } = useSelector((state) => state.user);
-  const [onEdit, setOnEdit] = useState(false);
-  const [onLoading, setOnLoading] = useState(false);
-  const [initialValues, setInitialValues] = useState(baseState);
+  const [ListUsuarios, setListUsuarios] = useState([]);
 
-  const validationSchema = Yup.object().shape({
-    name: Yup.string().required("Campo obligatorio"),
-    phone: Yup.string().required("Campo obligatorio"),
-    email: Yup.string()
-      .required("Campo obligatorio")
-      .email("Debe ser un correo electrónico válido"),
-    rol: Yup.string().required("Campo obligatorio"),
-    usuario: Yup.string().required("Campo obligatorio"),
-    password: onEdit
-      ? ""
-      : Yup.string()
-          .required("Campo obligatorio")
-          .matches(
-            /^[a-zA-Z0-9]{5,}$/,
-            "Debe contener al menos 5 caracteres (solo letras y números)"
-          ),
-  });
-  const formik = useFormik({
-    enableReinitialize: true,
-    initialValues: initialValues,
-    validationSchema: validationSchema,
-    onSubmit: (values) => {
-      valiProcess(values);
-    },
-  });
+  const [action, setAction] = useState("");
+  const [rowPick, setRowPick] = useState(null);
 
-  const valiProcess = (data) => {
-    let confirmationEnabled = true;
-
-    modals.openConfirmModal({
-      title: `${onEdit ? "Actualizacion de Usuario" : "Registro de Usuario"}`,
-      centered: true,
-      children: (
-        <Text size="sm">
-          {onEdit
-            ? "¿ Estas seguro de EDITAR este USUARIO ?"
-            : "¿ Estas seguro de AGREGAR este nuevo USUARIO ?"}
-        </Text>
-      ),
-      labels: { confirm: "Si", cancel: "No" },
-      confirmProps: { color: "green" },
-      onCancel: () => console.log("Cancelado"),
-      onConfirm: () => {
-        if (confirmationEnabled) {
-          confirmationEnabled = false;
-          if (onEdit === true) {
-            setOnLoading(true);
-            dispatch(EditUser(data)).then((response) => {
-              if (response.payload) {
-                setOnEdit(false);
-                setInitialValues(baseState);
-                formik.resetForm();
-                setOnLoading(false);
-              }
-              if ("error" in response) {
-                setOnLoading(false);
-              }
-            });
-          } else {
-            setOnLoading(true);
-            dispatch(RegisterUser(data)).then((response) => {
-              if (response.payload) {
-                setInitialValues(baseState);
-                formik.resetForm();
-                setOnLoading(false);
-              }
-              if ("error" in response) {
-                setOnLoading(false);
-              }
-            });
-          }
-        }
+  const columns = useMemo(
+    () => [
+      {
+        header: "Nombre",
+        accessorKey: "name",
+        mantineFilterTextInputProps: {
+          placeholder: "",
+        },
+        size: 50,
       },
-    });
-  };
+      {
+        header: "Celular",
+        accessorKey: "phone",
+        mantineFilterTextInputProps: {
+          placeholder: "",
+        },
+        // Cell: ({ cell }) => (
+        //   <Textarea value={cell.getValue()} minRows={3} maxRows={5} readOnly />
+        // ),
+        size: 100,
+      },
+      {
+        header: "Correo",
+        accessorKey: "email",
+        size: 70,
+        mantineFilterTextInputProps: {
+          placeholder: "",
+        },
+      },
+      {
+        header: "Rol",
+        accessorKey: "rol",
+        mantineFilterTextInputProps: {
+          placeholder: "",
+        },
+        // Cell: ({ cell }) => {
+        //   // const data = cell.getValue();
+
+        //   const infoData = InfoServicios.map((service) => ({
+        //     value: service._id,
+        //     label: service.nombre,
+        //   }));
+
+        //   infoData.push({ label: "Todos", value: "Todos" });
+
+        //   return (
+        //     <MultiSelect value={cell.getValue()} data={infoData} readOnly />
+        //   );
+        // },
+        size: 80,
+      },
+      {
+        header: "Usuario",
+        accessorKey: "usuario",
+        size: 100,
+        mantineFilterTextInputProps: {
+          placeholder: "",
+        },
+      },
+      {
+        header: "Estado",
+        accessorKey: "state",
+        size: 30,
+        mantineFilterTextInputProps: {
+          placeholder: "",
+        },
+      },
+    ],
+    []
+  );
 
   const validDeleteUsuario = (id) => {
     let confirmationEnabled = true;
@@ -133,69 +112,117 @@ const Usuarios = () => {
       labels: { confirm: "Si", cancel: "No" },
       confirmProps: { color: "red" },
       onCancel: () => console.log("Cancelado"),
-      onConfirm: () => {
+      onConfirm: async () => {
         if (confirmationEnabled) {
           confirmationEnabled = false;
-          dispatch(DeleteUser(id));
+          const userIdDeleted = await handleDeleteUser(id);
+          const newInfo = ListUsuarios.filter(
+            (user) => user._id !== userIdDeleted
+          );
+          setListUsuarios(newInfo);
         }
       },
     });
   };
 
-  const validIco = (mensaje) => {
-    return (
-      <div className="ico-req">
-        <i className="fa-solid fa-circle-exclamation ">
-          <div className="info-req" style={{ pointerEvents: "none" }}>
-            <span>{mensaje}</span>
-          </div>
-        </i>
-      </div>
-    );
+  const validEnabledAccion = (user, action) => {
+    let estado;
+    if (InfoUsuario.nivel === "master") {
+      estado = true;
+    } else {
+      if (action === "update") {
+        if (user.rol === "admin" && user._id === InfoUsuario._id) {
+          estado = true;
+        } else if (user.rol === "admin" && user._id !== InfoUsuario._id) {
+          estado = false;
+        } else {
+          estado = true;
+        }
+      } else {
+        if (user.rol === "admin") {
+          estado = false;
+        } else {
+          if (InfoUsuario.rol === "admin") {
+            estado = true;
+          } else {
+            estado = false;
+          }
+        }
+      }
+    }
+
+    return estado;
   };
 
-  const validEnabledAccion = (user) => {
-    return InfoUsuario.rol === "admin"
-      ? false
-      : InfoUsuario.rol === "gerente" && user.rol === "gerente"
-      ? user._id === InfoUsuario._id
-        ? false
-        : true
-      : InfoUsuario.rol === "gerente" && user.rol !== "admin"
-      ? false
-      : true;
+  const handleGetListUser = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/get-list-users`
+      );
+
+      setListUsuarios(response.data);
+    } catch (error) {
+      console.log(error.response.data.mensaje);
+      Notify("Error", "No se pudieron obtener los datos del usuario", "fail");
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/delete-user/${userId}`
+      );
+      if (response.status === 200) {
+        socket.emit("client:onDeleteUser", response.data);
+        socket.emit("client:onDeleteAccount", response.data);
+        Notify("Usuario Eliminado", "", "success");
+        return response.data;
+      }
+    } catch (error) {
+      Notify("Error", "No se pudo Eliminar Usuario", "fail");
+      console.log(error.response.data.mensaje);
+    }
+  };
+
+  const handleCloseAction = () => {
+    closeAccionUsuario();
+    setTimeout(() => {
+      setRowPick(null);
+      setAction("");
+    }, 500);
   };
 
   useEffect(() => {
-    if (ListUsuarios.length === 0) {
-      dispatch(GetListUser());
-    }
-  }, [ListUsuarios]);
-
-  // useEffect(() => {
-  //   if (warningDuplicated.length > 0) {
-  //     console.log(warningDuplicated);
-  //   }
-  // }, [warningDuplicated]);
+    handleGetListUser();
+  }, []);
 
   useEffect(() => {
     // Nuevo Usuario Agregado
-    socket.on("server:onNewUser", (data) => {
-      dispatch(LS_AddUser(data));
+    socket.on("server:onNewUser", (newUser) => {
+      setListUsuarios((prevList) => [...prevList, newUser]);
     });
 
     // Usuario Eliminado
-    socket.on("server:onDeleteUser", (data) => {
-      dispatch(LS_DeleteUser(data));
-      if (InfoUsuario._id === data) {
-        alert("Comunicado del Administrador : Su cuenta Fue Eliminada");
+    socket.on("server:onDeleteUser", (userIdDeleted) => {
+      setListUsuarios((prevList) => {
+        const newInfo = prevList.filter((user) => user._id !== userIdDeleted);
+        return newInfo;
+      });
+
+      if (InfoUsuario._id === userIdDeleted) {
+        alert("Comunicado del Administrador: Su cuenta Fue Eliminada");
         dispatch(resetUser());
       }
     });
 
     // Usuario Actualizado
-    socket.on("server:onUpdateUser", (data) => {
-      dispatch(LS_UpdateUser(data));
+    socket.on("server:onUpdateUser", (updatedUser) => {
+      setListUsuarios((prevList) => {
+        const newInfo = prevList.map((user) =>
+          user._id === updatedUser._id ? updatedUser : user
+        );
+        return newInfo;
+      });
     });
 
     return () => {
@@ -207,269 +234,93 @@ const Usuarios = () => {
   }, []);
 
   return (
-    <div className="content-users">
-      <div className="form-users">
-        <form onSubmit={formik.handleSubmit} className="container">
-          {onLoading === true ? (
-            <LoaderSpiner />
-          ) : (
-            <>
-              <div className="h-title">
-                <h1>{onEdit ? "Editar Usuario" : "Registrar Usuario"}</h1>
-                {onEdit ? (
-                  <button
-                    className="btn"
-                    type="button"
-                    onClick={() => {
-                      setOnEdit(false);
-                      setInitialValues(baseState);
-                    }}
-                  >
-                    <Eliminar className="cancel-edit" />
-                  </button>
-                ) : null}
-              </div>
-              <div className="input-item">
-                <TextInput
-                  name="name"
-                  label="Nombre :"
-                  value={formik.values.name}
-                  placeholder="Ingrese nombre"
-                  autoComplete="off"
-                  required
-                  // disabled={validEnabledAccion(initialValues)}
-                  onChange={formik.handleChange}
-                />
-                {formik.errors.name &&
-                  formik.touched.name &&
-                  validIco(formik.errors.name)}
-              </div>
-              <div className="input-item">
-                <TextInput
-                  name="phone"
-                  label="Numero Telefonico :"
-                  value={formik.values.phone}
-                  placeholder="Ingrese numero"
-                  autoComplete="off"
-                  required
-                  // disabled={validEnabledAccion(initialValues)}
-                  onChange={formik.handleChange}
-                />
-                {formik.errors.phone &&
-                  formik.touched.phone &&
-                  validIco(formik.errors.phone)}
-              </div>
-              <div className="input-item">
-                <TextInput
-                  name="email"
-                  label="Correo Electronico :"
-                  error={
-                    warningDuplicated.includes("correo")
-                      ? "correo ya esta siendo usado"
-                      : false
-                  }
-                  value={formik.values.email}
-                  placeholder="Ingrese correo"
-                  autoComplete="off"
-                  required
-                  disabled={validEnabledAccion(initialValues)}
-                  onChange={(e) => {
-                    formik.setFieldValue("email", e.target.value);
-                    dispatch(clearDuplicated("correo"));
-                  }}
-                />
-                {formik.errors.email &&
-                  formik.touched.email &&
-                  validIco(formik.errors.email)}
-              </div>
-              <div className="input-item">
-                <Select
-                  name="rol"
-                  label="Rol"
-                  value={formik.values.rol}
-                  onChange={(e) => {
-                    formik.setFieldValue("rol", e);
-                  }}
-                  placeholder="Escoge el rol"
-                  clearable={
-                    initialValues.rol === Roles.ADMIN ||
-                    initialValues.rol === Roles.GERENTE
-                      ? false
-                      : true
-                  }
-                  searchable
-                  // disabled={validEnabledAccion(initialValues)}
-                  readOnly={
-                    initialValues._id === InfoUsuario._id ||
-                    initialValues.rol === Roles.GERENTE
-                  }
-                  data={[
-                    {
-                      value: "admin",
-                      label: "Administrador",
-                      disabled: true,
-                    },
-                    {
-                      value: "gerente",
-                      label: "Gerente",
-                      disabled: InfoUsuario.rol === Roles.ADMIN ? false : true,
-                    },
-                    {
-                      value: "coord",
-                      label: "Coordinador",
-                      disabled:
-                        InfoUsuario.rol === Roles.ADMIN ||
-                        InfoUsuario.rol === Roles.GERENTE
-                          ? false
-                          : true,
-                    },
-                    {
-                      value: "pers",
-                      label: "Personal",
-                      disabled:
-                        InfoUsuario.rol === Roles.ADMIN ||
-                        InfoUsuario.rol === Roles.GERENTE
-                          ? false
-                          : true,
-                    },
-                  ]}
-                />
-                {formik.errors.rol &&
-                  formik.touched.rol &&
-                  validIco(formik.errors.rol)}
-              </div>
-              <div className="account">
-                <div className="input-item">
-                  <TextInput
-                    name="usuario"
-                    label="Usuario :"
-                    value={formik.values.usuario}
-                    error={
-                      warningDuplicated.includes("usuario")
-                        ? "usuario ya existe"
-                        : false
-                    }
-                    // disabled={validEnabledAccion(initialValues)}
-                    placeholder="Ingrese usuario"
-                    autoComplete="off"
-                    required
-                    onChange={(e) => {
-                      formik.setFieldValue("usuario", e.target.value);
-                      dispatch(clearDuplicated("usuario"));
-                    }}
-                  />
-                  {formik.errors.usuario &&
-                    formik.touched.usuario &&
-                    validIco(formik.errors.usuario)}
-                </div>
-                <div className="input-item">
-                  <TextInput
-                    name="password"
-                    label="Contraseña :"
-                    description={
-                      onEdit
-                        ? "el campo vacio, mantiene la contraseña anterior"
-                        : true
-                    }
-                    value={formik.values.password}
-                    placeholder="Ingrese contraseña"
-                    autoComplete="off"
-                    required={onEdit ? false : true}
-                    // disabled={validEnabledAccion(initialValues)}
-                    onChange={formik.handleChange}
-                  />
-
-                  {onEdit
-                    ? null
-                    : formik.errors.password &&
-                      formik.touched.password &&
-                      validIco(formik.errors.password)}
-                </div>
-              </div>
-              <Button
-                type="submit"
-                variant="gradient"
-                gradient={
-                  onEdit
-                    ? { from: "rgba(255, 178, 46, 1)", to: "red", deg: 90 }
-                    : { from: "indigo", to: "cyan" }
-                }
+    <div className="content-usuario">
+      <div className="action-h">
+        <Button
+          type="button"
+          onClick={() => {
+            openAccionUsuario();
+            setAction("Add");
+          }}
+        >
+          Agregar Nuevo Usuario
+        </Button>
+      </div>
+      <MantineReactTable
+        columns={columns}
+        data={ListUsuarios}
+        initialState={{
+          density: "xs",
+          pagination: {},
+        }}
+        enableToolbarInternalActions={false}
+        enableColumnActions={false}
+        enableRowActions={true}
+        renderRowActions={({ row }) => (
+          <div className="actions-ajuste-usuario">
+            {validEnabledAccion(row.original, "update") ? (
+              <button
+                type="button"
+                className="btn-edit"
+                onClick={() => {
+                  setAction("Edit");
+                  setRowPick(row.original);
+                  openAccionUsuario();
+                }}
               >
-                {onEdit ? "Editar Usuario" : "Registrar Usuario"}
-              </Button>
-            </>
-          )}
-        </form>
-      </div>
-      <div className="list-users">
-        {ListUsuarios?.length > 0 ? (
-          <Table>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Numero</th>
-                <th>Correo</th>
-                <th>Rol</th>
-                <th>Usuario</th>
-                <th>Activado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ListUsuarios.filter((user) => user.state !== "eliminado").map(
-                (p, index) => (
-                  <tr key={index}>
-                    <td>{p.name}</td>
-                    <td>{p.phone}</td>
-                    <td>{p.email}</td>
-                    <td>{p.rol}</td>
-                    <td>{p.usuario}</td>
-                    <td>{p.state}</td>
-                    <td>
-                      <div className="actions">
-                        {validEnabledAccion(p) === false ? (
-                          <button
-                            type="button"
-                            className="btn-edit"
-                            onClick={() => {
-                              setInitialValues({
-                                _id: p?._id,
-                                name: p?.name,
-                                phone: p?.phone,
-                                email: p?.email,
-                                rol: p?.rol,
-                                usuario: p?.usuario,
-                                password: "",
-                              });
-                              setOnEdit(true);
-                            }}
-                          >
-                            <i className="fas fa-user-edit" />
-                          </button>
-                        ) : null}
+                <i className="fas fa-user-edit" />
+              </button>
+            ) : null}
 
-                        {validEnabledAccion(p) === false ? (
-                          p._id === InfoUsuario._id ? null : (
-                            <button
-                              className="btn-delete"
-                              type="button"
-                              onClick={() => {
-                                validDeleteUsuario(p._id);
-                              }}
-                            >
-                              <i className="fas fa-user-times" />
-                            </button>
-                          )
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
-                )
-              )}
-            </tbody>
-          </Table>
+            {validEnabledAccion(row.original, "delete") ? (
+              <button
+                className="btn-delete"
+                type="button"
+                onClick={() => {
+                  validDeleteUsuario(row.original._id);
+                }}
+              >
+                <i className="fas fa-user-times" />
+              </button>
+            ) : null}
+          </div>
+        )}
+        displayColumnDefOptions={{
+          "mrt-row-actions": {
+            header: "Acciones", //change header text
+          },
+        }}
+        positionActionsColumn="last"
+        enableSorting={false}
+        enableTopToolbar={false}
+        enableExpandAll={false}
+        enablePagination={false}
+        enableBottomToolbar={false}
+        enableStickyHeader
+        mantineTableContainerProps={{
+          sx: {
+            width: "100%",
+            maxHeight: "400px",
+          },
+        }}
+      />
+      <Modal
+        opened={mAccionUsuario}
+        // closeOnClickOutside={false}
+        // closeOnEscape={false}
+        // withCloseButton={false}
+        onClose={() => handleCloseAction()}
+        size="auto"
+        title={action === "" ? `USUARIO : ${rowPick?.name}` : null}
+        scrollAreaComponent={ScrollArea.Autosize}
+        centered
+      >
+        {action === "Add" ? (
+          <Maintenance onClose={handleCloseAction} />
+        ) : action === "Edit" ? (
+          <Maintenance info={rowPick} onClose={handleCloseAction} />
         ) : null}
-      </div>
+      </Modal>
     </div>
   );
 };

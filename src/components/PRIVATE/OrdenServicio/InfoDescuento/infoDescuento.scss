@@ -2,6 +2,7 @@
   display: grid;
   gap: 10px;
   grid-template-rows: max-content auto;
+  max-width: 268px;
   .title {
     padding: 0 5px;
   }
@@ -34,6 +35,16 @@
     .btn-promocion {
       width: 90%;
       margin: auto;
+    }
+    .group-descuento {
+      padding: 0 20px;
+      padding-bottom: 20px;
+      .mantine-Group-root {
+        display: grid;
+        input[type="radio"] {
+          display: block !important;
+        }
+      }
     }
   }
 }

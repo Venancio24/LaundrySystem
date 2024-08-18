@@ -24,6 +24,7 @@ const Maintenance = ({ onClose, onAdd }) => {
     horaSalida: Yup.string().required("Campo obligatorio"),
     pagoByHour: Yup.string().required("Campo obligatorio"),
     dateNacimiento: Yup.string().required("Campo obligatorio"),
+    pagoMensual: Yup.string().required("Campo obligatorio"),
   });
 
   const formik = useFormik({
@@ -33,6 +34,7 @@ const Maintenance = ({ onClose, onAdd }) => {
       horaSalida: "",
       pagoByHour: "",
       dateNacimiento: "",
+      pagoMensual: "",
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
@@ -163,7 +165,7 @@ const Maintenance = ({ onClose, onAdd }) => {
       <div className="input-item">
         <NumberInput
           name="pagoByHour"
-          label="Pago por Hora :"
+          label="Pago x Hora :  ( Extra / Descuento )"
           value={formik.values.pagoByHour}
           precision={2}
           onChange={(e) => {
@@ -178,6 +180,25 @@ const Maintenance = ({ onClose, onAdd }) => {
           formik.touched.horaSalida &&
           ValidIco({
             mensaje: formik.errors.horaSalida,
+          })}
+      </div>
+      <div className="input-item">
+        <NumberInput
+          name="pagoMensual"
+          label="Pago Mensual :"
+          value={formik.values.pagoMensual}
+          onChange={(e) => {
+            formik.setFieldValue("pagoMensual", !Number.isNaN(e) ? e : 0);
+          }}
+          min={0}
+          step={1}
+          hideControls
+          autoComplete="off"
+        />
+        {formik.errors.pagoMensual &&
+          formik.touched.pagoMensual &&
+          ValidIco({
+            mensaje: formik.errors.pagoMensual,
           })}
       </div>
 

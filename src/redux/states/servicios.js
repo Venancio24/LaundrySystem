@@ -14,7 +14,50 @@ const servicios = createSlice({
     isLoading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    LS_changeService: (state, action) => {
+      const { tipoAction, data } = action.payload;
+
+      let indexService;
+      if (tipoAction !== "added") {
+        // Buscar el servicio dentro de listServicios por su _id
+        indexService = state.listServicios.findIndex(
+          (service) => service._id === data._id
+        );
+
+        // Verificar si se encontró el servicio
+        if (indexService === -1) {
+          console.error("Servicio no encontrado");
+          return;
+        }
+      }
+
+      // Realizar la acción según el tipoAction
+      switch (tipoAction) {
+        case "deleted":
+          // Eliminar el servicio del array listServicios
+          state.listServicios = state.listServicios.filter(
+            (service) => service._id !== data._id
+          );
+          break;
+        case "updated":
+          // Actualizar el servicio con la nueva información
+          state.listServicios[indexService] = data;
+          break;
+        case "added":
+          // Verificar si el servicio ya existe en listServicios
+          if (
+            !state.listServicios.some((service) => service._id === data._id)
+          ) {
+            // Agregar el nuevo servicio a listServicios solo si no existe
+            state.listServicios.push(data);
+          }
+          break;
+        default:
+          console.error("Tipo de acción desconocido");
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
       // Obteniendo la lista de servicios
@@ -71,7 +114,7 @@ const servicios = createSlice({
       .addCase(deleteServicio.fulfilled, (state, action) => {
         state.isLoading = false;
         state.listServicios = state.listServicios.filter(
-          (servicio) => servicio._id !== action.payload.idServicio
+          (servicio) => servicio._id !== action.payload._id
         );
       })
       .addCase(deleteServicio.rejected, (state, action) => {
@@ -81,4 +124,5 @@ const servicios = createSlice({
   },
 });
 
+export const { LS_changeService } = servicios.actions;
 export default servicios.reducer;

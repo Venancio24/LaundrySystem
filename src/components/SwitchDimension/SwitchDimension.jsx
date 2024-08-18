@@ -8,7 +8,7 @@ const SwitchStyle = styled.div`
   width: max-content;
   fieldset {
     margin: 0;
-    padding: ${(props) => (props.$title ? "7px 15px" : "0")};
+    padding: ${(props) => (props.$title ? "7px 0" : "0")};
     padding-bottom: ${(props) => (props.$title ? "17px" : "0")};
     display: grid;
     border: none;

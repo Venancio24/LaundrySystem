@@ -13,7 +13,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { PrivateRoutes, Roles } from "../../../../../models";
 import { useParams } from "react-router-dom";
-import { Box, Button, NumberInput, Text, TextInput } from "@mantine/core";
+import { Button, NumberInput, Text, TextInput } from "@mantine/core";
 import ValidIco from "../../../../../components/ValidIco/ValidIco";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -45,6 +45,7 @@ const Asistencia = () => {
     horaIngreso: Yup.string().required("Campo obligatorio"),
     horaSalida: Yup.string().required("Campo obligatorio"),
     pagoByHour: Yup.string().required("Campo obligatorio"),
+    pagoMensual: Yup.string().required("Campo obligatorio"),
   });
 
   const formik = useFormik({
@@ -53,8 +54,9 @@ const Asistencia = () => {
       name: "",
       horaIngreso: "",
       horaSalida: "",
-      pagoByHour: "",
+      pagoByHour: 0,
       dateNacimiento: "",
+      pagoMensual: 0,
       estado: "",
     },
     validationSchema: validationSchema,
@@ -62,6 +64,61 @@ const Asistencia = () => {
       confirmEditInfoPersonal(values);
     },
   });
+
+  // Función para calcular diferencias de tiempo
+  function calcularDiferencias(
+    horaIngreso,
+    horaSalida,
+    hIngresoByDay,
+    hSalidaByDay
+  ) {
+    const formatoHora = "HH:mm";
+
+    const horaIngresoPersonal = moment(horaIngreso, formatoHora);
+    const horaSalidaPersonal = moment(horaSalida, formatoHora);
+    const horaIngresoRegistro = moment(hIngresoByDay, formatoHora);
+    const horaSalidaRegistro = moment(hSalidaByDay, formatoHora);
+
+    // Calcular retraso en ingreso
+    let retrasoIngreso = 0;
+    if (horaIngresoRegistro.isAfter(horaIngresoPersonal)) {
+      retrasoIngreso = horaIngresoRegistro.diff(horaIngresoPersonal, "minutes");
+    }
+
+    // Calcular tiempo extra en ingreso (si llega antes)
+    let tiempoExtraIngreso = 0;
+    if (horaIngresoRegistro.isBefore(horaIngresoPersonal)) {
+      tiempoExtraIngreso = horaIngresoPersonal.diff(
+        horaIngresoRegistro,
+        "minutes"
+      );
+    }
+
+    // Calcular tiempo extra en salida
+    let tiempoExtraSalida = 0;
+    if (horaSalidaRegistro.isAfter(horaSalidaPersonal)) {
+      tiempoExtraSalida = horaSalidaRegistro.diff(
+        horaSalidaPersonal,
+        "minutes"
+      );
+    }
+
+    // Calcular tiempo de salida antes de la hora establecida
+    let tiempoAntesSalida = 0;
+    if (horaSalidaRegistro.isBefore(horaSalidaPersonal)) {
+      tiempoAntesSalida = horaSalidaPersonal.diff(
+        horaSalidaRegistro,
+        "minutes"
+      );
+    }
+
+    return {
+      retrasoIngreso,
+      tiempoExtraIngreso,
+      tiempoExtraSalida,
+      tiempoAntesSalida,
+    };
+  }
 
   const generateListDay = (info) => {
     const fechaActual = moment();
@@ -80,11 +137,11 @@ const Asistencia = () => {
       const fecha = moment(primerDiaDelMes)
         .add(index, "days")
         .format("YYYY-MM-DD");
-      const objetoExistente = info.find((item) => item.fecha === fecha);
+      const infoAsistenciaByDay = info.find((item) => item.fecha === fecha);
 
-      if (objetoExistente) {
+      if (infoAsistenciaByDay) {
         return {
-          ...objetoExistente,
+          ...infoAsistenciaByDay,
           estado: "update",
         };
       } else {
@@ -101,10 +158,6 @@ const Asistencia = () => {
             saved: false,
           },
           observacion: "",
-          time: {
-            hora: 0,
-            minutos: 0,
-          },
           dateNacimiento: "",
           estado: "new",
         };
@@ -165,22 +218,6 @@ const Asistencia = () => {
           ) : (
             "-"
           ),
-      },
-      {
-        header: "Tiempo de Trabajo",
-        accessorKey: "time",
-        size: 70,
-        mantineTableBodyCellProps: {
-          align: "center",
-        },
-        Cell: ({ cell }) => (
-          <Box>{`${cell.getValue().hora} h - ${
-            cell.getValue().minutos
-          } min`}</Box>
-        ),
-        mantineFilterTextInputProps: {
-          placeholder: "",
-        },
       },
     ],
     []
@@ -309,6 +346,7 @@ const Asistencia = () => {
 
     // Establecer el valor de pago por hora por defecto
     const defaultPaymentPerHour = formik.values.pagoByHour;
+    const defaultMonthlyPayment = formik.values.pagoMensual;
 
     // Estilos para el encabezado
     const headerStyle = {
@@ -323,12 +361,35 @@ const Asistencia = () => {
       },
     };
 
-    // Estilo para la fila "Monto a Pagar"
-    const montoPagarStyle = {
+    const styleGreen = {
       fill: {
         type: "pattern",
         pattern: "solid",
         fgColor: { argb: "D9EAD3" }, // Color de fondo para la fila (verde claro)
+      },
+    };
+
+    const styleRed = {
+      fill: {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "ef8c8c" }, // Color de fondo para la fila (verde claro)
+      },
+    };
+
+    const styleBlue = {
+      fill: {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "c0daf5" }, // Color de fondo para la fila (verde claro)
+      },
+    };
+
+    const styleYellow = {
+      fill: {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "f5f392" }, // Color de fondo para la fila (verde claro)
       },
     };
 
@@ -339,136 +400,417 @@ const Asistencia = () => {
         "Registro",
         `Hora Ingreso`,
         "Hora Salida",
-        "Tiempo de Trabajo",
+        "Tiempo Extra (INGRESO)",
+        "Tiempo Extra (SALIDA)",
+        "Tiempo Tardanza",
+        "Tiempo Salida (ANTES)",
+        "Monto",
+        "Total",
         "Observacion",
-        "Horas Transformadas",
       ])
       .eachCell((cell) => {
         cell.fill = headerStyle.fill;
         cell.font = headerStyle.font;
       });
 
-    // Agregar los datos de cada día
-    listDays.forEach((item) => {
-      let totalHoras = item.time.hora;
-      let totalMinutos = item.time.minutos;
+    worksheet.getColumn(1).width = 15; // Ajustar ancho para "Fecha"
+    worksheet.getColumn(2).width = 20; // Ajustar ancho para "Registro"
+    worksheet.getColumn(3).width = 17; // Ajustar ancho para "Hora Ingreso"
+    worksheet.getColumn(4).width = 17; // Ajustar ancho para "Hora Salida"
+    worksheet.getColumn(5).width = 17; // Ajustar ancho para "Tiempo Extra (INGRESO)"
+    worksheet.getColumn(6).width = 15; // Ajustar ancho para "Tiempo Extra (SALIDA)"
+    worksheet.getColumn(7).width = 15; // Ajustar ancho para "Tiempo Tardanza"
+    worksheet.getColumn(8).width = 15; // Ajustar ancho para "Tiempo Salida (ANTES)"
+    worksheet.getColumn(9).width = 17; // Ajustar ancho para "Estado"
+    worksheet.getColumn(10).width = 13; // Ajustar ancho para "Total"
+    worksheet.getColumn(11).width = 20; // Ajustar ancho para "Observacion"
 
-      // Sumar las horas completas de los minutos y ajustar los minutos restantes
-      totalHoras += Math.floor(totalMinutos / 60);
-      totalMinutos %= 60;
+    const infoDays = listDays.map((item) => {
+      let Times = {
+        retrasoIngreso: 0,
+        tiempoExtraIngreso: 0,
+        tiempoExtraSalida: 0,
+        tiempoAntesSalida: 0,
+      };
 
-      // Calcular las horas transformadas sumando las horas y la fracción de hora de los minutos
-      const totalHorasConvertidas = totalHoras + totalMinutos / 60;
+      if (item.ingreso.saved && item.salida.saved) {
+        const { horaIngreso, horaSalida } = infoPersonal;
+        const { ingreso: timeIngreso, salida: timeSalida } = item;
+
+        const hIngresoByDay = timeIngreso.hora;
+        const hSalidaByDay = timeSalida.hora;
+
+        Times = calcularDiferencias(
+          horaIngreso,
+          horaSalida,
+          hIngresoByDay,
+          hSalidaByDay
+        );
+      }
+
+      return {
+        ...item,
+        Times,
+      };
+    });
+
+    infoDays.forEach((item, index) => {
+      const rowIndex = index + 2;
 
       worksheet.addRow([
         item.fecha,
         item.tipoRegistro,
         item.ingreso.hora,
         item.salida.hora,
-        item.time.hora || item.time.minutos
-          ? `${item.time.hora} hr - ${item.time.minutos} min`
-          : "-",
-        item.observacion,
-        +totalHorasConvertidas.toFixed(1),
+        item.Times.tiempoExtraIngreso > 0 ? item.Times.tiempoExtraIngreso : "",
+        item.Times.tiempoExtraSalida > 0 ? item.Times.tiempoExtraSalida : "",
+        item.Times.retrasoIngreso > 0 ? item.Times.retrasoIngreso : "",
+        item.Times.tiempoAntesSalida > 0 ? item.Times.tiempoAntesSalida : "",
+        {
+          formula: `IF(SUM(IF(E${rowIndex}="", 0, E${rowIndex}), IF(F${rowIndex}="", 0, F${rowIndex}), -IF(G${rowIndex}="", 0, G${rowIndex}), -IF(H${rowIndex}="", 0, H${rowIndex})) > 0, "Extra", IF(SUM(IF(E${rowIndex}="", 0, E${rowIndex}), IF(F${rowIndex}="", 0, F${rowIndex}), -IF(G${rowIndex}="", 0, G${rowIndex}), -IF(H${rowIndex}="", 0, H${rowIndex})) < 0, "Penalidad", "Normal"))`,
+        },
+        {
+          formula: `ABS(SUM(IF(E${rowIndex}="", 0, E${rowIndex}), IF(F${rowIndex}="", 0, F${rowIndex}), -IF(G${rowIndex}="", 0, G${rowIndex}), -IF(H${rowIndex}="", 0, H${rowIndex})))`,
+        },
+        item.Times.observacion,
       ]);
+    });
+
+    let TotalExtras = 0;
+    let TotalPenalidad = 0;
+
+    worksheet.eachRow((row) => {
+      const cellValue = row.getCell("I").value; // Asumiendo que 'I' es la columna que quieres recorrer
+      const amount = row.getCell("J").value; // Asumiendo que 'J' es la columna de los valores
+
+      if (cellValue === "Extra") {
+        TotalExtras += amount;
+      } else if (cellValue === "Penalidad") {
+        TotalPenalidad += amount;
+      }
     });
 
     // Agregar fila de separación
     worksheet.addRow([]);
 
-    const TotalHoras = worksheet.addRow([
+    // ->>>>>>>> TABLE DE TOTALES
+
+    // Agregar la fila "Tiempo Extra"
+    const TiempoExtra = worksheet.addRow([
       "",
       "",
       "",
       "",
       "",
-      "Total de Horas : ",
+      "",
+      "",
+      "",
+      "Total de Tiempo (EXTRA)",
       0,
     ]);
 
-    TotalHoras.eachCell((cell, colNumber) => {
-      if (colNumber === 6) {
-        cell.fill = montoPagarStyle.fill;
+    TiempoExtra.height = 40;
+
+    // FILA q recorre cada COLUMNA para darle estilo
+    TiempoExtra.eachCell((cell, colNumber) => {
+      if (colNumber === 9) {
+        cell.fill = styleGreen.fill;
         cell.border = {
           top: { style: "thin" },
           left: { style: "thin" },
           right: { style: "thin" },
+          bottom: { style: "thin" },
         };
       }
-      if (colNumber === 7) {
+      if (colNumber === 10) {
         cell.border = {
           right: { style: "thin" },
           top: { style: "thin" },
+          bottom: { style: "thin" },
         };
       }
     });
 
-    // Calcular el total de horas transformadas y agregar la fila "Total de Horas"
-    const totalHorasTransformadasCell = worksheet.getCell(
-      `G${worksheet.rowCount}`
-    );
+    // Definir el contenido de la Celda Especifica
+    // Columna : "J"
+    // Fila    : "worksheet.rowCount"
+    // worksheet.rowCount = Numero de filas hasta la posicion actual
+    const TiempoExtraCell = worksheet.getCell(`J${worksheet.rowCount}`);
 
-    totalHorasTransformadasCell.value = {
-      formula: `SUM(G2:G${worksheet.rowCount - 1})`,
+    // Asignarle Formula para SUMAR un rango de celdas
+    TiempoExtraCell.value = {
+      // formula: `SUMA(J2:J${worksheet.rowCount - 1})`,
+      formula: `SUMIF(I2:I${worksheet.rowCount - 2}, "Extra", J2:J${
+        worksheet.rowCount - 2
+      })`,
     };
 
-    // Agregar la fila "Pago por Hora"
-    const PagoByHora = worksheet.addRow([
+    // Agregar la fila "Tiempo Penalizado"
+    const TiempoPenalizado = worksheet.addRow([
       "",
       "",
       "",
       "",
       "",
-      "Pago por Hora : ",
+      "",
+      "",
+      "",
+      "Total de Tiempo (PENALIDAD)",
       +defaultPaymentPerHour,
     ]);
 
-    PagoByHora.eachCell((cell, colNumber) => {
-      if (colNumber === 6) {
-        cell.fill = montoPagarStyle.fill;
+    // Agregar fila de separación
+    worksheet.addRow([]);
+
+    TiempoPenalizado.height = 40;
+    TiempoPenalizado.eachCell((cell, colNumber) => {
+      if (colNumber === 9) {
+        cell.fill = styleRed.fill;
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          right: { style: "thin" },
+          bottom: { style: "thin" },
+        };
+      }
+      if (colNumber === 10) {
+        cell.border = {
+          right: { style: "thin" },
+          top: { style: "thin" },
+          bottom: { style: "thin" },
+        };
+      }
+    });
+
+    const TiempoPenalizadoCell = worksheet.getCell(
+      `J${worksheet.rowCount - 1}`
+    );
+
+    // Asignarle Formula para SUMAR un rango de celdas
+    TiempoPenalizadoCell.value = {
+      formula: `SUMIF(I2:I${worksheet.rowCount - 4}, "Penalidad", J2:J${
+        worksheet.rowCount - 4
+      })`,
+    };
+
+    // Agregar fila "Monto x Hora Extra"
+    const montoByHoraExtraRow = worksheet.addRow([
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Monto x Hora (Extra)",
+      defaultPaymentPerHour,
+    ]);
+    montoByHoraExtraRow.height = 40;
+
+    montoByHoraExtraRow.eachCell((cell, colNumber) => {
+      if (colNumber === 9) {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          right: { style: "thin" },
+          bottom: { style: "thin" },
+        };
+      }
+      if (colNumber === 10) {
+        cell.border = {
+          right: { style: "thin" },
+          top: { style: "thin" },
+          bottom: { style: "thin" },
+        };
+      }
+    });
+
+    // Agregar fila "Monto x Hora Penalidad"
+    const montoByHoraPenalidadRow = worksheet.addRow([
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Monto x Hora (Penalidad)",
+      defaultPaymentPerHour,
+    ]);
+    montoByHoraPenalidadRow.height = 40;
+
+    montoByHoraPenalidadRow.eachCell((cell, colNumber) => {
+      if (colNumber === 9) {
         cell.border = {
           left: { style: "thin" },
           right: { style: "thin" },
         };
       }
-      if (colNumber === 7) {
+      if (colNumber === 10) {
         cell.border = {
           right: { style: "thin" },
         };
       }
     });
 
-    // Agregar fila "Monto a Pagar"
-    const montoPagarRow = worksheet.addRow([
+    // Agregar fila "Pago Mensual"
+    const pagoMensual = worksheet.addRow([
       "",
       "",
       "",
       "",
       "",
-      "Monto a Pagar :",
+      "",
+      "",
+      "",
+      "Pago Mensual",
+      defaultMonthlyPayment,
+    ]);
+    pagoMensual.height = 35;
+
+    pagoMensual.eachCell((cell, colNumber) => {
+      if (colNumber === 9) {
+        cell.fill = styleBlue.fill;
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          right: { style: "thin" },
+          bottom: { style: "thin" },
+        };
+      }
+      if (colNumber === 10) {
+        cell.border = {
+          right: { style: "thin" },
+          top: { style: "thin" },
+          bottom: { style: "thin" },
+        };
+      }
+    });
+
+    // Agregar fila "Pago x Extra"
+    const pagoByExtra = worksheet.addRow([
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Pago x Extra",
       0,
     ]);
-    montoPagarRow.eachCell((cell, colNumber) => {
-      if (colNumber === 6) {
-        cell.fill = montoPagarStyle.fill;
+    pagoByExtra.height = 35;
+
+    pagoByExtra.eachCell((cell, colNumber) => {
+      if (colNumber === 9) {
+        cell.fill = styleGreen.fill;
         cell.border = {
+          top: { style: "thin" },
           left: { style: "thin" },
-          bottom: { style: "thin" },
           right: { style: "thin" },
         };
       }
-      if (colNumber === 7) {
+      if (colNumber === 10) {
         cell.border = {
-          bottom: { style: "thin" },
           right: { style: "thin" },
+          top: { style: "thin" },
         };
       }
     });
 
-    // Calcular el monto total (Pago) y agregar la fila "Monto a Pagar"
-    const totalMontoCell = worksheet.getCell(`G${worksheet.rowCount}`);
-    totalMontoCell.value = {
-      formula: `G${worksheet.rowCount - 2}*G${worksheet.rowCount - 1}`, // Multiplica el total de horas transformadas por el pago por hora
+    const PagoExtraCell = worksheet.getCell(`J${worksheet.rowCount}`);
+    PagoExtraCell.value = {
+      formula: `ROUND(IF(J${worksheet.rowCount - 6} / 60 >= 1.5, CEILING((J${
+        worksheet.rowCount - 6
+      } / 60) * J${worksheet.rowCount - 3}, 0.1), FLOOR((J${
+        worksheet.rowCount - 6
+      } / 60) * J${worksheet.rowCount - 3}, 0.1)), 1)`,
+    };
+
+    // Agregar fila "Pago x Penalidad"
+    const pagoByPenalidad = worksheet.addRow([
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Pago x Penalidad",
+      0,
+    ]);
+    pagoByPenalidad.height = 35;
+
+    pagoByPenalidad.eachCell((cell, colNumber) => {
+      if (colNumber === 9) {
+        cell.fill = styleRed.fill;
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          right: { style: "thin" },
+        };
+      }
+      if (colNumber === 10) {
+        cell.border = {
+          right: { style: "thin" },
+          top: { style: "thin" },
+        };
+      }
+    });
+
+    const PagoPenalidadCell = worksheet.getCell(`J${worksheet.rowCount}`);
+    PagoPenalidadCell.value = {
+      formula: `ROUND(IF(J${worksheet.rowCount - 6} / 60 >= 1.5, CEILING((J${
+        worksheet.rowCount - 6
+      } / 60) * J${worksheet.rowCount - 3}, 0.1), FLOOR((J${
+        worksheet.rowCount - 6
+      } / 60) * J${worksheet.rowCount - 3}, 0.1)), 1)`,
+    };
+
+    // Agregar fila "Pago Final"
+    const pagoFinal = worksheet.addRow([
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Pago Final",
+      0,
+    ]);
+    pagoFinal.height = 35;
+
+    pagoFinal.eachCell((cell, colNumber) => {
+      if (colNumber === 9) {
+        cell.fill = styleYellow.fill;
+        cell.border = {
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+          top: { style: "thin" },
+        };
+      }
+      if (colNumber === 10) {
+        cell.fill = styleYellow.fill;
+        cell.border = {
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+          top: { style: "thin" },
+        };
+      }
+    });
+
+    const PagoFinalCell = worksheet.getCell(`J${worksheet.rowCount}`);
+    PagoFinalCell.value = {
+      formula: `J${worksheet.rowCount - 3} + (J${worksheet.rowCount - 2} - J${
+        worksheet.rowCount - 1
+      })`,
     };
 
     // Aplicar estilos y formato
@@ -478,15 +820,6 @@ const Asistencia = () => {
         horizontal: "center",
         vertical: "middle",
       };
-    });
-
-    let maxLengthColumns = 0;
-    await worksheet.columns.forEach((column) => {
-      column.eachCell({ includeEmpty: true }, (cell) => {
-        const cellLength = cell.value ? cell.value.toString().length : 10;
-        maxLengthColumns = Math.max(maxLengthColumns, cellLength);
-      });
-      column.width = maxLengthColumns + 2; // Agrega un espacio adicional
     });
 
     // Aplicar autofiltro a todas las columnas y filas
@@ -555,6 +888,7 @@ const Asistencia = () => {
       formik.setFieldValue("horaSalida", infoPersonal.horaSalida);
       formik.setFieldValue("pagoByHour", infoPersonal.pagoByHour);
       formik.setFieldValue("dateNacimiento", infoPersonal.dateNacimiento);
+      formik.setFieldValue("pagoMensual", infoPersonal.pagoMensual);
     }
   }, [infoPersonal, datePrincipal]);
 
@@ -724,7 +1058,7 @@ const Asistencia = () => {
                   <div className="input-item">
                     <NumberInput
                       name="pagoByHour"
-                      label="Pago por Hora :"
+                      label="Pago x Hora : ( Extra / Descuento )"
                       value={formik.values.pagoByHour}
                       precision={2}
                       onChange={(e) => {
@@ -742,6 +1076,28 @@ const Asistencia = () => {
                       formik.touched.horaSalida &&
                       ValidIco({
                         mensaje: formik.errors.horaSalida,
+                      })}
+                  </div>
+                  <div className="input-item">
+                    <NumberInput
+                      name="pagoMensual"
+                      label="Pago Mensual :"
+                      value={formik.values.pagoMensual}
+                      onChange={(e) => {
+                        formik.setFieldValue(
+                          "pagoMensual",
+                          !Number.isNaN(e) ? e : 0
+                        );
+                      }}
+                      min={0}
+                      step={1}
+                      hideControls
+                      autoComplete="off"
+                    />
+                    {formik.errors.pagoMensual &&
+                      formik.touched.pagoMensual &&
+                      ValidIco({
+                        mensaje: formik.errors.pagoMensual,
                       })}
                   </div>
 

@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /* eslint-disable react/prop-types */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
@@ -21,12 +22,10 @@ import {
 } from "../../../../../utils/functions";
 
 import Detalle from "../Detalle/Detalle";
-import { handleRemoveFStorage } from "../../../../../services/default.services";
 import { Notify } from "../../../../../utils/notify/Notify";
 import { socket } from "../../../../../utils/socket/connect";
 import { useDispatch, useSelector } from "react-redux";
-import { LS_updateListOrder } from "../../../../../redux/states/service_order";
-import { simboloMoneda } from "../../../../../services/global";
+import { updateLocationOrden } from "../../../../../redux/states/service_order";
 
 const Almacen = () => {
   const [loading, setLoading] = useState(false);
@@ -44,17 +43,18 @@ const Almacen = () => {
   const handleGetAlmacenados = async () => {
     try {
       const response = await axios.get(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/lava-ya/get-warehouse-service-order`
+        `${import.meta.env.VITE_BACKEND_URL}/api/lava-ya/get-warehouse-order`
       );
       if (response) {
-        const info = response.data;
+        const infoAlmacenados = response.data;
 
-        setInfoAlmacenados(handleGetFactura(info));
+        if (infoAlmacenados.length > 0) {
+          const dataFinal = handleGetFactura(infoAlmacenados);
+          setInfoAlmacenados(dataFinal);
+        }
       }
     } catch (error) {
-      console.log(error.response.data.mensaje);
+      console.log(error);
       Notify(
         "Error",
         "No se pudo obtener lista de ordenes almacenados",
@@ -211,8 +211,20 @@ const Almacen = () => {
       );
 
       const res = response.data;
-      dispatch(LS_updateListOrder(res));
-      socket.emit("client:updateListOrder", res);
+
+      const ordersToChangeLocation = res.map(
+        ({ _id, location, estadoPrenda }) => ({
+          _id,
+          location,
+          estadoPrenda,
+        })
+      );
+
+      const ordersToRemoveReportD = res.map(({ _id }) => _id);
+
+      dispatch(updateLocationOrden(ordersToChangeLocation));
+      socket.emit("client:updateOrder(LOCATION)", ordersToChangeLocation);
+      socket.emit("client:onRemoveOrderReporteD", ordersToRemoveReportD);
 
       return res;
     } catch (error) {
@@ -226,11 +238,14 @@ const Almacen = () => {
 
     await handleDonarAlmacenados(Ids)
       .then((res) => {
-        const updatedInfoAlmacenados = infoAlmacenados.filter(
-          (p) => !Ids.includes(p._id)
+        const newInfoAlmacen = infoAlmacenados.filter(
+          (almacenado) => !Ids.includes(almacenado._id)
         );
 
-        setInfoAlmacenados(updatedInfoAlmacenados);
+        // Aquí newInfoAlmacen contendrá los objetos de infoAlmacenados que no están en res
+
+        setInfoAlmacenados(newInfoAlmacen);
+
         setInDonation(res);
         setRowSelection([]);
         setOrderSelection([]);
@@ -240,6 +255,7 @@ const Almacen = () => {
       .catch(() => {
         Notify("Error", "No se pudo enviar a donacion", "fail");
       });
+    await handleDonarAlmacenados(Ids);
   };
 
   const openConfirmacion = async () => {
@@ -269,8 +285,8 @@ const Almacen = () => {
     });
   };
 
-  const handleGetFactura = (info) => {
-    const transformData = (info) => {
+  const handleGetFactura = (infoArray) => {
+    return infoArray.map((info) => {
       const listItems = info.Items.filter(
         (item) => item.identificador !== iDelivery._id
       );
@@ -294,7 +310,6 @@ const Almacen = () => {
         FechaIngreso: info.dateRecepcion,
         FechaPrevista: info.datePrevista,
         FechaAlmacenamiento: info.dateStorage,
-        Factura: info.factura,
         CargosExtras: info.cargosExtras,
         Descuento: info.descuento,
         onWaiting: handleOnWaiting(
@@ -303,17 +318,27 @@ const Almacen = () => {
           info.dateEntrega.fecha
         ),
       };
-    };
-
-    if (Array.isArray(info)) {
-      // If info is an array, re-order and transform each object in the array
-      const reOrdenar = [...info].sort((a, b) => b.index - a.index);
-      return reOrdenar.map(transformData);
-    } else {
-      // If info is a single object, transform it and wrap in an array
-      return transformData(info);
-    }
+    });
   };
+
+  const handlePushAlmacen = (data) => {
+    const currentOrders = [...infoAlmacenados];
+    const ordersToAdd = handleGetFactura(data);
+
+    // // Filtrar currentOrders para eliminar objetos con IDs que ya están en ordersToAdd
+    // const filteredOrders = currentOrders.filter(
+    //   (order) => !ordersToAdd.some((addOrder) => addOrder.id === order.id)
+    // );
+
+    // Fusionar los arrays
+    const mergedArray = [...currentOrders, ...ordersToAdd];
+
+    // Ordenar el array resultante por el campo 'index' (si es necesario)
+    const sortedArray = mergedArray.sort((a, b) => b.index - a.index);
+
+    return sortedArray;
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -457,67 +482,37 @@ const Almacen = () => {
     handleGetAlmacenados();
   }, []);
 
-  // useEffect(() => {
-  //   // Add the event listener
-  //   socket.on('server:updateListOrder:child', (data) => {
-  //     setInfoAlmacenados((prevInfoAlmacenados) => [...prevInfoAlmacenados, ...handleGetFactura(data)]);
-  //   });
-
-  //   return () => {
-  //     // Remove the event listener when the component unmounts
-  //     socket.off('server:updateListOrder:child');
-  //   };
-  // }, []);
-
   useEffect(() => {
-    const filterById = (array, data) =>
-      array.filter((item) => data._id !== item._id);
-
-    const handleUpdate = (data) => {
-      if (data.location !== 2 || data.estadoPrenda === "anulado") {
-        const updatedInfoAlmacenados = filterById(infoAlmacenados, data);
-        const updatedRowSelection = filterById(rowSelection, data);
-        const updatedOrderSelection = filterById(orderSelection, data);
-
-        setInfoAlmacenados(updatedInfoAlmacenados);
-        setRowSelection(updatedRowSelection);
-        setOrderSelection(updatedOrderSelection);
-      } else {
-        const facturaToAdd = handleGetFactura(data);
-
-        // Check if the facturaToAdd already exists in infoAlmacenados
-        const facturaExistsIndex = infoAlmacenados.findIndex(
-          (factura) => factura._id === facturaToAdd._id
-        );
-
-        if (facturaExistsIndex !== -1) {
-          // La factura ya existe, actualízala
-          setInfoAlmacenados((prevInfoAlmacenados) => {
-            const updatedInfoAlmacenados = [...prevInfoAlmacenados];
-            updatedInfoAlmacenados[facturaExistsIndex] = facturaToAdd;
-            return updatedInfoAlmacenados;
-          });
-        } else {
-          // La factura no existe, agrégala
-          setInfoAlmacenados((prevInfoAlmacenados) => [
-            ...prevInfoAlmacenados,
-            facturaToAdd,
-          ]);
-        }
-      }
-    };
-
-    socket.on("server:orderUpdated:child", (data) => handleUpdate(data));
-
-    socket.on("server:updateListOrder:child", (data) => {
-      data.forEach((orden) => {
-        handleUpdate(orden);
-      });
+    socket.on("server:onAddOrderAlmacen", (data) => {
+      const newInfoAlmacen = handlePushAlmacen(data);
+      console.log(newInfoAlmacen);
+      setInfoAlmacenados(newInfoAlmacen);
     });
+    // REMOVER - ANULADOS Y ENTREGADOS
+    socket.on("server:onRemoveOrderReporteAE", (idOrden) => {
+      const updatedInfoAlmacenados = infoAlmacenados.filter(
+        (almacenado) => almacenado._id !== idOrden
+      );
+
+      setInfoAlmacenados(updatedInfoAlmacenados);
+      setRowSelection([]);
+      setOrderSelection([]);
+    });
+    // REMOVER - DONADOS
+    socket.on("server:onRemoveOrderReporteD", (idsDonados) => {
+      const updatedInfoAlmacenados = infoAlmacenados.filter(
+        (almacenado) => !idsDonados.includes(almacenado._id)
+      );
+
+      setInfoAlmacenados(updatedInfoAlmacenados);
+      setRowSelection([]);
+      setOrderSelection([]);
+    });
+
     return () => {
-      // Remove the event listener when the component unmounts
-      socket.off("server:orderUpdated:child");
-      socket.off("server:updateListOrder:child");
+      socket.off("server:onAddOrderAlmacen");
+      socket.off("server:onRemoveOrderReporteAE");
+      socket.off("server:onRemoveOrderReporteD");
     };
   }, [infoAlmacenados]);
 
@@ -639,7 +634,7 @@ const Almacen = () => {
           setOnDetail();
           setOnModal("");
         }}
-        size={550}
+        size="auto"
         scrollAreaComponent={ScrollArea.Autosize}
         title={
           onModal === "Donados"

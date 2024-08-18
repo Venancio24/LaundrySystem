@@ -35,6 +35,10 @@ input[type="number"] {
   right: unset;
 }
 
+.mantine-1n3zr08 {
+  justify-content: flex-start !important;
+}
+
 .mantine-a8q0fx {
   zoom: 142% !important;
 }
@@ -94,6 +98,10 @@ li {
 /* .mantine-Select-dropdown {
 } */
 
+.mantine-Paper-root::-webkit-scrollbar {
+  width: 0 !important;
+}
+
 .mantine-MultiSelect-values {
   margin: 0 !important;
 }
@@ -125,9 +133,21 @@ li {
 }
 .mantine-Modal-header {
   position: relative;
+  /* justify-content: center; */
+  width: 100%;
+  min-width: 275px;
 }
+
+.mantine-Modal-header h2 {
+  font-size: 20px !important;
+}
+
 .mantine-Modal-header button {
   position: absolute;
   right: 10px;
   top: 10px;
+}
+
+.mantine-Input-input {
+  color: #000 !important;
 }

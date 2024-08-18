@@ -11,7 +11,6 @@
     width: 100%;
     display: grid;
     gap: 10px;
-    min-width: 300px;
     padding: 20px;
     height: max-content;
     padding-top: 10px;
@@ -58,6 +57,47 @@
     .content-list-service {
       overflow: auto;
 
+      .show-dsc-m {
+        tr {
+          grid-template-columns: 100px 170px 250px 100px 40px !important;
+        }
+      }
+      .footer-dsc-m {
+        tr {
+          td {
+            text-align: right;
+            &:nth-child(1) {
+              grid-column: span 2;
+            }
+            &:nth-child(2) {
+              text-align: right;
+              font-weight: 600;
+            }
+            &:nth-child(2) {
+              grid-column: span 2;
+              text-align: right;
+            }
+          }
+        }
+      }
+      .footer-dsc-o {
+        tr {
+          td {
+            text-align: center;
+            &:nth-child(1) {
+              grid-column: span 2;
+            }
+            &:nth-child(2) {
+              text-align: right;
+              font-weight: 600;
+            }
+            &:nth-child(3) {
+              grid-column: span 2;
+              text-align: center;
+            }
+          }
+        }
+      }
       .tabla-service {
         width: 542px;
         border-collapse: collapse;
@@ -98,7 +138,7 @@
         tr {
           position: relative;
           display: grid;
-          grid-template-columns: 100px 170px 250px 100px 40px;
+          grid-template-columns: 80px 220px 100px 70px 100px 40px;
         }
         thead {
           border: 1px solid #4671ea;
@@ -113,7 +153,6 @@
             }
           }
         }
-
         tbody {
           border: solid 1px #5b81ea;
           tr {
@@ -134,8 +173,15 @@
                 width: 100%;
               }
             }
+            .cell-produc-descrip {
+              display: grid;
+              padding: 10px 0;
+              gap: 10px;
+            }
+            .space-dsc {
+              padding: 15px;
+            }
             .tADescription {
-              padding: 10px;
               .contentDes {
                 width: 100%;
                 .textarea-container {
@@ -206,17 +252,7 @@
             td {
               position: relative;
               font-size: 15px;
-              &:nth-child(1) {
-                grid-column: span 2;
-              }
-              &:nth-child(2) {
-                text-align: right;
-                font-weight: 600;
-              }
-              &:nth-child(3) {
-                grid-column: span 2;
-                text-align: center;
-              }
+
               .dsc {
                 position: absolute;
                 z-index: 1;

@@ -22,6 +22,7 @@
       max-height: 63px;
       fill: #fff;
       stroke: #fff;
+      z-index: 11;
     }
     // LOGO --------------->
   }
@@ -110,14 +111,14 @@
           left: -25px;
         }
       }
-      .content-logout {
+      .content-account {
         display: flex;
         place-content: center;
         color: #fff;
         width: 100px;
         height: 62.5px;
 
-        &:hover > .btn-logout > img {
+        &:hover > .btn-account > img {
           filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.7))
             drop-shadow(4px 8px 12px rgba(255, 255, 255, 0.5));
           transform: scale(1.1);
@@ -125,6 +126,7 @@
       }
       li {
         height: max-content;
+        max-height: 55.99px;
         a {
           display: block;
           color: #fff;
@@ -214,17 +216,19 @@
       width: 100vw;
       background: var(--primary-color);
       transition: 0.5s;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
+      z-index: 11;
       ul {
-        max-height: none;
-        height: max-content;
+        max-height: 100%;
+        height: 577px;
         display: grid;
         width: 100%;
         text-align: left;
         transition: 0.5s;
         opacity: 0;
         padding-bottom: 10px;
-        .content-logout {
+        .content-account {
           padding: 16px 30px;
           margin: 0 5px;
           display: flex;
@@ -232,10 +236,11 @@
           color: #fff;
           width: calc(100% - 10px);
           height: 62.5px;
-          justify-content: space-between;
+          gap: 15px;
+          justify-content: flex-start;
           transition: box-shadow 0.3s ease;
-          &::before {
-            content: "Cierrar Session";
+          &::after {
+            content: "Informacion de Cuenta";
           }
           &:hover {
             box-shadow: 0 0 10px 5px rgba(255, 34, 34, 0.7);
@@ -278,10 +283,18 @@
       }
     }
     .active {
-      height: max-content;
+      height: calc(100vh - 62.5px);
+      max-height: 572px;
       ul {
         opacity: 1;
       }
+    }
+  }
+}
+
+@media (min-height: 700px) {
+  .header-general {
+    .nav-bar {
     }
   }
 }

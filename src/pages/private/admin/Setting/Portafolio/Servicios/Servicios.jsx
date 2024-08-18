@@ -7,7 +7,6 @@ import { Box, Button, Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 
 import "./servicios.scss";
-import { simboloMoneda } from "../../../../../../services/global";
 import Portal from "../../../../../../components/PRIVATE/Portal/Portal";
 import Maintenance from "./accion/Maintenance";
 import { getInfoCategoria } from "../utilsPortafolio";
@@ -102,8 +101,18 @@ const Servicios = () => {
       onConfirm: () => {
         if (confirmationEnabled) {
           confirmationEnabled = false;
-          dispatch(deleteServicio(id));
-          Notify("Eliminacion Exitosa", "", "success");
+          dispatch(deleteServicio(id))
+            .unwrap()
+            .catch((error) => {
+              // Aquí manejamos el error de la eliminación
+              const { mensaje, codigos } = error;
+              if (codigos?.length > 0) {
+                setTimeout(() => {
+                  alert(`${mensaje}: ${codigos.join(", ")}`);
+                }, 1500);
+              }
+              Notify("NO SE PUDO ELIMINAR EL SERVICIO", "", "fail");
+            });
           handleCloseAction();
         }
       },
@@ -197,6 +206,19 @@ const Servicios = () => {
           )}
         </Portal>
       )}
+
+      {/* {PActions && (
+        <Portal
+          onClose={() => {
+            setPActions(false);
+          }}
+        >
+          <div className="portal-notificacion-promociones">
+            <h2>Acceso Denegado</h2>
+            <p>No tiene acceso hasta agregar almenos 1 registro de Categoria</p>
+          </div>
+        </Portal>
+      )} */}
     </div>
   );
 };

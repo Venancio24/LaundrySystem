@@ -101,7 +101,6 @@ const Maintenance = ({ info, onClose }) => {
           dispatch(
             updateServicio({ idServicio: info._id, servicioActualizado: data })
           );
-          Notify("Actualizacion Exitosa", "", "success");
           formik.resetForm();
           onClose();
         }
@@ -191,7 +190,6 @@ const Maintenance = ({ info, onClose }) => {
                 value={formik.values.categoria?.id}
                 disabled={info?.categoria?.nivel === "primario"}
                 onChange={(e) => {
-                  console.log(getInfoCategoria(iCategorias, e));
                   formik.setFieldValue("categoria", e);
                   formik.setFieldValue(
                     "categoria",
